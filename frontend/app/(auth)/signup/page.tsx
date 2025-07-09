@@ -26,6 +26,12 @@ export default function SignupPage() {
     try {
       // Handle signup logic here
       console.log("Signup data:", data)
+      const response = await fetch('http://localhost:8000/api/v1/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+      
       // Add your registration logic
     } catch (error) {
       console.error("Signup error:", error)

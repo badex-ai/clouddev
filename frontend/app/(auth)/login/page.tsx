@@ -25,6 +25,14 @@ export default function LoginPage() {
     try {
       // Handle login logic here
       console.log("Login data:", data)
+      
+    
+    // Send to your FastAPI backend
+    const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
       // Add your authentication logic
     } catch (error) {
       console.error("Login error:", error)

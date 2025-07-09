@@ -1,0 +1,5 @@
+pydantic
+auth0-python
+sqlalchemy
+python-dotenv
+psycopg2
