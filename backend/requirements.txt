@@ -1,5 +1,6 @@
 pydantic
 auth0-python
-sqlalchemy
 python-dotenv
-psycopg2
+sqlalchemy
+psycopg2-binary
+httpx

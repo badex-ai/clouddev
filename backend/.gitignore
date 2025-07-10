@@ -1,0 +1,41 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environment folders
+.venv/
+venv/
+env/
+ENV/
+
+# VS Code & PyCharm settings
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.*
+
+# mypy / Pydantic / FastAPI cache
+.mypy_cache/
+.pytest_cache/
+.dmypy.json
+.pyre/
+
+# Coverage / testing
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# Distribution / build folders
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
