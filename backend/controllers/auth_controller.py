@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from fastapi import HTTPException
 import httpx 
+from sqlalchemy.orm import Session
+from config.db import get_db
 
 load_dotenv()
 
@@ -64,6 +66,8 @@ async def signup(user_data):
                 "family_name": user_data.family_name,
                 "role": "admin" if is_first_user() else "user"
             })
+
+            
             
             return {"message": "User created successfully", "user_id": db_user.id}
         else:
