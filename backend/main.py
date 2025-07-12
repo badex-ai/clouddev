@@ -1,13 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from routes.user_route import router as user_router
-from routes.task_routes import router as task_router
+# from routes.task_routes import router as task_router
 from routes.auth_routes import router as auth_router
 from config.db import test_connection
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 
 
 app = FastAPI()
 
-test_connection()  # Test the database connection at startup
+test_connection()  
 
 @app.get("/")
 def read_root():

@@ -4,7 +4,7 @@ from sqlalchemy import String, Text, ForeignKey, DateTime, Boolean, Integer, fun
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from config import Base
 
-class task(Base):
+class Task(Base):
     __tablename__ = "posts"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

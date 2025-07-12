@@ -1,17 +1,20 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine,text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Database configuration
 class DatabaseConfig:
     # Database credentials - use environment variables for security
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
-    DB_PORT = os.getenv('DB_PORT', '5432')
-    DB_NAME = os.getenv('DB_NAME', 'your_database_name')
-    DB_USER = os.getenv('DB_USER', 'your_username')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', 'your_password')
+    DB_HOST = os.getenv('DB_HOST')
+    DB_PORT = os.getenv('DB_PORT')
+    DB_NAME = os.getenv('DB_NAME')
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
     
     # Connection pool settings
     POOL_SIZE = 10
@@ -31,6 +34,7 @@ class DatabaseConfig:
         
         return f"postgresql://{cls.DB_USER}:{encoded_password}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
 
+print("Database URL:", DatabaseConfig.get_database_url())
 # Create the SQLAlchemy engine
 engine = create_engine(
     DatabaseConfig.get_database_url(),
@@ -40,7 +44,7 @@ engine = create_engine(
     pool_pre_ping=DatabaseConfig.POOL_PRE_PING,
     echo=False  # Set to True for SQL query logging
 )
-
+print ('Engine', engine)
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -64,32 +68,12 @@ def test_connection():
     """
     try:
         with engine.connect() as connection:
-            result = connection.execute("SELECT 1")
+            result = connection.execute(text("SELECT 1"))
             print("Database connection successful!")
             return True
     except Exception as e:
         print(f"Database connection failed: {e}")
         return False
 
-# Alternative: Direct connection function
-def get_db_session():
-    """
-    Get a new database session
-    Remember to close the session after use
-    """
-    return SessionLocal()
 
-# Example usage with context manager
-class DatabaseManager:
-    @staticmethod
-    def get_session():
-        """Context manager for database sessions"""
-        session = SessionLocal()
-        try:
-            return session
-        except Exception:
-            session.rollback()
-            raise
-        finally:
-            session.close()
 
