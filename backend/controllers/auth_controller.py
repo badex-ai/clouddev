@@ -46,6 +46,8 @@ async def logout():
 
 async def signup(user_data,db: Session = Depends(get_db)):
     auth0_signup_url = f"https://{os.getenv('AUTH0_DOMAIN')}/dbconnections/signup"
+
+    print("url: auth0_signup_url",auth0_signup_url)
     
     payload = {
         "client_id": os.getenv('AUTH0_CLIENT_ID'),
@@ -74,13 +76,16 @@ async def signup(user_data,db: Session = Depends(get_db)):
         response = await client.post(auth0_signup_url, json=payload)
         if response.status_code == 200:
             auth0_user = response.json()
+
+            print("auth0_user",auth0_user)
             
             # Create user in your database
             new_user = User(
                 username=user_data.username,
                 email=user_data.email,
                 full_name=user_data.name,
-               
+                family_name=user_data.family_name,
+                role="admin" 
             )
         
         
@@ -96,25 +101,4 @@ async def signup(user_data,db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="Signup failed")
 
 
-     
-        
-        # Hash the password
-        hashed_password = hash_password(request.password)
-        
-        # Create new user instance
-        new_user = User(
-            username=request.username,
-            email=request.email,
-            full_name=request.full_name,
-            hashed_password=hashed_password,
-            role=request.role
-            # is_active, created_at, updated_at will use defaults
-        )
-        
-        # Add to database
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)  # Refresh to get the ID and timestamps
-        
-        # Convert to Pydantic model and return
-        return UserResponse.from_orm(new_user)
+

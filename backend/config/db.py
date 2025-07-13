@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 # Database configuration
@@ -44,12 +45,14 @@ engine = create_engine(
     pool_pre_ping=DatabaseConfig.POOL_PRE_PING,
     echo=False  # Set to True for SQL query logging
 )
-print ('Engine', engine)
-# Create a configured "Session" class
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Create a Base class for declarative models
 Base = declarative_base()
+
+Base.metadata.create_all(engine)
+print ('Engine', engine)
+# Create a configured "Session" class
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db():
     """

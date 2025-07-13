@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy import String, Text, ForeignKey, DateTime, Boolean, Integer, func
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
-from config import Base
+from config.db import Base
 from models.user import User
 from enum import Enum
 from sqlalchemy import Enum as SQLEnum
