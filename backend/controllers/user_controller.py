@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Depends
 import httpx 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from models.user import User
 from config.db import get_db
 from schemas.schemas import (
@@ -12,30 +13,50 @@ from schemas.schemas import (
 
 load_dotenv()
 
+async def get_management_api_token():
+    auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
+    
+    payload = {
+        "client_id": os.getenv('AUTH0_M2M_CLIENT_ID'),       # ✅ Used here
+        "client_secret": os.getenv('AUTH0_M2M_CLIENT_SECRET'), # ✅ Used here
+        "audience": f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/",
+        "grant_type": "client_credentials"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(auth0_token_url, json=payload)
+        return response.json()["access_token"]
+
+
 async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> UserResponse:
     try:
 
-
-        auth0_signup_url = f"https://{os.getenv('AUTH0_DOMAIN')}/dbconnections/signup"
+        m2m_token = await get_management_api_token()
     
+        # Create user via Management API
+        management_api_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/users"
+        
         payload = {
-            "client_id": os.getenv('AUTH0_CLIENT_ID'),          # ✅ Used here
-            "connection": "Username-Password-Authentication",
             "email": request.email,
-            "password": request.password,
-            "user_metadata": {
-                "name": request.name,
-                "family_name": request.family_name
-            }
+            "name": request.name,
+            "family_name": request.family_name,
+            "connection": "Username-Password-Authentication",
+            "email_verified": False,
+            "verify_email": True  # This sends the email invitation
         }
-
+        
+        headers = {
+            "Authorization": f"Bearer {m2m_token}",
+            "Content-Type": "application/json"
+        }
+        
         async with httpx.AsyncClient() as client:
-            result = await client.post(auth0_signup_url, json=payload)
-
-        if result.status_code == 200:
-            # User created in Auth0, now create in your database
-            # Mark as superuser if first user
-            pass
+            response = await client.post(management_api_url, json=payload, headers=headers)
+            
+            if response.status_code == 201:
+                # User created in Auth0, now create in your database
+                # User will receive email to set password
+                pass
 
 
 
@@ -52,14 +73,14 @@ async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> Use
             )
         
         # Hash the password
-        hashed_password = hash_password(request.password)
+        # hashed_password = hash_password(request.password)
         
         # Create new user instance
         new_user = User(
             username=request.username,
             email=request.email,
             full_name=request.full_name,
-            hashed_password=hashed_password,
+            # hashed_password=hashed_password,
             role=request.role
             # is_active, created_at, updated_at will use defaults
         )
@@ -68,9 +89,9 @@ async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> Use
         db.add(new_user)
         db.commit()
         db.refresh(new_user)  # Refresh to get the ID and timestamps
-        
         # Convert to Pydantic model and return
-        return UserResponse.from_orm(new_user)
+        return UserResponse.model_validate(new_user)
+       
     except IntegrityError:
         db.rollback()
         raise HTTPException(

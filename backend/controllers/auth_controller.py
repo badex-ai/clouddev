@@ -80,8 +80,7 @@ async def signup(user_data,db: Session = Depends(get_db)):
                 username=user_data.username,
                 email=user_data.email,
                 full_name=user_data.name,
-                hashed_password=hashed_password,
-                role="admin" if is_first_user() else "user"
+               
             )
         
         
