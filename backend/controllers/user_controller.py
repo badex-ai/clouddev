@@ -17,8 +17,8 @@ async def get_management_api_token():
     auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
     
     payload = {
-        "client_id": os.getenv('AUTH0_M2M_CLIENT_ID'),       # ✅ Used here
-        "client_secret": os.getenv('AUTH0_M2M_CLIENT_SECRET'), # ✅ Used here
+        "client_id": os.getenv('AUTH0_M2M_CLIENT_ID'),       
+        "client_secret": os.getenv('AUTH0_M2M_CLIENT_SECRET'),
         "audience": f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/",
         "grant_type": "client_credentials"
     }
@@ -103,5 +103,5 @@ async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> Use
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
 
-async def create_member(request: UserCreate, db: Session = Depends(get_db)) -> UserResponse:
+
 
