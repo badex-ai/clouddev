@@ -60,7 +60,8 @@ class SignupRequest(BaseModel):
     email: EmailStr
     password: str
     name: str
-    confirm_password: Optional[str] = None
+    family_name: str
+    
 
 class LogoutRequest(BaseModel):
     token: Optional[str] = None

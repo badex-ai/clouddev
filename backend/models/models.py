@@ -4,7 +4,6 @@ from sqlalchemy import String, Text, ForeignKey, DateTime, Boolean, Integer, fun
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from config.db import Base
-from models.user import User
 from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
@@ -15,6 +14,7 @@ class TaskStatus(Enum):
 
         def __str__(self):
             return self.value
+
 class Task(Base):
     __tablename__ = "tasks"
     
@@ -25,7 +25,6 @@ class Task(Base):
     assignee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     
-
     status: Mapped[TaskStatus] = mapped_column(
         SQLEnum(TaskStatus, name="task_status"), 
         default=TaskStatus.PENDING, 
@@ -35,10 +34,9 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     
-    # Relationships
+    # Relationships - using string references instead of importing User
     creator: Mapped["User"] = relationship("User", foreign_keys=[creator_id], back_populates="created_tasks")
     assignee: Mapped["User"] = relationship("User", foreign_keys=[assignee_id], back_populates="assigned_tasks")
-
 
     # SQLAlchemy validation - runs before database operations
     @validates('checklist')
@@ -127,3 +125,21 @@ class Task(Base):
             raise ValueError(f"Item with ID '{item_id}' not found")
         
         self.checklist = {"items": items}
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    family_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    role: Mapped[str] = mapped_column(String(50), default="user")  # 'admin' or 'member'
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    created_tasks: Mapped[List["Task"]] = relationship("Task", foreign_keys="Task.creator_id", back_populates="creator")
+    assigned_tasks: Mapped[List["Task"]] = relationship("Task", foreign_keys="Task.assignee_id", back_populates="assignee")
+    

@@ -14,10 +14,10 @@ app = FastAPI()
 
 test_connection()  
 
-@app.get("/")
+@app.get("/api")
 def read_root():
     return {"message": "Welcome to the FastAPI application!"}
 
-app.include_router(auth_router, prefix="/auth", tags=["authentication"])
+app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 
-app.include_router(user_router, prefix="/users")
+app.include_router(user_router, prefix="/api/users", tags=["users"])

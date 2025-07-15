@@ -3,22 +3,23 @@ from dotenv import load_dotenv
 from fastapi import HTTPException,Depends
 import httpx 
 from sqlalchemy.orm import Session
-from config.db import get_db
-from models.user import User
+from config.db import SessionLocal 
+from models.models import User
 
 
 load_dotenv()
 
-async def login(credentials):
+async def login(req):
     auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
+    
     
 
     print("i am in the auth login spot")
     
     payload = {
         "grant_type": "password",
-        "username": credentials.email,
-        "password": credentials.password,
+        "username": req.email,
+        "password": req.password,
         "client_id": os.getenv('AUTH0_CLIENT_ID'),
         "client_secret": os.getenv('AUTH0_CLIENT_SECRET'),
         "audience": os.getenv('AUTH0_API_AUDIENCE'),
@@ -44,7 +45,9 @@ async def login(credentials):
 async def logout():
     return {"message": "Logout successful"}
 
-async def signup(user_data,db: Session = Depends(get_db)):
+async def signup(req):
+
+    db = SessionLocal()
     auth0_signup_url = f"https://{os.getenv('AUTH0_DOMAIN')}/dbconnections/signup"
 
     print("url: auth0_signup_url",auth0_signup_url)
@@ -52,16 +55,16 @@ async def signup(user_data,db: Session = Depends(get_db)):
     payload = {
         "client_id": os.getenv('AUTH0_CLIENT_ID'),
         "connection": "Username-Password-Authentication",
-        "email": user_data.email,
-        "password": user_data.password,
+        "email": req.email,
+        "password": req.password,
         "user_metadata": {
-            "name": user_data.name,
-            "family_name": user_data.family_name
+            "name": req.name,
+            "family_name": req.family_name
         }
     }
 
     existing_user = db.query(User).filter(
-            (user_data.email == user_data.email) | (user_data.username == user_data.username)
+            (req.email == User.email) | (req.name == User.name)
         ).first()
         
     if existing_user:
@@ -81,10 +84,10 @@ async def signup(user_data,db: Session = Depends(get_db)):
             
             # Create user in your database
             new_user = User(
-                username=user_data.username,
-                email=user_data.email,
-                full_name=user_data.name,
-                family_name=user_data.family_name,
+                username=req.name,
+                email=req.email,
+                full_name=req.name,
+                family_name=req.family_name,
                 role="admin" 
             )
         
@@ -94,9 +97,9 @@ async def signup(user_data,db: Session = Depends(get_db)):
             db.commit()
             db.refresh(new_user) 
 
-            
-            
-            return {"message": "User created successfully", "user_id": db_user.id}
+
+
+            return {"message": "User created successfully", "user_id": new_user.id}
         else:
             raise HTTPException(status_code=400, detail="Signup failed")
 
