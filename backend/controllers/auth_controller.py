@@ -27,8 +27,11 @@ async def login(req):
     }
     
     async with httpx.AsyncClient() as client:
-        response = await client.post(auth0_token_url, json=payload)
-        
+        try:
+            response = await client.post(auth0_token_url, json=payload)
+        except httpx.HTTPStatusError as e:
+            print("Error during login:", e)
+            raise HTTPException(status_code=401, detail=f"Login failed: {str(e)}")      
         if response.status_code == 200:
             tokens = response.json()
             return {
@@ -73,20 +76,28 @@ async def signup(req):
             detail="User with this email or username already exists"
         )
 
+    print('here')
     
-
+    
     async with httpx.AsyncClient() as client:
-        response = await client.post(auth0_signup_url, json=payload)
+        try:
+            response = await client.post(auth0_signup_url, json=payload)
+        except httpx.HTTPStatusError as e:
+            print("Error during signup:", e)
+            raise HTTPException(status_code=400, detail=f"Signup failed: {str(e)}")
+        
         if response.status_code == 200:
             auth0_user = response.json()
 
             print("auth0_user",auth0_user)
             
             # Create user in your database
+
+            
             new_user = User(
                 username=req.name,
                 email=req.email,
-                full_name=req.name,
+                name=req.name,
                 family_name=req.family_name,
                 role="admin" 
             )
@@ -101,7 +112,10 @@ async def signup(req):
 
             return {"message": "User created successfully", "user_id": new_user.id}
         else:
-            raise HTTPException(status_code=400, detail="Signup failed")
+            print("Auth0 signup failed. Status code:", response.status_code)
+            print("Auth0 response content:", response.text)
+            raise HTTPException(status_code=400, detail=f"Signup failed: {response.text}")
+   
 
 
 

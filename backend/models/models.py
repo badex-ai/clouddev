@@ -135,7 +135,7 @@ class User(Base):
     name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     family_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    role: Mapped[str] = mapped_column(String(50), default="user")  # 'admin' or 'member'
+    role: Mapped[str] = mapped_column(String(50), default="member")  # 'admin' or 'member'
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     
