@@ -1,18 +1,30 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { auth0 } from "@/lib/auth0";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
 
+  const session = await auth0.getSession();
     const handleLogout = () => {
-        // Implement logout logic here
-        console.log("User logged out");
+      window.location.href = "/login"; // Redirect to the login page
     };
+
+     if (!session) {
+    return (
+      <main>
+        <a href="/auth/login">Log in</a>
+      </main>
+    );
+  }
+  
   return (
+
+
     <div>
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
             <div className="text-2xl font-bold text-indigo-600">Kaban</div>

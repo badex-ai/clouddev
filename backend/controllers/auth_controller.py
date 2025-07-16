@@ -9,41 +9,41 @@ from models.models import User
 
 load_dotenv()
 
-async def login(req):
-    auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
+# async def login(req):
+#     auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
     
     
 
-    print("i am in the auth login spot")
+#     print("i am in the auth login spot")
     
-    payload = {
-        "grant_type": "password",
-        "username": req.email,
-        "password": req.password,
-        "client_id": os.getenv('AUTH0_CLIENT_ID'),
-        "client_secret": os.getenv('AUTH0_CLIENT_SECRET'),
-        "audience": os.getenv('AUTH0_API_AUDIENCE'),
-        "scope": "openid profile email"
-    }
+#     payload = {
+#         "grant_type": "password",
+#         "username": req.email,
+#         "password": req.password,
+#         "client_id": os.getenv('AUTH0_CLIENT_ID'),
+#         "client_secret": os.getenv('AUTH0_CLIENT_SECRET'),
+#         "audience": os.getenv('AUTH0_API_AUDIENCE'),
+#         "scope": "openid profile email"
+#     }
     
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(auth0_token_url, json=payload)
-        except httpx.HTTPStatusError as e:
-            print("Error during login:", e)
-            raise HTTPException(status_code=401, detail=f"Login failed: {str(e)}")      
-        if response.status_code == 200:
-            tokens = response.json()
-            return {
-                "access_token": tokens["access_token"],
-                "id_token": tokens["id_token"],
-                "token_type": tokens["token_type"],
-                "expires_in": tokens["expires_in"]
-            }
-        else:
-            raise HTTPException(status_code=401, detail="Login failed")
+#     async with httpx.AsyncClient() as client:
+#         try:
+#             response = await client.post(auth0_token_url, json=payload)
+#         except httpx.HTTPStatusError as e:
+#             print("Error during login:", e)
+#             raise HTTPException(status_code=401, detail=f"Login failed: {str(e)}")      
+#         if response.status_code == 200:
+#             tokens = response.json()
+#             return {
+#                 "access_token": tokens["access_token"],
+#                 "id_token": tokens["id_token"],
+#                 "token_type": tokens["token_type"],
+#                 "expires_in": tokens["expires_in"]
+#             }
+#         else:
+#             raise HTTPException(status_code=401, detail="Login failed")
     
-    return {"message": "Login successful"}
+#     return {"message": "Login successful"}
 
 async def logout():
     return {"message": "Logout successful"}
