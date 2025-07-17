@@ -23,10 +23,11 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
+    console.log(`${process.env.API}`)
     try {
       // Handle signup logic here
       console.log("Signup data:", data)
-      const response = await fetch('http://localhost:8000/api/v1/auth/signup', {
+      const response = await fetch(`http://localhost:8000/api/v1/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -63,25 +64,38 @@ export default function SignupPage() {
                   id="fullName"
                   type="text"
                   placeholder="Enter your full name"
-                  {...register("fullName")}
-                  className={errors.fullName ? "border-red-500" : ""}
+                  {...register("name")}
+                  className={errors.name ? "border-red-500" : ""}
                 />
-                {errors.fullName && (
-                  <p className="text-sm text-red-600">{errors.fullName.message}</p>
+                {errors.name && (
+                  <p className="text-sm text-red-600">{errors.name.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="organisation">Organisation</Label>
+                <Label htmlFor="family">Family Name</Label>
                 <Input
-                  id="organisation"
+                  id="family"
                   type="text"
-                  placeholder="Enter your organisation"
-                  {...register("organisation")}
-                  className={errors.organisation ? "border-red-500" : ""}
+                  placeholder="Enter your family name"
+                  {...register("family_name")}
+                  className={errors.family_name? "border-red-500" : ""}
                 />
-                {errors.organisation && (
-                  <p className="text-sm text-red-600">{errors.organisation.message}</p>
+                {errors.family_name && (
+                  <p className="text-sm text-red-600">{errors.family_name.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  {...register("email")}
+                  className={errors.email ? "border-red-500" : ""}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email.message}</p>
                 )}
               </div>
 

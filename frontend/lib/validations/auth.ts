@@ -6,8 +6,9 @@ export const loginSchema = z.object({
 })
 
 export const signupSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  organisation: z.string().min(1, "Organisation is required"),
+  name: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  family_name: z.string().min(1, "family name is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Please confirm your password"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -15,5 +16,5 @@ export const signupSchema = z.object({
   path: ["confirmPassword"],
 })
 
-export type LoginFormData = z.infer<typeof loginSchema>
+// export type LoginFormData = z.infer<typeof loginSchema>
 export type SignupFormData = z.infer<typeof signupSchema>

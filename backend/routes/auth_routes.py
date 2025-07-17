@@ -1,11 +1,11 @@
 from fastapi import APIRouter
-from controllers.auth_controller import login, signup, logout
+from controllers.auth_controller import  signup, logout
 from schemas.schemas import LoginRequest, SignupRequest, LogoutRequest
 
 router = APIRouter()
-@router.post("/login")
-async def login_route(req: LoginRequest):
-    return  await login(req)
+# @router.post("/login")
+# async def login_route(req: LoginRequest):
+#     return  await login(req)
 
 
 @router.post("/signup")
