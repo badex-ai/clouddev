@@ -4,7 +4,7 @@ from fastapi import HTTPException, Depends
 import httpx 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from models.user import User
+from models.models import User
 from config.db import get_db
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate,

@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone 
 from typing import Optional, List, Dict, Any
-from sqlalchemy import String, Text, ForeignKey, DateTime, Boolean, Integer, func
+from sqlalchemy import String, Text, ForeignKey, DateTime, Boolean, Integer, func, CheckConstraint
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from config.db import Base
@@ -12,8 +12,16 @@ class TaskStatus(Enum):
         IN_PROGRESS = "in-progress"
         COMPLETED = "completed"
 
-        def __str__(self):
-            return self.value
+        # def __str__(self):
+        #     return self.value
+
+class UserRole(Enum):
+    ADMIN = "admin"
+    MEMBER = "member"
+
+def utc_now() -> datetime:
+    """Return timezone-aware datetime in UTC"""
+    return datetime.now(timezone.utc)
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -23,7 +31,8 @@ class Task(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     assignee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    family_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
+    due_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     
     status: Mapped[TaskStatus] = mapped_column(
         SQLEnum(TaskStatus, name="task_status"), 
@@ -31,12 +40,18 @@ class Task(Base):
         nullable=False
     )
     checklist: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
     
     # Relationships - using string references instead of importing User
     creator: Mapped["User"] = relationship("User", foreign_keys=[creator_id], back_populates="created_tasks")
     assignee: Mapped["User"] = relationship("User", foreign_keys=[assignee_id], back_populates="assigned_tasks")
+    family: Mapped[Optional["Family"]] = relationship("Family", back_populates="tasks")
+
+    __table_args__ = (
+        CheckConstraint('creator_id != assignee_id', name='creator_assignee_different'),
+        CheckConstraint('due_date > created_at', name='due_date_after_creation'),
+    )
 
     # SQLAlchemy validation - runs before database operations
     @validates('checklist')
@@ -123,9 +138,8 @@ class Task(Base):
         
         if len(items) == original_length:
             raise ValueError(f"Item with ID '{item_id}' not found")
+        self.checklist = {"items": items} 
         
-        self.checklist = {"items": items}
-
 class User(Base):
     __tablename__ = "users"
     
@@ -133,13 +147,26 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
     name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    family_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    family_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    role: Mapped[str] = mapped_column(String(50), default="member")  # 'admin' or 'member'
+    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), default=UserRole.MEMBER)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     
     # Relationships
-    created_tasks: Mapped[List["Task"]] = relationship("Task", foreign_keys="Task.creator_id", back_populates="creator")
-    assigned_tasks: Mapped[List["Task"]] = relationship("Task", foreign_keys="Task.assignee_id", back_populates="assignee")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+    family: Mapped[Optional["Family"]] = relationship("Family", back_populates="users")
+  
+# Family model
+class Family(Base):
+    __tablename__ = "families"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+
+    users: Mapped[List["User"]] = relationship("User", back_populates="family")
+  
     

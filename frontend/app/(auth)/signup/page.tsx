@@ -24,22 +24,26 @@ export default function SignupPage() {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
     console.log(`${process.env.API}`)
+    let response: Response | undefined
     try {
       // Handle signup logic here
       console.log("Signup data:", data)
-      const response = await fetch(`http://localhost:8000/api/v1/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-      
+      response = await fetch(`http://localhost:8000/api/v1/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    
       // Add your registration logic
     } catch (error) {
-      console.error("Signup error:", error)
+    console.error("Signup error:", error)
     } finally {
       setIsLoading(false)
+      if (response && response.status === 200) {
+        window.location.href = "/verify"; 
+      }
     }
-  }
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
