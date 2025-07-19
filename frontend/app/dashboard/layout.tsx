@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { auth0 } from "@/lib/auth0";
 import Link from "next/link";
+import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({
   children,
@@ -12,12 +13,8 @@ export default async function DashboardLayout({
 
   const session = await auth0.getSession();
   
-    const handleLogout = () => {
-      window.location.href = "/logout"; // Redirect to the logout page
-    };
-
-     if (!session) {
-    window.location.href = "/login";
+  if (!session) {
+    redirect('/auth/login');
   }
   
   return (

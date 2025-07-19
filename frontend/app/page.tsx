@@ -12,9 +12,13 @@ export default function LandingPage() {
           <a href="#about" className="hover:text-indigo-600 transition-colors">
             About
           </a>
+          <a href="/auth/login?returnTo=/dashboard" className="hover:text-indigo-600 transition-colors">
+            Login
+          </a>
           <a href="signup" className="hover:text-indigo-600 transition-colors">
             Sign Up
           </a>
+           
           <a
             href="https://github.com/your-github-project-link"
             target="_blank"
