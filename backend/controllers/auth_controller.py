@@ -4,7 +4,7 @@ from fastapi import HTTPException,Depends
 import httpx 
 from sqlalchemy.orm import Session
 from config.db import SessionLocal 
-from models.models import User,Family
+from models.models import User,Family,UserRole
 
 
 load_dotenv()
@@ -70,9 +70,9 @@ async def signup(req):
             username=req.name,
             email=req.email,
             name=req.name,
-            family_name=req.family_name,
-            role="admin",
-            family=new_family  # Associate user with family via relationship
+            family_id=new_family.id,
+            role=UserRole.ADMIN,
+           
             )
 
             db.add(new_user)

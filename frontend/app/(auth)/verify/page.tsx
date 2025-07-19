@@ -12,4 +12,4 @@ function VerifyEmailPage() {
   )
 }
 
-export default VerifyEmailPage() 
+export default VerifyEmailPage

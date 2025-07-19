@@ -156,7 +156,17 @@ class User(Base):
     # Relationships
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
+    created_tasks: Mapped[Optional[List["Task"]]] = relationship(
+    "Task",
+    back_populates="creator",
+    foreign_keys="Task.creator_id"
+)
     family: Mapped[Optional["Family"]] = relationship("Family", back_populates="users")
+    assigned_tasks: Mapped[Optional[List["Task"]]] = relationship(
+        "Task",
+        back_populates="assignee",
+        foreign_keys="Task.assignee_id"
+    )
   
 # Family model
 class Family(Base):
@@ -168,5 +178,6 @@ class Family(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     users: Mapped[List["User"]] = relationship("User", back_populates="family")
+    tasks: Mapped[List["Task"]] = relationship("Task", back_populates="family")  
   
     
