@@ -61,6 +61,9 @@ class SignupRequest(BaseModel):
     password: str
     name: str
     family_name: str
+
+class EmailVerificationRequest(BaseModel):
+    user_id: str
     
 
 class LogoutRequest(BaseModel):
