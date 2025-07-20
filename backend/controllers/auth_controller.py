@@ -87,6 +87,35 @@ async def signup(req):
             print("Auth0 response content:", response.text)
             raise HTTPException(status_code=400, detail=f"Signup failed: {response.text}")
    
+async def sendVerificationEmail(req):
+    """Send verification email to the user"""
 
+
+    auth0_verification_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/jobs/verification-email"
+
+    payload = {
+        "client_id": os.getenv('AUTH0_CLIENT_ID'),
+        "connection": "Username-Password-Authentication",
+        "user_id": req.user_id,
+        
+    }
+
+    headers = {
+
+            "Content-Type": "application/json"
+        }
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(auth0_verification_url, json=payload)
+        except httpx.HTTPStatusError as e:
+            print("Error during signup:", e)
+            raise HTTPException(status_code=400, detail=f"Verification email failed: {str(e)}")
+
+
+    
+    
+    
+    return {"message": "Verification email sent successfully"}
 
 
