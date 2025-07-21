@@ -21,4 +21,18 @@ interface AddTaskModalProps {
   initialStatus: string;
 }
 
-export type { Task, DraggableTaskProps, AddTaskModalProps };
+interface UserProfile {
+    sub: string;
+    name?: string;
+    nickname?: string;
+    given_name?: string;
+    family_name?: string;
+    picture?: string;
+    email?: string;
+    email_verified?: boolean;
+    org_id?: string;
+    [key: string]: any;
+}
+
+
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile };
