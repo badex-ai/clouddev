@@ -3,18 +3,40 @@
 import { Button } from "@/components/ui/button";
 import { auth0 } from "@/lib/auth0";
 import Link from "next/link";
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+// import { useUser } from "@auth0/nextjs-auth0";
+import { useEffect } from "react";
+import { useAuthUser } from '@/contexts/userContext';
 
-export default async function DashboardLayout({
+
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { user, isLoading } = useAuthUser();
+  // const session = await auth0.getSession();
 
-  const session = await auth0.getSession();
-  
-  if (!session) {
-    redirect('/auth/login');
+
+  const router = useRouter();
+
+  useEffect(() => {
+  console.log('this is the user:', user);
+
+    if (!isLoading && !user) {
+      console.log("User not found, redirecting to login");
+      router.push('/auth/login');
+    }
+  }, [user, isLoading, router]);
+
+  console.log("User:", user);
+
+   if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+   if (!user) {
+    return null; // avoid rendering the layout until redirect happens
   }
   
   return (
