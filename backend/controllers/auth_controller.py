@@ -86,7 +86,23 @@ async def signup(req):
             print("Auth0 signup failed. Status code:", response.status_code)
             print("Auth0 response content:", response.text)
             raise HTTPException(status_code=400, detail=f"Signup failed: {response.text}")
-   
+
+async def get_management_api_token():
+    token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
+    token_payload = {
+        "client_id": os.getenv('AUTH0_M2M_CLIENT_ID'),
+        "client_secret": os.getenv('AUTH0_M2M_CLIENT_SECRET'),
+        "audience": f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/",
+        "grant_type": "client_credentials"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(token_url, json=token_payload)
+        response.raise_for_status()
+        return response.json()["access_token"]
+
+
+
 async def sendVerificationEmail(req):
     """Send verification email to the user"""
 
@@ -94,28 +110,37 @@ async def sendVerificationEmail(req):
     auth0_verification_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/jobs/verification-email"
 
     payload = {
-        "client_id": os.getenv('AUTH0_CLIENT_ID'),
-        "connection": "Username-Password-Authentication",
+        "client_id": os.getenv('AUTH0_CLIENT_ID'), 
+        # "connection": "Username-Password-Authentication",
         "user_id": req.user_id,
         
     }
 
-    headers = {
+    
 
-            "Content-Type": "application/json"
-        }
+    print("the email verified", req)
+
+    management_token = await get_management_api_token()
+
+    print("Management API token:", management_token)
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {management_token}"
+    }
 
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(auth0_verification_url, json=payload)
+            response = await client.post(auth0_verification_url, json=payload,headers=headers)
         except httpx.HTTPStatusError as e:
             print("Error during signup:", e)
             raise HTTPException(status_code=400, detail=f"Verification email failed: {str(e)}")
 
 
     
-    
-    
+    print("Response status code:", response.status_code)
+    print("Response content:", response.text)
+
     return {"message": "Verification email sent successfully"}
 
 
