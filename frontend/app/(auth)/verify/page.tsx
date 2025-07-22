@@ -21,11 +21,12 @@ function VerifyEmailPage() {
     });
     if (response.ok) {
       toast("Email Verification Sent");
+      setisLoading(false);
     } else {
       toast("Something went wrong, please try again later");
+      setisLoading(false);
     }
     console.log('verification clicked');
-    setisLoading(false);
   }
 
   return (
