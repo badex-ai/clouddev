@@ -1,11 +1,17 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Body, Request,Depends
+from config.db import get_db
 from sqlalchemy.orm import Session
-# from controllers.user_controller import get_user_by_id
+from controllers.auth_controller import  signup, logout,sendVerificationEmail
+from schemas.schemas import SignupRequest, LogoutRequest,EmailVerificationRequest,UserRequest
+from controllers.user_controller import get_user
+
 
 
 router = APIRouter()
 
-# @router.get("/users/{user_id}")
-# def read_user(user_id: int, db: Session = Depends(get_db)):
-#     user = db.query(User).filter(User.id == user_id).first()
-#     return user
+@router.post("/me")
+async def get_user_route(req: UserRequest = Body(...), db: Session = Depends(get_db)):
+   print("Request received in get_user_route:", req)
+   return await get_user(req,db)
+
+

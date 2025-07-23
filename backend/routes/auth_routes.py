@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter,Body, Request,Depends
 from controllers.auth_controller import  signup, logout,sendVerificationEmail
 from schemas.schemas import SignupRequest, LogoutRequest,EmailVerificationRequest
+
 
 router = APIRouter()
 

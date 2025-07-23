@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException,Request
 from routes.user_route import router as user_router
 # from routes.task_routes import router as task_router
 from routes.auth_routes import router as auth_router
@@ -26,6 +26,8 @@ app.add_middleware(
 @app.get("/api/v1/")
 def read_root():
     return {"message": "Welcome to the FastAPI application!"}
+
+
 
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 

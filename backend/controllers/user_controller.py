@@ -1,13 +1,13 @@
 import os
 from dotenv import load_dotenv
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, Request
 import httpx 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from models.models import User
 from config.db import get_db
 from schemas.schemas import (
-    UserCreate, UserResponse, UserUpdate,
+    UserCreate, UserResponse, UserUpdate, UserRequest,
     TaskCreate, TaskResponse, TaskUpdate
 )
 
@@ -101,6 +101,17 @@ async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> Use
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+
+async def get_user(req:UserRequest, db) -> UserResponse:
+    
+    print('request', req)
+    # email = await req.json()
+    user = db.query(User).filter(User.email == req.user_email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return UserResponse.model_validate(user)
 
 
 

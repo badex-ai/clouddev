@@ -12,6 +12,9 @@ function VerifyEmailPage() {
   console.log("User:", user);
   const [isLoading, setisLoading] = useState(false)
 
+  function disableBtn(){
+    
+  }
   async function handleResendVerificationEmail(id: string) {
     setisLoading(true);
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/emailVerification`, {

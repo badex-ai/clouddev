@@ -34,5 +34,15 @@ interface UserProfile {
     [key: string]: any;
 }
 
+  interface ExtendedUserProfile extends UserProfile {
+  // Add your API-specific user fields here
+  id?: string;
+  fullName?: string;
+  preferences?: any;
+  role?: string;
+  // ... other fields from your API
+}
 
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile };
+
+
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile };
