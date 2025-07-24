@@ -8,7 +8,7 @@ from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
 class TaskStatus(Enum):
-        PENDING = "pending"
+        INITIALIZED= "initialized"
         IN_PROGRESS = "in-progress"
         COMPLETED = "completed"
 
@@ -36,7 +36,7 @@ class Task(Base):
     
     status: Mapped[TaskStatus] = mapped_column(
         SQLEnum(TaskStatus, name="task_status"), 
-        default=TaskStatus.PENDING, 
+        default=TaskStatus.INITIALIZED, 
         nullable=False
     )
     checklist: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
