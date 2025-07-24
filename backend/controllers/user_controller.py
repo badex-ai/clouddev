@@ -5,13 +5,14 @@ import httpx
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from models.models import User
-from config.db import get_db
+from config.db import SessionLocal 
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate, UserRequest,
     TaskCreate, TaskResponse, TaskUpdate
 )
 
 load_dotenv()
+db = SessionLocal()
 
 async def get_management_api_token():
     auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
@@ -28,7 +29,7 @@ async def get_management_api_token():
         return response.json()["access_token"]
 
 
-async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> UserResponse:
+async def create_user(request: UserCreate) -> UserResponse:
     try:
 
         m2m_token = await get_management_api_token()
@@ -101,17 +102,24 @@ async def create_user(request: UserCreate, db: Session = Depends(get_db)) -> Use
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
+    finally:
+        db.close()
 
-async def get_user(req:UserRequest, db) -> UserResponse:
+async def get_user(req:UserRequest) -> UserResponse:
     
     print('request', req)
     # email = await req.json()
-    user = db.query(User).filter(User.email == req.user_email).first()
+    try:
+        user = db.query(User).filter(User.email == req.user_email).first()
     
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return UserResponse.model_validate(user)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return UserResponse.model_validate(user)
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
+    finally: 
+        db.close
 
 
 

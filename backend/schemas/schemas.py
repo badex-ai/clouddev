@@ -38,6 +38,9 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     pass
 
+class GetTasks(TaskBase):
+    family: str   
+    created_at: datetime
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
@@ -69,6 +72,10 @@ class EmailVerificationRequest(BaseModel):
     user_id: str
     
 
-class LogoutRequest(BaseModel):
-    token: Optional[str] = None
-#
+class ChecklistItem(BaseModel):
+    id: int
+    title: str
+    completed: bool = False
+
+
+    

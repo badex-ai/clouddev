@@ -7,13 +7,9 @@ router = APIRouter()
 
 
 @router.post("/signup")
-async def signup_route(req: SignupRequest):
+async def signup_route(req: SignupRequest= Body(...)):
     return await signup(req)
 
 @router.post("/emailVerification")
-async def email_verification_route(req: EmailVerificationRequest):
+async def email_verification_route(req: EmailVerificationRequest= Body(...)):
     return await sendVerificationEmail(req)
-
-@router.post("/logout")
-async def logout_route(req: LogoutRequest):
-    return await logout(req)

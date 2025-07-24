@@ -24,7 +24,7 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
-    console.log(`${process.env.API}`)
+    
     let response: Response | undefined
     try {
       // Handle signup logic here

@@ -10,8 +10,8 @@ from controllers.user_controller import get_user
 router = APIRouter()
 
 @router.post("/me")
-async def get_user_route(req: UserRequest = Body(...), db: Session = Depends(get_db)):
+async def get_user_route(req: UserRequest = Body(...)):
    print("Request received in get_user_route:", req)
-   return await get_user(req,db)
+   return await get_user(req)
 
 
