@@ -2,9 +2,9 @@ import os
 from dotenv import load_dotenv
 from fastapi import HTTPException, Depends, Request
 import httpx 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 from sqlalchemy.exc import IntegrityError
-from models.models import User
+from models.models import User, Family
 from config.db import SessionLocal 
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate, UserRequest,
@@ -108,9 +108,12 @@ async def create_user(request: UserCreate) -> UserResponse:
 async def get_user(req:UserRequest) -> UserResponse:
     
     print('request', req)
-    # email = await req.json()
+    
     try:
-        user = db.query(User).filter(User.email == req.user_email).first()
+        user = db.query(User).options(joinedload(User.family)).filter(User.email == req.user_email).first()
+        
+        print(f"User Email: {user.email}")
+        print(f"Family Name: {user.family.name if user.family else 'No family'}")
     
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -118,6 +121,22 @@ async def get_user(req:UserRequest) -> UserResponse:
         return UserResponse.model_validate(user)
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
+    finally: 
+        db.close
+
+async def get_family_member(req)-> FamilyResponse:
+    try:
+        user = db.query(Family).options(joinedload(Family.Users)).filter(Family.name == req.family_name).first()
+        
+        print(f"User Email: {user.email}")
+        print(f"Family Name: {user.family.name if user.family else 'No family'}")
+    
+        if not user:
+            raise HTTPException(status_code=404, detail="family not found")
+        
+        return UserResponse.model_validate(user)
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=f"Error getting family: {str(e)}")
     finally: 
         db.close
 

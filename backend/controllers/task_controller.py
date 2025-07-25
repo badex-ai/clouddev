@@ -4,7 +4,7 @@ from fastapi import HTTPException, Depends
 import httpx 
 from sqlalchemy.orm import Session
 from config.db import SessionLocal 
-from backend.models.models import Task
+from models.models import Task
 from config.db import get_db
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate,

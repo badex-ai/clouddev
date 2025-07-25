@@ -6,12 +6,12 @@ from schemas.schemas import TaskUpdate,TaskCreate, ChecklistItem, GetTasks, Task
 router = APIRouter()
 
 
-@router.get()
+@router.get("/")
 async def get_tasks(req: GetTasks= Body(...)):
     await get_tasks(req)
 
 
-@router.post()
+@router.post("/checklist")
 async def add_checklist_item(req: ChecklistItem= Body(...)):
     await add_checklist_item(req)
 
@@ -19,10 +19,10 @@ async def add_checklist_item(req: ChecklistItem= Body(...)):
 
 # admin middleware here
 
-@router.post()
+@router.post("/")
 async def create_task(req: TaskCreate= Body(...)):
     await create_task(req)
 
-@router.post()
+@router.post("/delete")
 async def delete_task(req: TaskRequest= Body(...)):
     await delete_task(req)

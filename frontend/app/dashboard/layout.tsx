@@ -36,12 +36,13 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { user, isLoading } = useAuthUser();
+  const { userData, isUserDataLoading, authIsLoading,userDataError, fetchUserData } = useAuthUser();
+  
   // const session = await auth0.getSession();
 
-   const [userData, setUserData] = useState<UserProfile | null>(null);
-    const [isUserDataLoading, setIsUserDataLoading] = useState(false);
-  const [userDataError, setUserDataError] = useState<string | null>(null);
+  //  const [userData, setUserData] = useState<UserProfile | null>(null);
+  //   const [isUserDataLoading, setIsUserDataLoading] = useState(false);
+  // const [userDataError, setUserDataError] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -51,79 +52,38 @@ export default function DashboardLayout({
   useEffect(() => {
 
 
-    if (!isLoading && !user) {
+    if (!isUserDataLoading && !userData) {
       console.log("User not found, redirecting to login");
-      router.push('/auth/login');
+      // router.push('/auth/login');
     }
-  }, [user, isLoading, router]);
+  }, [userData, authIsLoading, router]);
 
   let resp;
 
- useEffect(() => {
-    if (user && !userData) {
-      fetchUserData(user);
-      console.log("User is authenticated, fetching user data:", user);
-    }
-  }, [user, userData]);
+//  useEffect(() => {
+//     if (user && !userData) {
+//       fetchUserData(user);
+//       console.log("User is authenticated, fetching user data:", user);
+//     }
+//   }, [user, userData]);
 
  
   const refetchUserData = () => {
-    if (user) {
-      fetchUserData(user);
+
+    if (userData.role) {
+      fetchUserData(userData.sub);
     }
   };
  
-    const fetchUserData = async (userProfile: UserProfile) => {
-    setIsUserDataLoading(true);
-    setUserDataError(null);
 
-    console.log("Fetching user data for:", userProfile.name);
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_email: userProfile.name })
-      });
-   
-      console.log("userProfile.name:", userProfile.name);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch user data: ${response.status}`);
-      }
-
-      const apiUserData = await response.json();
-
-    
-      
-      // Merge Auth0 user data with API data
-      const mergedUserData: ExtendedUserProfile = {
-        ...userProfile,
-        ...apiUserData
-      };
-
-      console.log("apiuserdata",apiUserData );
-
-      setUserData(mergedUserData);
-      console.log("User profile fetched successfully:", mergedUserData);
-
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      setUserDataError(error instanceof Error ? error.message : 'Failed to fetch user data');
-    } finally {
-      setIsUserDataLoading(false);
-    }
-  };
 
   
 
-   if (isUserDataLoading) {
+   if (authIsLoading) {
     return <div>Loading...</div>;
   }
 
-   if (!user) {
+   if (!userData?.sub) {
     return null; // avoid rendering the layout until redirect happens
   }
 
@@ -131,6 +91,7 @@ export default function DashboardLayout({
 
     if (userDataError) {
     return (
+
       <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
           <div className="text-2xl font-bold text-indigo-600">Kaban</div>
@@ -152,21 +113,14 @@ export default function DashboardLayout({
   }
   
   return (
-    <UserDataContext.Provider 
-      value={{ 
-        userData, 
-        isUserDataLoading, 
-        userDataError, 
-        // refetchUserData 
-      }}
-    >
+   
       <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
           <div className="text-2xl font-bold text-indigo-600">Kaban</div>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             {userData && (
               <span className="text-gray-700">
-                Welcome, {userData.fullName || userData.name || userData.email}
+                Welcome, {userData.username || userData.name || userData.email}
               </span>
             )}
             <Button className="cursor-pointer" asChild>
@@ -178,6 +132,6 @@ export default function DashboardLayout({
           {children}
         </div>
       </div>
-    </UserDataContext.Provider>
+    
   );
 }

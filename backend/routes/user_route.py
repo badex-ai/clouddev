@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body, Request,Depends
 from config.db import get_db
 from sqlalchemy.orm import Session
 from controllers.auth_controller import  signup, logout,sendVerificationEmail
-from schemas.schemas import SignupRequest, LogoutRequest,EmailVerificationRequest,UserRequest
+from schemas.schemas import SignupRequest, EmailVerificationRequest,UserRequest
 from controllers.user_controller import get_user
 
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException,Request
 from routes.user_route import router as user_router
-# from routes.task_routes import router as task_router
+from routes.task_routes import router as task_router
 from routes.auth_routes import router as auth_router
 from config.db import test_connection
 from dotenv import load_dotenv
@@ -32,3 +32,6 @@ def read_root():
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 
 app.include_router(user_router, prefix="/api/v1/users", tags=["users"])
+
+
+app.include_router(task_router, prefix="/api/v1/tasks", tags=["tasks"])

@@ -8,7 +8,7 @@ import { useAuthUser } from '@/contexts/userContext';
 
 
 function Dashboard() {
-  const { user } = useAuthUser();
+  const { userData } = useAuthUser();
  
     const [tasks, setTasks] = useState<Task[]>([
     {
@@ -81,7 +81,7 @@ function Dashboard() {
   return (
    <div className="w-full h-screen bg-gray-50 p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{user?.name}'s Board</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{userData?.family?.name}'s Board</h1>
         <p className="text-gray-600 mt-1">Manage your tasks across different stages</p>
       </div>
       

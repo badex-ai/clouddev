@@ -22,12 +22,17 @@ class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     is_active: Optional[bool] = None
 
+class FamilyResponse(BaseModel):
+    name: str
+    model_config = ConfigDict(from_attributes=True)
+
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
     
     id: int
     created_at: datetime
     updated_at: datetime
+    family: Optional[FamilyResponse] 
 
 # Task schemas
 class TaskBase(BaseModel):
@@ -73,9 +78,10 @@ class EmailVerificationRequest(BaseModel):
     
 
 class ChecklistItem(BaseModel):
-    id: int
+    id: str
     title: str
     completed: bool = False
 
-
     
+class TaskRequest(BaseModel):
+    id: str
