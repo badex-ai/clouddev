@@ -1,14 +1,62 @@
 "use client"
 import React from 'react'
-import { useState } from 'react';
+import { useState, useEffect} from 'react';
 import { Task } from '@/lib/types';
 import KanbanTable from '@/components/ui/kanbanTable';
 import AddTaskModal from '@/components/ui/addTaskModal';
 import { useAuthUser } from '@/contexts/userContext';
+import { format, parseISO, formatISO } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar, Filter } from 'lucide-react';
+
 
 
 function Dashboard() {
   const { userData } = useAuthUser();
+   const [selectedDate, setSelectedDate] = useState();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  useEffect(() => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          family: userData?.family?.name,
+          date: selectedDate
+        })
+      });
+  }, [])
+  
+
+
+  
+  
+
+
+   const handleDateSelect = (date ) => {
+    setSelectedDate(date);
+    setIsCalendarOpen(false);
+  };
+
+  const formatDateForDisplay = (date : Date) => {
+    if (!date) return '';
+    return format(date, 'MMM dd, yyyy');
+  };
+
+   const convertUTCToLocal = (utcDateString : string) => {
+    return parseISO(utcDateString);
+  };
+
+  const getTaskTitle = () => {
+    if (selectedDate) {
+      return `Tasks for ${formatDateForDisplay(selectedDate)}`;
+    }
+    return "Today's Tasks";
+  };
  
     const [tasks, setTasks] = useState<Task[]>([
     {
@@ -81,9 +129,57 @@ function Dashboard() {
   return (
    <div className="w-full h-screen bg-gray-50 p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{userData?.family?.name}'s Board</h1>
-        <p className="text-gray-600 mt-1">Manage your tasks across different stages</p>
+      <div className="flex items-center justify-between">
+        <div className="mb-6">
+           <h1 className="text-2xl font-bold text-gray-800">{userData?.family?.name}'s Family Board</h1>
+            <p className="text-gray-600 mt-1">Manage your tasks across different stages</p>
+        </div>
+       
+
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-100 px-4 py-2 rounded-lg border border-blue-200">
+            <h2 className="text-xl font-semibold text-blue-800">
+              {getTaskTitle()}
+            </h2>
+          </div>
+          
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="w-10 h-10 rounded-full p-0 border  hover:bg-gray-100 transition-colors"
+                title="Filter by Date"
+              >
+                <Filter className="h-4 w-4 text-gray-600 " />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                className="border-0"
+              />
+              <div className="p-3 border-t">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setSelectedDate(null);
+                    setIsCalendarOpen(false);
+                  }}
+                  className="w-full text-sm"
+                >
+                  Clear Filter (Show Today's Tasks)
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
       </div>
+      {/* </div> */}
       
       <KanbanTable
         tasks={tasks}
@@ -97,6 +193,7 @@ function Dashboard() {
         onAdd={handleAddTask}
         initialStatus={addModalStatus}
       />
+    </div>
     </div>
   )
 }
