@@ -8,7 +8,7 @@ from models.models import User, Family
 from config.db import SessionLocal 
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate, UserRequest,
-    TaskCreate, TaskResponse, TaskUpdate
+    TaskCreate, TaskResponse, TaskUpdate, FamilyResponse
 )
 
 load_dotenv()
@@ -107,13 +107,12 @@ async def create_user(request: UserCreate) -> UserResponse:
 
 async def get_user(req:UserRequest) -> UserResponse:
     
-    print('request', req)
+  
     
     try:
         user = db.query(User).options(joinedload(User.family)).filter(User.email == req.user_email).first()
         
-        print(f"User Email: {user.email}")
-        print(f"Family Name: {user.family.name if user.family else 'No family'}")
+    
     
         if not user:
             raise HTTPException(status_code=404, detail="User not found")

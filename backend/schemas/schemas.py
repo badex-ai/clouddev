@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, EmailStr
 
@@ -23,8 +23,10 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 class FamilyResponse(BaseModel):
+    id: int
     name: str
     model_config = ConfigDict(from_attributes=True)
+    
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
@@ -42,10 +44,11 @@ class TaskBase(BaseModel):
 
 class TaskCreate(TaskBase):
     pass
-
-class GetTasks(TaskBase):
-    family: str   
-    created_at: datetime
+class DeleteTask(TaskBase):
+    task_id: str
+class GetTasks(BaseModel):
+    family_id: int
+    date: date
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
@@ -55,10 +58,10 @@ class TaskResponse(TaskBase):
     model_config = ConfigDict(from_attributes=True)
     
     id: int
-    author_id: int
+    creator_id: int  
     created_at: datetime
     updated_at: datetime
-    author: UserResponse
+    creator: UserResponse  
 
 
 

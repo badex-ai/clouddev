@@ -65,8 +65,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       }
 
       const apiUserData = await response.json();
-      console.log("this is the api user data  ******", apiUserData)
-      console.log("this is the api user FAMILY NAMME", apiUserData.family.name)
+     
 
 
     
@@ -77,7 +76,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
         ...apiUserData
       };
 
-      console.log("apiuserdata",apiUserData );
+    
 
       setUserData(mergedUserData);
       console.log("User profile fetched successfully:", mergedUserData);

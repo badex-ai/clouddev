@@ -2,14 +2,15 @@ import os
 from dotenv import load_dotenv
 from fastapi import HTTPException, Depends
 import httpx 
-from sqlalchemy.orm import Session
+from datetime import datetime, time,timezone
+from sqlalchemy import and_  
 from config.db import SessionLocal 
 from models.models import Task
 from config.db import get_db
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate,
     TaskCreate, TaskResponse, GetTasks,
-    TaskUpdate, ChecklistItem
+    TaskUpdate, ChecklistItem, DeleteTask
 )
 
 load_dotenv()
@@ -37,18 +38,28 @@ async def create_task(request: TaskCreate) -> TaskResponse:
 
 
 async def get_tasks(req: GetTasks) -> list[TaskResponse]:
+
+    print(req)
+    start_of_day = datetime.combine(req.date, time.min).replace(tzinfo=timezone.utc)
+    end_of_day = datetime.combine(req.date, time.max).replace(tzinfo=timezone.utc)
+    print(start_of_day)
+    print(end_of_day)
     try: 
-        tasks = db.query(Task).filter(Task.date == req.date, Task.family == req.family).all()
-        
-        if not tasks:
-            raise HTTPException(status_code=404, detail="No tasks found")
+        tasks = db.query(Task).filter( and_(
+            Task.created_at >= start_of_day,
+            Task.created_at <= end_of_day,
+            Task.family_id == req.family_id
+        )).all()
+        print(tasks)
+      
     
-        return [TaskResponse.from_orm(task) for task in tasks]
+        return [TaskResponse.model_validate(task) for task in tasks]
 
     except Exception as e:
         raise HTTPException(status_code= 500, detail= "something went wrong")
     finally:
         db.close()
+    # return []
 
 async def update_task(req: TaskUpdate)  -> TaskResponse:
     try: 
@@ -70,7 +81,7 @@ async def update_task(req: TaskUpdate)  -> TaskResponse:
         db.close
     
 
-async def delete_task(task_id: int) -> None:
+async def delete_task(req: DeleteTask ) -> None:
     try:
         task = db.query(Task).filter(Task.id == task_id).first()
         if not task:
@@ -132,7 +143,7 @@ async def add_checklist_item(req:ChecklistItem) -> TaskResponse:
         task.add_checklist_item(item_id=req.id, title=req.title, completed=req.completed)
         db.commit()
         db.refresh(task)
-        return TaskResponse.from_orm(task)
+        return TaskResponse.model_validate(task)(task)
     
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -143,5 +154,6 @@ async def add_checklist_item(req:ChecklistItem) -> TaskResponse:
         db.close()
 
 # async def delete_checklist_item(req: ChecklistItem) -> TaskResponse:
+
 
 

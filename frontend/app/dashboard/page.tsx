@@ -5,60 +5,22 @@ import { Task } from '@/lib/types';
 import KanbanTable from '@/components/ui/kanbanTable';
 import AddTaskModal from '@/components/ui/addTaskModal';
 import { useAuthUser } from '@/contexts/userContext';
-import { format, parseISO, formatISO } from 'date-fns';
+import { format, parseISO, formatISO,  } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Calendar, Filter } from 'lucide-react';
+import { Filter , Package} from 'lucide-react';
 
 
 
 function Dashboard() {
+
+  const today  = format(new Date(),'yyyy-MM-dd'); 
   const { userData } = useAuthUser();
-   const [selectedDate, setSelectedDate] = useState();
+   const [selectedDate, setSelectedDate] = useState(today);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  useEffect(() => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks`, {
-        method: 'GET',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          family: userData?.family?.name,
-          date: selectedDate
-        })
-      });
-  }, [])
-  
-
-
-  
-  
-
-
-   const handleDateSelect = (date ) => {
-    setSelectedDate(date);
-    setIsCalendarOpen(false);
-  };
-
-  const formatDateForDisplay = (date : Date) => {
-    if (!date) return '';
-    return format(date, 'MMM dd, yyyy');
-  };
-
-   const convertUTCToLocal = (utcDateString : string) => {
-    return parseISO(utcDateString);
-  };
-
-  const getTaskTitle = () => {
-    if (selectedDate) {
-      return `Tasks for ${formatDateForDisplay(selectedDate)}`;
-    }
-    return "Today's Tasks";
-  };
- 
-    const [tasks, setTasks] = useState<Task[]>([
+  // const  [tasks, setTasks] = useState <Task[] | null>(null)
+   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
       title: 'Design user interface mockups',
@@ -101,6 +63,80 @@ function Dashboard() {
     }
   ]);
 
+  useEffect(() => {
+    
+   
+   let  data
+
+
+   const fetchTasks = async () => {
+
+  
+    
+    try {
+       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/date`, {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          family_id: userData?.family?.id,
+          date: selectedDate,
+        }),
+      });
+      
+      data = await response.json();
+      console.log('this is the data', data)
+      setTasks(data)
+      return data
+    } catch (error) {
+      console.error("Failed to fetch tasks", error);
+
+    }
+    };
+
+
+    fetchTasks()
+    
+
+
+  }, [selectedDate])
+  
+
+
+  
+  
+
+
+   const handleDateSelect = (date :Date ) => {
+     let newdate = formatISO(date)
+     newdate =format(newdate,'yyyy-MM-dd')
+    setSelectedDate(newdate);
+    setIsCalendarOpen(false);
+  };
+
+  const formatShownDay= (date : string) => {
+    if (!date) return '';
+    return format(date, 'MMM dd, yyyy');
+  };
+
+   const convertUTCToLocal = (utcDateString : string) => {
+    return parseISO(utcDateString);
+  };
+
+  const getDate = () => {
+   
+
+
+    if (selectedDate === today) {
+       return "Today's Tasks";
+    }
+    return `Tasks for ${formatShownDay(selectedDate)}`;
+   
+  };
+ 
+   
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [addModalStatus, setAddModalStatus] = useState<string>('initialized');
 
@@ -126,6 +162,43 @@ function Dashboard() {
     setAddModalStatus(status);
     setShowAddModal(true);
   };
+
+  let taskTable;
+
+  if (tasks?.length === 0) {
+    taskTable = 
+       <div className="w-full border rounded-sm border-[#888888] p-8 flex flex-col items-center justify-center ">
+      <Package 
+        size={48} 
+        className="text-gray-400 mb-4" 
+        strokeWidth={1.5}
+      />
+      <p className="text-gray-600 text-lg font-medium">
+        You don't have any tasks
+      </p>
+    </div>
+  }else if (tasks == null) {
+    taskTable = "loading"
+  }else{
+   taskTable = <div>
+      <KanbanTable
+        tasks={tasks}
+        onTaskMove={handleTaskMove}
+        onAddTask={handleAddTaskClick}
+      />
+
+      <AddTaskModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddTask}
+        initialStatus={addModalStatus}
+      />
+    </div>}
+
+  
+ 
+  
+  
   return (
    <div className="w-full h-screen bg-gray-50 p-6">
       <div className="mb-6">
@@ -139,7 +212,7 @@ function Dashboard() {
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 px-4 py-2 rounded-lg border border-blue-200">
             <h2 className="text-xl font-semibold text-blue-800">
-              {getTaskTitle()}
+              {getDate()}
             </h2>
           </div>
           
@@ -166,7 +239,7 @@ function Dashboard() {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => {
-                    setSelectedDate(null);
+                    setSelectedDate(today);
                     setIsCalendarOpen(false);
                   }}
                   className="w-full text-sm"
@@ -180,19 +253,9 @@ function Dashboard() {
 
       </div>
       {/* </div> */}
+      {taskTable}
       
-      <KanbanTable
-        tasks={tasks}
-        onTaskMove={handleTaskMove}
-        onAddTask={handleAddTaskClick}
-      />
-
-      <AddTaskModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAdd={handleAddTask}
-        initialStatus={addModalStatus}
-      />
+    
     </div>
     </div>
   )

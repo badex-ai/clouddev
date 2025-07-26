@@ -11,7 +11,6 @@ router = APIRouter()
 
 @router.post("/me")
 async def get_user_route(req: UserRequest = Body(...)):
-   print("Request received in get_user_route:", req)
    return await get_user(req)
 
 
