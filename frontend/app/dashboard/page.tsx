@@ -10,6 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Filter , Package} from 'lucide-react';
+import { Plus } from 'lucide-react';
+
 
 
 
@@ -184,15 +186,10 @@ function Dashboard() {
       <KanbanTable
         tasks={tasks}
         onTaskMove={handleTaskMove}
-        onAddTask={handleAddTaskClick}
+       
       />
 
-      <AddTaskModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAdd={handleAddTask}
-        initialStatus={addModalStatus}
-      />
+     
     </div>}
 
   
@@ -252,6 +249,24 @@ function Dashboard() {
         </div>
 
       </div>
+      <div>
+        
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleAddTaskClick('initialized')}
+                  className="h-6 w-6 p-0 hover:bg-gray-100"
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+             
+      </div>
+       <AddTaskModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAdd={handleAddTask}
+        initialStatus={addModalStatus}
+      />
       {/* </div> */}
       {taskTable}
       

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import DraggableTask  from '@/components/ui/task';
@@ -8,10 +7,10 @@ import DraggableTask  from '@/components/ui/task';
 interface KanbanTableProps {
   tasks: Task[];
   onTaskMove: (taskId: string, newStatus: string) => void;
-  onAddTask: (status: string) => void;
+
 }
 
-const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove, onAddTask }) => {
+const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove}) => {
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
@@ -87,16 +86,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove, onAddTask 
                   {getTasksByStatus(column.status).length}
                 </Badge>
               </div>
-              {column.status === 'initialized' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onAddTask(column.status)}
-                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              )}
+             
               
             </div>
           </div>

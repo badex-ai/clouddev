@@ -59,13 +59,29 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
         body: JSON.stringify({ user_email: userProfile.email })
       });
 
+    
+
      
       if (!response.ok) {
         throw new Error(`Failed to fetch user data: ${response.status}`);
       }
 
-      const apiUserData = await response.json();
-     
+    
+
+      const data = await response.json();
+
+      const familyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/family`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ family_id: data?.family.id })
+      });
+
+      const family = await familyRes.json();
+
+      console.log('family',family);
+
+      const apiUserData = { ...data, ...family };
+              
 
 
     
