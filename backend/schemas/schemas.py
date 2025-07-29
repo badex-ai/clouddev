@@ -9,13 +9,18 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     is_active: bool = True
 
+class FamilyUsers(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int  # Added the missing id field
+    username: str
+
 class UserCreate(UserBase):
     password: str
 
 class UserRequest(BaseModel):
     user_email: str
     
-class FamilyRequest:
+class FamilyRequest(BaseModel):
     family_id: int
     
 class UserUpdate(BaseModel):
@@ -25,9 +30,19 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 class FamilyResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
+
+class FamilyUsers(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    users: List[FamilyUsers]
+
+
+
+
     
 
 class UserResponse(UserBase):
@@ -41,8 +56,12 @@ class UserResponse(UserBase):
 # Task schemas
 class TaskBase(BaseModel):
     title: str
-    content: str
-    published: bool = False
+    creator_id: int
+    assignee_id: int
+    family_id: int
+    due_date: datetime
+    status: 'initialised'|"in-progress"| "completed"
+    # checklist: 
 
 class TaskCreate(TaskBase):
     pass

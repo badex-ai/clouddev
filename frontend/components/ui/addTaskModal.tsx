@@ -3,29 +3,25 @@
 
 "use client";
 import { useState } from 'react';
-// 🔥 Added React Hook Form and Zod imports
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Input } from '@/components/ui/input';
-// 🔥 Added Select component imports
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// 🔥 Added Form components
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Task } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useAuthUser } from '@/contexts/userContext';
+import { ExtendedUserProfile } from '@/lib/types';
 
-// 🔥 Added Zod schema
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
   description: z.string().optional(),
   assignee_id: z.string().min(1, "Assignee is required"),
   due_date: z.string().optional(),
 });
-const {userData} = useAuthUser()
-console.log(userData?.family?.id)
+// const {userData} = useAuthUser()
+// console.log(userData?.family?.id)
 
 type TaskFormData = z.infer<typeof taskSchema>;
 
@@ -34,8 +30,8 @@ interface AddTaskModalProps {
   onClose: () => void;
   onAdd: (task: Omit<Task, 'id'>) => void;
   initialStatus: string;
-  // 🔥 Added assignees prop for dropdown options
-  assignees?: { id: string; name: string }[];
+  assignees?: { id: string; username: string }[];
+  userData: ExtendedUserProfile
 }
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({ 
@@ -43,11 +39,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   onClose, 
   onAdd, 
   initialStatus,
-  // 🔥 Added default empty array for assignees
-  assignees = []
+  assignees,
+  userData
+
 }) => {
 
-  // 🔥 Replaced useState with useForm
+  const [isLoading, setIsLoading] = useState(false)
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -57,9 +54,12 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       due_date: '',
     },
   });
+  
+  
 
-  // 🔥 Updated handleSubmit to use React Hook Form
-  const handleSubmit = (data: TaskFormData) => {
+
+
+   const async handleSubmit = (data: TaskFormData) => {
     onAdd({
       title: data.title,
       description: data.description || undefined,
@@ -67,22 +67,45 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       dueDate: data.due_date || undefined,
       status: initialStatus as 'initialized'
     });
-    // 🔥 Reset form instead of individual state setters
+
+    setIsLoading(true)
+
+  const user = assignees?.find(user => 
+  
+    data.assignee_id === user.username
+  );
+
+    const taskData = {
+      title: data.title,
+      description: data.description || undefined,
+      assignee: user?.id,
+      dueDate: data.due_date || undefined,
+      status: initialStatus as 'initialized',
+      creator_id: userData.id
+      
+    }
+
+     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/v1/tasks/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData)
+      });
+    
+      await response.json()
     form.reset();
-    onClose();
-    console.log()
 
-    //  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/create`, {
-    //     method: 'POST', 
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       family_id: userData?.family?.id,
-    //       date: selectedDate,
 
-    //     }),
-    //   });
+    // console.log("this is the data for the form",data)
+    // console.log("this is the data for the form",taskData)
+    
+    
+    setInterval(() => {
+      setIsLoading(false)
+    }, 2000); 
+    
+   
+
+
 
 
   };
@@ -102,10 +125,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           <CardTitle>Add New Task</CardTitle>
         </CardHeader>
         <CardContent>
-          {/* 🔥 Wrapped form content with Form component */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-              {/* 🔥 Converted title field to use FormField */}
               <FormField
                 control={form.control}
                 name="title"
@@ -123,7 +144,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 )}
               />
               
-              {/* 🔥 Converted description field to use FormField */}
               <FormField
                 control={form.control}
                 name="description"
@@ -141,7 +161,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 )}
               />
               
-              {/* 🔥 Changed assignee input to Select dropdown */}
               <FormField
                 control={form.control}
                 name="assignee_id"
@@ -155,9 +174,9 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {assignees.map((assignee) => (
-                          <SelectItem key={assignee.id} value={assignee.id}>
-                            {assignee.name}
+                        {assignees?.map((assignee) => (
+                          <SelectItem key={assignee.id} value={assignee.username}>
+                            {assignee.username}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -167,7 +186,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 )}
               />
               
-              {/* 🔥 Converted due date field to use FormField */}
               <FormField
                 control={form.control}
                 name="due_date"
@@ -177,7 +195,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                     <FormControl>
                       <Input
                         {...field}
-                        type="date"
+                       type="datetime-local"
                       />
                     </FormControl>
                     <FormMessage />
@@ -189,7 +207,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
-                {/* 🔥 Changed to submit type */}
                 <Button type="submit">Add Task</Button>
               </div>
             </form>

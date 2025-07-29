@@ -39,7 +39,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
    useEffect(() => {
     if (user && !userData) {
       fetchUserData(user);
-      console.log("User is authenticated, fetching user data:", user);
+      // console.log("User is authenticated, fetching user data:", user);
     }
   }, [user, userData]);
 
@@ -78,9 +78,12 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
 
       const family = await familyRes.json();
 
-      console.log('family',family);
+      // console.log('family',family);
+     
 
-      const apiUserData = { ...data, ...family };
+      const apiUserData = { ...data,  familyMembers: family.users };
+
+      // console.log("this is the apiuserdata", apiUserData)
               
 
 
@@ -95,7 +98,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
     
 
       setUserData(mergedUserData);
-      console.log("User profile fetched successfully:", mergedUserData);
+      // console.log("User profile fetched successfully:", mergedUserData);
 
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -104,6 +107,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       setIsUserDataLoading(false);
     }
   };
+  
 
    user;
 

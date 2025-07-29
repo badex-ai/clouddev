@@ -29,7 +29,7 @@ async def create_task(request: TaskCreate) -> TaskResponse:
         db.add(new_task)
         db.commit()
         db.refresh(new_task)
-        return TaskResponse.from_orm(new_task)
+        return TaskResponse.model_validate(new_task)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating task: {str(e)}")

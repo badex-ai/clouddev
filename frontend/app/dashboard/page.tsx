@@ -107,7 +107,7 @@ function Dashboard() {
 
 
   
-  
+  console.log("this is the userdata",userData)
 
 
    const handleDateSelect = (date :Date ) => {
@@ -262,10 +262,13 @@ function Dashboard() {
              
       </div>
        <AddTaskModal
+        
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddTask}
         initialStatus={addModalStatus}
+        assignees={userData?.familyMembers}
+        userData={userData}
       />
       {/* </div> */}
       {taskTable}

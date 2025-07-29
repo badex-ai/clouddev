@@ -25,8 +25,8 @@ async def add_checklist_item_route(req: ChecklistItem= Body(...)):
 async def delete_task_route(req: TaskRequest= Body(...)):
     return await delete_task(req)
 
-# @router.post("/")
-# async def create_task(req: TaskCreate= Body(...)):
-#     await create_task(req)
+@router.post("/create")
+async def create_task_route(req: TaskCreate= Body(...)):
+    return await create_task(req)
 
 

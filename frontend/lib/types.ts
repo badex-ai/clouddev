@@ -42,6 +42,7 @@ interface UserProfile {
   name?: string;
   username?: string;
   role?: string;
+  familyMembers: {id: number; username: string}[]
 
   // ... other fields from your API
 }

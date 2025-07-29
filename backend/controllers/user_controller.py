@@ -8,7 +8,7 @@ from models.models import User, Family
 from config.db import SessionLocal 
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate, UserRequest,
-    TaskCreate, TaskResponse, TaskUpdate, FamilyResponse, FamilyRequest
+    TaskCreate, TaskResponse, TaskUpdate, FamilyResponse, FamilyRequest, FamilyUsers
 )
 
 load_dotenv()
@@ -123,17 +123,18 @@ async def get_user(req:UserRequest) -> UserResponse:
     finally: 
         db.close
 
-async def get_family_member(req:FamilyRequest)-> FamilyResponse:
+async def get_user_family(req:FamilyRequest)-> FamilyUsers:
+    print(f"Family Object: ",req)
     try:
-        family = db.query(Family).options(joinedload(Family.Users)).filter(Family.id == req.family_id).first()
+        family = db.query(Family).options(joinedload(Family.users)).filter(Family.id == req.family_id).first()
         
-        print(f"User Email: {family.name}")
-        # print(f"Family Name: {family.family.name if user.family else 'No family'}")
+        print(f"User Email: {family.users}")
+       
     
         if not family:
             raise HTTPException(status_code=404, detail="family not found")
         
-        return UserResponse.model_validate(family)
+        return FamilyUsers.model_validate(family)
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Error getting family: {str(e)}")
     finally: 
