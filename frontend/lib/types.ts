@@ -4,7 +4,7 @@ interface Task {
   description?: string;
   assignee?: string;
   dueDate?: string;
-  status: 'initialized' | 'in-progress' | 'completed';
+  status: 'initialised' | 'in-progress' | 'completed';
   checkList?: { id: string; title: string; completed: boolean }[];
 }
 
@@ -42,7 +42,7 @@ interface UserProfile {
   name?: string;
   username?: string;
   role?: string;
-  familyMembers: {id: number; username: string}[]
+  familyMembers: {id: string; username: string}[]
 
   // ... other fields from your API
 }

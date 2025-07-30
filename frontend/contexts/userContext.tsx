@@ -10,14 +10,14 @@ import { UserProfile, ExtendedUserProfile } from "@/lib/types";
 
 const UserContext = createContext<UserDataContextType>({
   isUserDataLoading: true,
-  userData: undefined,
+  userData: null,
   authIsLoading:true,
   userDataError: null,
   fetchUserData: () => {}
 });
 
   interface UserDataContextType {
-  userData: ExtendedUserProfile | null | undefined;
+  userData: ExtendedUserProfile | null ;
   isUserDataLoading: boolean;
   userDataError: string | null;
   authIsLoading: boolean;
@@ -30,7 +30,7 @@ const UserContext = createContext<UserDataContextType>({
 export const AuthUserProvider = ({ children }: { children: React.ReactNode }) => {
   let { user, isLoading } = useUser();
     const [userData, setUserData] = useState<UserProfile | null>(null);
-    const [isUserDataLoading, setIsUserDataLoading] = useState(false);
+    const [isUserDataLoading, setIsUserDataLoading] = useState(true);
   const [userDataError, setUserDataError] = useState<string | null>(null);
 
   const authIsLoading = isLoading;
@@ -41,14 +41,11 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       fetchUserData(user);
       // console.log("User is authenticated, fetching user data:", user);
     }
-  }, [user, userData]);
+  }, [user]);
 
 
   const fetchUserData = async (userProfile: UserProfile) => {
-    setIsUserDataLoading(true);
     setUserDataError(null);
-
-   
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {

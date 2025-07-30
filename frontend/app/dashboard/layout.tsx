@@ -17,16 +17,16 @@ import { UserProfile, ExtendedUserProfile } from "@/lib/types";
 
 }
 
-const UserDataContext = createContext<UserDataContextType | undefined>(undefined);
+// const UserDataContext = createContext<UserDataContextType | undefined>(undefined);
 
 // Custom hook for children to access user data
-export const useUserData = () => {
-  const context = useContext(UserDataContext);
-  if (context === undefined) {
-    throw new Error('useUserData must be used within a DashboardLayout');
-  }
-  return context;
-};
+// export const useUserData = () => {
+//   const context = useContext(UserDataContext);
+//   if (context === undefined) {
+//     throw new Error('useUserData must be used within a DashboardLayout');
+//   }
+//   return context;
+// };
 
 
 
@@ -38,11 +38,7 @@ export default function DashboardLayout({
 }>) {
   const { userData, isUserDataLoading, authIsLoading,userDataError, fetchUserData } = useAuthUser();
   
-  // const session = await auth0.getSession();
-
-  //  const [userData, setUserData] = useState<UserProfile | null>(null);
-  //   const [isUserDataLoading, setIsUserDataLoading] = useState(false);
-  // const [userDataError, setUserDataError] = useState<string | null>(null);
+ 
 
   const router = useRouter();
 
@@ -54,7 +50,7 @@ export default function DashboardLayout({
 
     if (!isUserDataLoading && !userData) {
       console.log("User not found, redirecting to login");
-      // router.push('/auth/login');
+      router.push('/auth/login');
     }
   }, [userData, authIsLoading, router]);
 
@@ -70,8 +66,8 @@ export default function DashboardLayout({
  
   const refetchUserData = () => {
 
-    if (userData.role) {
-      fetchUserData(userData.sub);
+    if (userData?.role) {
+      fetchUserData();
     }
   };
  

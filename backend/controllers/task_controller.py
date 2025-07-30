@@ -17,14 +17,17 @@ load_dotenv()
 
 db = SessionLocal()
 
-async def create_task(request: TaskCreate) -> TaskResponse:
+async def create_task(req: TaskCreate) -> TaskResponse:
 
   
     try:
         new_task = Task(
-            title=request.title,
-            description=request.description,
-            owner_id=request.owner_id
+            title=req.title,
+            description=req.description,
+            creator_id=req.creator_id,
+            status= req.status,
+            assignee_id= req.assignee_id,
+            due_date= req.due_date
         )
         db.add(new_task)
         db.commit()

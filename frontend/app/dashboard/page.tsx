@@ -68,33 +68,31 @@ function Dashboard() {
   useEffect(() => {
     
    
-   let  data
+   let data;
 
 
    const fetchTasks = async () => {
 
-  
-    
     try {
-       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/date`, {
-        method: 'POST', 
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          family_id: userData?.family?.id,
-          date: selectedDate,
-        }),
-      });
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/date`, {
+            method: 'POST', 
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              family_id: userData?.family?.id,
+              date: selectedDate,
+            }),
+          });
       
-      data = await response.json();
-      console.log('this is the data', data)
-      setTasks(data)
-      return data
-    } catch (error) {
-      console.error("Failed to fetch tasks", error);
+          data = await response.json();
+          console.log('this is the data', data)
+          setTasks(data)
+          return data
+        } catch (error) {
+          console.error("Failed to fetch tasks", error);
 
-    }
+        }
     };
 
 
@@ -107,7 +105,7 @@ function Dashboard() {
 
 
   
-  console.log("this is the userdata",userData)
+  // console.log("this is the userdata",userData)
 
 
    const handleDateSelect = (date :Date ) => {
@@ -179,8 +177,6 @@ function Dashboard() {
         You don't have any tasks
       </p>
     </div>
-  }else if (tasks == null) {
-    taskTable = "loading"
   }else{
    taskTable = <div>
       <KanbanTable

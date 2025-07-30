@@ -13,6 +13,7 @@ import { Task } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ExtendedUserProfile } from '@/lib/types';
+import { formatISO } from 'date-fns';
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -59,49 +60,51 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
 
 
-   const async handleSubmit = (data: TaskFormData) => {
-    onAdd({
-      title: data.title,
-      description: data.description || undefined,
-      assignee: data.assignee_id, // This will be mapped to assignee_id programmatically
-      dueDate: data.due_date || undefined,
-      status: initialStatus as 'initialized'
-    });
+  const   handleSubmit = async(data: TaskFormData) => {
+        onAdd({
+          title: data.title,
+          description: data.description || undefined,
+          assignee: data.assignee_id, 
+          dueDate: data.due_date || undefined,
+          status:  'initialised'
+        });
 
-    setIsLoading(true)
+        setIsLoading(true)
 
-  const user = assignees?.find(user => 
-  
-    data.assignee_id === user.username
-  );
-
-    const taskData = {
-      title: data.title,
-      description: data.description || undefined,
-      assignee: user?.id,
-      dueDate: data.due_date || undefined,
-      status: initialStatus as 'initialized',
-      creator_id: userData.id
+      const user = assignees?.find(user => 
       
-    }
+        data.assignee_id === user.username
+      );
+      // let datfmt =  formatISO(new Date(`${data.due_date})`) );
 
-     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/v1/tasks/create`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData)
+      console.log('dateeeeeee',new Date(`${data.due_date}:00Z`)) 
+      const taskData = {
+        title: data.title,
+        description: data.description || undefined,
+        creator_id: userData.id,
+        status: 'initialised',
+        assignee_id: user?.id,
+        due_date: `${data.due_date}:00Z`,
+        family_id: userData.family?.id
+        
+      }
+      // console.log('result of task creation', taskData)
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(taskData)
       });
-    
-      await response.json()
-    form.reset();
+      
+       const result =  await response.json()
+      form.reset();
 
 
-    // console.log("this is the data for the form",data)
+    console.log("this is the data for the result",result)
     // console.log("this is the data for the form",taskData)
     
     
-    setInterval(() => {
-      setIsLoading(false)
-    }, 2000); 
+   
     
    
 
@@ -167,7 +170,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Assignee *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select an assignee" />

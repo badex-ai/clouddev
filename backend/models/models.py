@@ -8,7 +8,7 @@ from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
 class TaskStatus(Enum):
-        INITIALIZED= "initialized"
+        INITIALIZED= "initialised"
         IN_PROGRESS = "in-progress"
         COMPLETED = "completed"
 
