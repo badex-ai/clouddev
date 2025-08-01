@@ -4,7 +4,7 @@ interface Task {
   description?: string;
   assignee?: string;
   dueDate?: string;
-  status: 'initialised' | 'in-progress' | 'completed';
+  status: TaskStatus;
   checkList?: { id: string; title: string; completed: boolean }[];
 }
 
@@ -26,6 +26,8 @@ interface AddTaskModalProps {
   onAdd: (task: Omit<Task, 'id'>) => void;
   initialStatus: string;
 }
+
+type TaskStatus = "initialised" | "completed" | "in-progress"
 
 interface UserProfile {
     sub: string;
@@ -49,4 +51,4 @@ interface UserProfile {
 
 
 
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile };
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus };

@@ -9,7 +9,7 @@ import * as z from 'zod';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Task } from '@/lib/types';
+import { Task, TaskStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ExtendedUserProfile } from '@/lib/types';
@@ -66,7 +66,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           description: data.description || undefined,
           assignee: data.assignee_id, 
           dueDate: data.due_date || undefined,
-          status:  'initialised'
+          status:  'initialised' 
         });
 
         setIsLoading(true)
@@ -76,6 +76,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         data.assignee_id === user.username
       );
       // let datfmt =  formatISO(new Date(`${data.due_date})`) );
+      console.log("family id",userData.family?.id)
 
       console.log('dateeeeeee',new Date(`${data.due_date}:00Z`)) 
       const taskData = {

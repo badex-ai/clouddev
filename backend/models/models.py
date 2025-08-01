@@ -8,12 +8,11 @@ from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
 class TaskStatus(Enum):
-        INITIALIZED= "initialised"
+        INITIALISED= "initialised"
         IN_PROGRESS = "in-progress"
         COMPLETED = "completed"
 
-        # def __str__(self):
-        #     return self.value
+        
 
 class UserRole(Enum):
     ADMIN = "admin"
@@ -36,7 +35,7 @@ class Task(Base):
     
     status: Mapped[TaskStatus] = mapped_column(
         SQLEnum(TaskStatus, name="task_status"), 
-        default=TaskStatus.INITIALIZED, 
+        default=TaskStatus.INITIALISED, 
         nullable=False
     )
     checklist: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
@@ -149,9 +148,14 @@ class User(Base):
     name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     family_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), default=UserRole.MEMBER)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    role: Mapped[UserRole] = mapped_column(
+    SQLEnum(UserRole, name="userrole"), 
+    default=UserRole.MEMBER,
+    nullable=False
+    
+    )
+
+    
     
     # Relationships
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)

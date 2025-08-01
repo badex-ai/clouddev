@@ -35,6 +35,7 @@ async def create_task(req: TaskCreate) -> TaskResponse:
         return TaskResponse.model_validate(new_task)
     except Exception as e:
         db.rollback()
+        print('this is the error',e)
         raise HTTPException(status_code=500, detail=f"Error creating task: {str(e)}")
     finally :
         db.close()
