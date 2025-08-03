@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from typing import Optional, List,Literal
 from pydantic import BaseModel, ConfigDict, EmailStr
+from enum import Enum
 
 # User schemas
 class UserBase(BaseModel):
@@ -9,10 +10,7 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     is_active: bool = True
 
-class FamilyUsers(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int  # Added the missing id field
-    username: str
+
 
 class UserCreate(UserBase):
     password: str
@@ -34,12 +32,16 @@ class FamilyResponse(BaseModel):
     id: int
     name: str
 
+
+class FamilyUsers(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int  # Added the missing id field
+    username: str
 class FamilyUsers(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
     users: List[FamilyUsers]
-
 
 
 
@@ -51,7 +53,7 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    family: Optional[FamilyResponse] 
+    family: FamilyResponse
 
 
 
@@ -60,6 +62,11 @@ class ChecklistItem(BaseModel):
     title: str
     completed: bool
 
+class TaskStatus(str, Enum):
+        initialised= "initialised"
+        in_progress = "in-progress"
+        completed = "completed"
+
 # Task schemas
 class TaskBase(BaseModel):
     title: str
@@ -67,11 +74,19 @@ class TaskBase(BaseModel):
     assignee_id: int
     family_id: int
     due_date: datetime
-    status: Literal['initialised', 'in-progress', 'completed']
+    status: TaskStatus
     checklist: Optional[List[ChecklistItem]]= None
 
 # class TaskCreate(TaskBase):
 #     pass
+
+
+
+        
+
+class UserRole(str, Enum):
+    admin = "admin"
+    member = "member"
 
 class TaskCreate(BaseModel):
     title: str | int
@@ -79,8 +94,7 @@ class TaskCreate(BaseModel):
     assignee_id: int
     family_id: int
     due_date: datetime
-    description: str
-    status: Literal['initialised', 'in-progress', 'completed']
+    description: Optional[str]=None
     checklist: Optional[List[ChecklistItem]]= None
 class DeleteTask(TaskBase):
     task_id: str
@@ -99,9 +113,6 @@ class TaskResponse(TaskBase):
     creator_id: int  
     created_at: datetime
     updated_at: datetime
-    creator: UserResponse  
-
-
 
 
 class LoginRequest(BaseModel):

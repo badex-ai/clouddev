@@ -8,15 +8,15 @@ from enum import Enum
 from sqlalchemy import Enum as SQLEnum
 
 class TaskStatus(Enum):
-        INITIALISED= "initialised"
-        IN_PROGRESS = "in-progress"
-        COMPLETED = "completed"
+        initialised= "initialised"
+        in_progress = "in-progress"
+        completed = "completed"
 
         
 
 class UserRole(Enum):
-    ADMIN = "admin"
-    MEMBER = "member"
+    admin = "admin"
+    member = "member"
 
 def utc_now() -> datetime:
     """Return timezone-aware datetime in UTC"""
@@ -30,12 +30,12 @@ class Task(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     assignee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    family_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
-    due_date: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    family_id: Mapped[int] = mapped_column(Integer, ForeignKey("families.id"), nullable=False)
+    due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     
     status: Mapped[TaskStatus] = mapped_column(
         SQLEnum(TaskStatus, name="task_status"), 
-        default=TaskStatus.INITIALISED, 
+        default=TaskStatus.initialised, 
         nullable=False
     )
     checklist: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
@@ -45,7 +45,7 @@ class Task(Base):
     # Relationships - using string references instead of importing User
     creator: Mapped["User"] = relationship("User", foreign_keys=[creator_id], back_populates="created_tasks")
     assignee: Mapped["User"] = relationship("User", foreign_keys=[assignee_id], back_populates="assigned_tasks")
-    family: Mapped[Optional["Family"]] = relationship("Family", back_populates="tasks")
+    family: Mapped["Family"] = relationship("Family", back_populates="tasks")
 
     __table_args__ = (
         CheckConstraint('creator_id != assignee_id', name='creator_assignee_different'),
@@ -145,32 +145,19 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
-    name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    family_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("families.id"), nullable=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=True)
+    family_id: Mapped[int] = mapped_column(Integer, ForeignKey("families.id"), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    role: Mapped[UserRole] = mapped_column(
-    SQLEnum(UserRole, name="userrole"), 
-    default=UserRole.MEMBER,
-    nullable=False
-    
-    )
+    role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name="userrole"), default=UserRole.member, nullable=False)
 
     
     
     # Relationships
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
-    created_tasks: Mapped[Optional[List["Task"]]] = relationship(
-    "Task",
-    back_populates="creator",
-    foreign_keys="Task.creator_id"
-)
-    family: Mapped[Optional["Family"]] = relationship("Family", back_populates="users")
-    assigned_tasks: Mapped[Optional[List["Task"]]] = relationship(
-        "Task",
-        back_populates="assignee",
-        foreign_keys="Task.assignee_id"
-    )
+    created_tasks: Mapped[Optional[List["Task"]]] = relationship("Task", back_populates="creator",foreign_keys="Task.creator_id")
+    family: Mapped["Family"] = relationship("Family", back_populates="users")
+    assigned_tasks: Mapped[Optional[List["Task"]]] = relationship("Task", back_populates="assignee", foreign_keys="Task.assignee_id")
   
 # Family model
 class Family(Base):

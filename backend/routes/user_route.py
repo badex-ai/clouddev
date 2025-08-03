@@ -11,6 +11,7 @@ router = APIRouter()
 
 @router.post("/me")
 async def get_user_route(req: UserRequest = Body(...)):
+   print("this the request because the request reached here", req)
    return await get_user(req)
 
 

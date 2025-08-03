@@ -10,7 +10,8 @@ from config.db import get_db
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate,
     TaskCreate, TaskResponse, GetTasks,
-    TaskUpdate, ChecklistItem, DeleteTask
+    TaskUpdate, ChecklistItem, DeleteTask,
+    TaskStatus, UserRole
 )
 
 load_dotenv()
@@ -18,15 +19,18 @@ load_dotenv()
 db = SessionLocal()
 
 async def create_task(req: TaskCreate) -> TaskResponse:
-
+    print('this is the request',req)
+    print('this is the request',TaskStatus.initialised.value)
+ 
   
     try:
         new_task = Task(
             title=req.title,
             description=req.description,
             creator_id=req.creator_id,
-            status= req.status,
+            status= TaskStatus.initialised.value,
             assignee_id= req.assignee_id,
+            family_id= req.family_id,
             due_date= req.due_date
         )
         db.add(new_task)

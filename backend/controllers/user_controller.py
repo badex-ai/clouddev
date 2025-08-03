@@ -5,11 +5,15 @@ import httpx
 from sqlalchemy.orm import Session,joinedload
 from sqlalchemy.exc import IntegrityError
 from models.models import User, Family
-from config.db import SessionLocal 
+from config.db import SessionLocal, test_connection
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate, UserRequest,
      TaskResponse, TaskUpdate, FamilyResponse, FamilyRequest, FamilyUsers
 )
+# Add this to see the actual SQL queries
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 load_dotenv()
 db = SessionLocal()
@@ -105,23 +109,41 @@ async def create_user(request: UserCreate) -> UserResponse:
     finally:
         db.close()
 
+# -> UserResponse
 async def get_user(req:UserRequest) -> UserResponse:
     
-  
+    
+    print('it reach here too',req)
     
     try:
         user = db.query(User).options(joinedload(User.family)).filter(User.email == req.user_email).first()
         
-    
+        
+
+        print(f"Query successful, user: {user}")
+        print(f"User role: {user.role}")
+        print(f"User created_at: {user.created_at}")
+        print(f"User family: {user.family}")
+        
+        # Try accessing the family relationship
+        if user.family:
+            print(f"Family name: {user.family.name}")
+            print(f"Family created_at: {user.family.created_at}")
+        
     
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
         return UserResponse.model_validate(user)
+
+        print('it reach here too',db)
+        
+
+        
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
     finally: 
-        db.close
+        db.close()
 
 async def get_user_family(req:FamilyRequest)-> FamilyUsers:
     print(f"Family Object: ",req)
