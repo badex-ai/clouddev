@@ -67,20 +67,26 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
 
       const data = await response.json();
 
+      console.log('this is the first',data)
+
       const familyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/family`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ family_id: data?.family.id })
+        // body: JSON.stringify({ family_id: 3})
+
       });
 
       const family = await familyRes.json();
 
-      // console.log('family',family);
+      console.log('family',family);
      
 
       const apiUserData = { ...data,  familyMembers: family.users };
+      // const apiUserData = {  familyMembers: family.users };
 
-      // console.log("this is the apiuserdata", apiUserData)
+
+      console.log("this is the apiuserdata", apiUserData)
               
 
 

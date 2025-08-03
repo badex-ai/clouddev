@@ -1,5 +1,5 @@
 interface Task {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   assignee?: string;
@@ -9,7 +9,7 @@ interface Task {
 }
 
 interface Family {
-  id: string;
+  id: number;
   name: String;
   
 }
@@ -44,7 +44,7 @@ interface UserProfile {
   name?: string;
   username?: string;
   role?: string;
-  familyMembers: {id: string; username: string}[]
+  familyMembers: {id: number; username: string}[]
 
   // ... other fields from your API
 }
