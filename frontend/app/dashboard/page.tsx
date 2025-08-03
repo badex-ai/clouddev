@@ -23,49 +23,49 @@ function Dashboard() {
   const { userData } = useAuthUser();
    const [selectedDate, setSelectedDate] = useState(today);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  // const  [tasks, setTasks] = useState <Task[] | null>(null)
-   const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      title: 'Design user interface mockups',
-      description: 'Create wireframes and mockups for the new dashboard',
-      assignee: 'John Doe',
-      dueDate: '2024-03-15',
-      status: 'initialized'
-    },
-    {
-      id: '2',
-      title: 'Implement authentication system',
-      description: 'Set up user login, registration, and password reset functionality',
-      assignee: 'Jane Smith',
-      dueDate: '2024-03-20',
-      status: 'in-progress',
-      checkList: [
-        { id: 'check1', title: 'Create login API', completed: false },
-        { id: 'check2', title: 'Implement JWT authentication', completed: false },
-        { id: 'check3', title: 'Set up user roles', completed: false }
-        ]
-    },
-    {
-      id: '3',
-      title: 'Set up database schema',
-      description: 'Design and implement the database structure for the application',
-      assignee: 'Bob Johnson',
-      status: 'completed'
-    },
-    {
-      id: '4',
-      title: 'Code review process',
-      description: 'Establish code review guidelines and workflow',
-      assignee: 'Alice Brown',
-      dueDate: '2024-03-18',
-      status: 'initialized',
-      checkList: [
-        { id: 'item1', title: 'Review PR #123', completed: false },
-        { id: 'item2', title: 'Update documentation', completed: false }
-      ]
-    }
-  ]);
+  const  [tasks, setTasks] = useState <Task[] | null>(null)
+  //  const [tasks, setTasks] = useState<Task[]>([
+  //   {
+  //     id: '1',
+  //     title: 'Design user interface mockups',
+  //     description: 'Create wireframes and mockups for the new dashboard',
+  //     assignee: 'John Doe',
+  //     dueDate: '2024-03-15',
+  //     status: 'initialized'
+  //   },
+  //   {
+  //     id: '2',
+  //     title: 'Implement authentication system',
+  //     description: 'Set up user login, registration, and password reset functionality',
+  //     assignee: 'Jane Smith',
+  //     dueDate: '2024-03-20',
+  //     status: 'in-progress',
+  //     checkList: [
+  //       { id: 'check1', title: 'Create login API', completed: false },
+  //       { id: 'check2', title: 'Implement JWT authentication', completed: false },
+  //       { id: 'check3', title: 'Set up user roles', completed: false }
+  //       ]
+  //   },
+  //   {
+  //     id: '3',
+  //     title: 'Set up database schema',
+  //     description: 'Design and implement the database structure for the application',
+  //     assignee: 'Bob Johnson',
+  //     status: 'completed'
+  //   },
+  //   {
+  //     id: '4',
+  //     title: 'Code review process',
+  //     description: 'Establish code review guidelines and workflow',
+  //     assignee: 'Alice Brown',
+  //     dueDate: '2024-03-18',
+  //     status: 'initialized',
+  //     checkList: [
+  //       { id: 'item1', title: 'Review PR #123', completed: false },
+  //       { id: 'item2', title: 'Update documentation', completed: false }
+  //     ]
+  //   }
+  // ]);
 
   useEffect(() => {
     
@@ -88,7 +88,7 @@ function Dashboard() {
           });
       
           data = await response.json();
-          console.log('this is the data', data)
+          console.log('this is the data ***********', data)
           setTasks(data)
           return data
         } catch (error) {
@@ -107,7 +107,6 @@ function Dashboard() {
 
 
   
-  // console.log("this is the userdata",userData)
 
 
    const handleDateSelect = (date :Date ) => {
@@ -167,6 +166,10 @@ function Dashboard() {
 
   let taskTable;
 
+ if(tasks === null){
+  taskTable = <div>...loading</div>
+ }else{
+
   if (tasks?.length === 0) {
     taskTable = 
        <div className="w-full border rounded-sm border-[#888888] p-8 flex flex-col items-center justify-center ">
@@ -189,6 +192,10 @@ function Dashboard() {
 
      
     </div>}
+
+ }
+
+
 
   
  

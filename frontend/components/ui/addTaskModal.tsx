@@ -76,7 +76,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
         data.assignee_id === user.username
       );
       // let datfmt =  formatISO(new Date(`${data.due_date})`) );
-      console.log("family id",userData.family?.id)
+      // console.log("family id",userData.family?.id)
 
       console.log('dateeeeeee',new Date(`${data.due_date}:00Z`)) 
       const taskData = {
@@ -101,8 +101,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       form.reset();
 
 
-    console.log("this is the data for the result",result)
-    // console.log("this is the data for the form",taskData)
     
     
    

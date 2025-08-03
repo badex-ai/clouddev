@@ -2,8 +2,8 @@ interface Task {
   id: number;
   title: string;
   description?: string;
-  assignee?: string;
-  dueDate?: string;
+  assignee_id: number;
+  due_date?: string;
   status: TaskStatus;
   checkList?: { id: string; title: string; completed: boolean }[];
 }

@@ -40,12 +40,13 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove}) => {
   };
 
   const getTasksByStatus = (status: string) => {
+
     return tasks.filter(task => task.status === status);
   };
 
   const getColumnBgColor = (status: string) => {
     switch (status) {
-      case 'initialized': return 'bg-gray-50';
+      case 'initialised': return 'bg-gray-50';
       case 'in-progress': return 'bg-blue-50';
       case 'completed': return 'bg-green-50';
       default: return 'bg-gray-50';
@@ -55,7 +56,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove}) => {
   const getColumnBorderColor = (status: string, isDragOver: boolean) => {
     if (isDragOver) return 'border-blue-400 border-2';
     switch (status) {
-      case 'initialized': return 'border-gray-200';
+      case 'initialised': return 'border-gray-200';
       case 'in-progress': return 'border-blue-200';
       case 'completed': return 'border-green-200';
       default: return 'border-gray-200';
@@ -63,7 +64,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove}) => {
   };
 
   const columns = [
-    { title: 'Initialized', status: 'initialized' },
+    { title: 'initialised', status: 'initialised' },
     { title: 'In Progress', status: 'in-progress' },
     { title: 'Completed', status: 'completed' }
   ];
