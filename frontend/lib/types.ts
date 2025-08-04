@@ -3,7 +3,7 @@ interface Task {
   title: string;
   description?: string;
   assignee_id: number;
-  due_date?: string;
+  due_date: string;
   status: TaskStatus;
   checkList?: { id: string; title: string; completed: boolean }[];
 }

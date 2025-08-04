@@ -166,8 +166,10 @@ function Dashboard() {
 
   let taskTable;
 
+ 
+
  if(tasks === null){
-  taskTable = <div>...loading</div>
+  taskTable = null
  }else{
 
   if (tasks?.length === 0) {

@@ -13,16 +13,25 @@ import { Task, TaskStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ExtendedUserProfile } from '@/lib/types';
-import { formatISO } from 'date-fns';
+import {localToUtc} from'@/lib/utils'
+
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
   description: z.string().optional(),
   assignee_id: z.string().min(1, "Assignee is required"),
-  due_date: z.string().optional(),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, {
+    message: "Invalid format. Use YYYY-MM-DDTHH:mm",
+  })
+  .refine((val) => {
+    const now = new Date();
+    const input = new Date(val);
+    return input.getTime() - now.getTime() >= 60 * 60 * 1000; // 1 hour
+  }, {
+    message: "Date must be at least 1 hour from now",
+  })
 });
-// const {userData} = useAuthUser()
-// console.log(userData?.family?.id)
+
 
 type TaskFormData = z.infer<typeof taskSchema>;
 
@@ -30,7 +39,6 @@ interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (task: Omit<Task, 'id'>) => void;
-  initialStatus: string;
   assignees?: { id: string; username: string }[];
   userData: ExtendedUserProfile
 }
@@ -39,13 +47,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
   isOpen, 
   onClose, 
   onAdd, 
-  initialStatus,
   assignees,
   userData
 
 }) => {
 
   const [isLoading, setIsLoading] = useState(false)
+
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -55,17 +63,20 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       due_date: '',
     },
   });
-  
+
+
   
 
+
+         
 
 
   const   handleSubmit = async(data: TaskFormData) => {
         onAdd({
           title: data.title,
           description: data.description || undefined,
-          assignee: data.assignee_id, 
-          dueDate: data.due_date || undefined,
+          assignee_id: parseInt(data.assignee_id), 
+          due_date: data.due_date ,
           status:  'initialised' 
         });
 
@@ -75,21 +86,29 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       
         data.assignee_id === user.username
       );
-      // let datfmt =  formatISO(new Date(`${data.due_date})`) );
-      // console.log("family id",userData.family?.id)
-
-      console.log('dateeeeeee',new Date(`${data.due_date}:00Z`)) 
+      
       const taskData = {
         title: data.title,
         description: data.description || undefined,
         creator_id: userData.id,
-        status: 'initialised',
         assignee_id: user?.id,
-        due_date: `${data.due_date}:00Z`,
+        due_date: `${data.due_date}`,
         family_id: userData.family?.id
         
       }
-      // console.log('result of task creation', taskData)
+      let utcTime;
+      console.log('result of task creation', taskData)
+      if (data.due_date){
+         utcTime = localToUtc(data.due_date)
+         
+      }
+
+      taskData.due_date = utcTime;
+
+      // Convert to UTC before sending to the server
+
+      
+      //  fromZonedTime(`${data.due_date}`,userTimeZone).toISOString()
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/create`, {
           method: 'POST',
@@ -97,9 +116,15 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           body: JSON.stringify(taskData)
       });
       
-       const result =  await response.json()
-      form.reset();
+      
+      const result =  await response.json()
 
+      if(result){
+        setIsLoading(false)
+        form.reset();
+
+      }
+      
 
     
     
@@ -209,7 +234,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
                 <Button type="button" variant="outline" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button type="submit">Add Task</Button>
+                {isLoading ? <Button asChild>...</Button>: <Button type="submit" disabled={isLoading}>Add Task</Button>}
+                
               </div>
             </form>
           </Form>
