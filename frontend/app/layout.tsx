@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthUserProvider } from '@/contexts/userContext';
+import { Toaster } from 'sonner'
 
 
 
@@ -33,6 +34,14 @@ export default function RootLayout({
       >
         <AuthUserProvider>
           {children}
+          <Toaster
+            position="top-right"
+          expand={false}              // Set to true if you want toasts to expand on hover
+          visibleToasts={4}           // Number of visible toasts (default is 3)
+          closeButton={false}         // Show/hide close button
+          richColors={false}          // Enable rich colors for different toast types
+          theme="light"  
+          />
         </AuthUserProvider>
 
       </body>
