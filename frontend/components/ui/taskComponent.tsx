@@ -16,6 +16,9 @@ interface DraggableTaskProps {
 
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDragging }) => {
+
+
+  console.log('this is the task from the db', task);
   const [checkedItems, setCheckedItems] = React.useState<string[]>(
     task.checkList?.filter(item => item.completed).map(item => item.id) || []
   );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import DraggableTask  from '@/components/ui/task';
+import DraggableTask  from '@/components/ui/taskComponent';
 
 interface KanbanTableProps {
   tasks: Task[];

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect,useState,createContext, useContext  } from "react";
 import { useAuthUser } from '@/contexts/userContext';
 import { UserProfile, ExtendedUserProfile } from "@/lib/types";
+import {Settings} from  'lucide-react';
 
 
   interface UserDataContextType {
@@ -75,7 +76,7 @@ export default function DashboardLayout({
 
   
 
-   if (authIsLoading) {
+   if (!userData?.id && authIsLoading) {
     return <div>Loading...</div>;
   }
 
@@ -112,13 +113,24 @@ export default function DashboardLayout({
    
       <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
-          <div className="text-2xl font-bold text-indigo-600">Kaban</div>
+          <div>
+            <Link href="/dashboard">
+              <div className="text-2xl font-bold text-indigo-600">
+                Kaban
+              </div>
+            </Link>
+          </div>
+          
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             {userData && (
               <span className="text-gray-700">
                 Welcome, {userData.username || userData.name || userData.email}
               </span>
             )}
+            <Link href="/settings" className="flex items-center hover:text-blue-800">
+               <Settings className="cursor-pointer" />
+            </Link>
+           
             <Button className="cursor-pointer" asChild>
               <Link href="/auth/logout">LogOut</Link>
             </Button>

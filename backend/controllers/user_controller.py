@@ -163,5 +163,19 @@ async def get_user_family(req:FamilyRequest)-> FamilyUsers:
         db.close
 
 
+async def get_family(req:id)-> FamilyResponse:
+    try:
+        family = db.query(Family).filter(Family.id == req.id).first()
+        
+        if not family:
+            raise HTTPException(status_code=404, detail="Family not found")
+        
+        return FamilyResponse.model_validate(family)
+    
+    except Exception as e:
+         raise HTTPException(status_code=500, detail=f"Error getting family: {str(e)}")
+    finally: 
+        db.close
+
 
 
