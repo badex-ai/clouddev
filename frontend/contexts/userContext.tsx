@@ -12,14 +12,14 @@ const UserContext = createContext<UserDataContextType>({
   isUserDataLoading: true,
   userData: null,
   authIsLoading:true,
-  userDataError: null,
+  userDataError: false,
   fetchUserData: () => {}
 });
 
   interface UserDataContextType {
   userData: ExtendedUserProfile | null ;
   isUserDataLoading: boolean;
-  userDataError: string | null;
+  userDataError: boolean;
   authIsLoading: boolean;
   fetchUserData: () => void;
 
@@ -29,23 +29,23 @@ const UserContext = createContext<UserDataContextType>({
 
 export const AuthUserProvider = ({ children }: { children: React.ReactNode }) => {
   let { user, isLoading } = useUser();
-    const [userData, setUserData] = useState<UserProfile | null>(null);
-    const [isUserDataLoading, setIsUserDataLoading] = useState(true);
-  const [userDataError, setUserDataError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [isUserDataLoading, setIsUserDataLoading] = useState(true);
+  const [userDataError, setUserDataError] = useState<boolean>(false);
 
   const authIsLoading = isLoading;
 
 
    useEffect(() => {
     if (user && !userData) {
-      fetchUserData(user);
-      // console.log("User is authenticated, fetching user data:", user);
+      fetchUserData();
+      console.log("User is authenticated, fetching user data:", user.sub);
     }
   }, [user]);
 
 
-  const fetchUserData = async (userProfile: UserProfile) => {
-    setUserDataError(null);
+  const fetchUserData = async () => {
+   
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {
@@ -53,7 +53,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
         headers: { 
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_email: userProfile.email })
+        body: JSON.stringify({ user_email: user?.email })
       });
 
     
@@ -86,7 +86,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       // const apiUserData = {  familyMembers: family.users };
 
 
-      // console.log("this is the apiuserdata", apiUserData)
+      console.log("this is the apiuserdata", apiUserData)
               
 
 
@@ -94,9 +94,11 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       
       // Merge Auth0 user data with API data
       const mergedUserData: ExtendedUserProfile = {
-        ...userProfile,
+        ...userProfileFromAuth0,
         ...apiUserData
       };
+
+      console.log('testing to see the merged',mergedUserData)
 
     
 
@@ -105,7 +107,14 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
 
     } catch (error) {
       console.error("Error fetching user data:", error);
-      setUserDataError(error instanceof Error ? error.message : 'Failed to fetch user data');
+      console.log('this is the user data',userData)
+      if (user){
+      setUserData(user);
+
+      }
+      setUserDataError(true);
+      console.log('********************* he reach here o jghoahgha')
+      setIsUserDataLoading(false);
     } finally {
       setIsUserDataLoading(false);
     }
@@ -120,7 +129,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
         userData,
         authIsLoading,
         userDataError,
-        fetchUserData: () => {}
+        fetchUserData
         }}>
       {children}
     </UserContext.Provider>

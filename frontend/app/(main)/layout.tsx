@@ -18,55 +18,37 @@ import {Settings} from  'lucide-react';
 
 }
 
-// const UserDataContext = createContext<UserDataContextType | undefined>(undefined);
-
-// Custom hook for children to access user data
-// export const useUserData = () => {
-//   const context = useContext(UserDataContext);
-//   if (context === undefined) {
-//     throw new Error('useUserData must be used within a DashboardLayout');
-//   }
-//   return context;
-// };
-
-
-
 
 export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { userData, isUserDataLoading, authIsLoading,userDataError, fetchUserData } = useAuthUser();
   
- 
-
   const router = useRouter();
+  const { userData, isUserDataLoading, authIsLoading,userDataError, fetchUserData } = useAuthUser();
 
-
-
-
+  
   useEffect(() => {
-
-
-    if (!isUserDataLoading && !userData) {
+    
+    console.log('auth loading state', authIsLoading)
+    console.log('auth loading state', userData?.sub)
+    
+    
+    if (!authIsLoading && !userData?.sub) {
       console.log("User not found, redirecting to login");
       router.push('/auth/login');
     }
-  }, [userData, authIsLoading, router]);
-
-  let resp;
-
-//  useEffect(() => {
-//     if (user && !userData) {
-//       fetchUserData(user);
-//       console.log("User is authenticated, fetching user data:", user);
-//     }
-//   }, [user, userData]);
-
+    
+  }, [userData, authIsLoading]);
+  
+  
+  console.log('userData', userData);
+  
  
   const refetchUserData = () => {
 
+    console.log('casanova')
     if (userData?.role) {
       fetchUserData();
     }
@@ -74,21 +56,14 @@ export default function DashboardLayout({
  
 
 
-  
-
-   if (!userData?.id && authIsLoading) {
+   if (!userData?.sub || authIsLoading) {
     return <div>Loading...</div>;
   }
 
-   if (!userData?.sub) {
-    return null; // avoid rendering the layout until redirect happens
-  }
 
-
-
-    if (userDataError) {
-    return (
-
+  const content =
+  
+    (userDataError) ? (
       <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
           <div className="text-2xl font-bold text-indigo-600">Kaban</div>
@@ -106,11 +81,8 @@ export default function DashboardLayout({
           </div>
         </div>
       </div>
-    );
-  }
-  
-  return (
-   
+    )
+  : (
       <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
           <div>
@@ -140,6 +112,11 @@ export default function DashboardLayout({
           {children}
         </div>
       </div>
+  )
+  
+  return (
+    content
+    
     
   );
 }
