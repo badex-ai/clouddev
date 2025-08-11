@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional, List,Literal
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr,computed_field
 from enum import Enum
 
 # User schemas
@@ -47,13 +47,26 @@ class FamilyUsers(BaseModel):
 
     
 
-class UserResponse(UserBase):
+class GetMeResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
     
     id: int
     created_at: datetime
     updated_at: datetime
     family: FamilyResponse
+
+    @computed_field
+    @property
+    def family_members(self) -> List[Dict[str, Any]]:
+        """Extract the names and IDs of family members."""
+        # Check if we have family data from SQLAlchemy
+        if hasattr(self, 'family') and self.family and hasattr(self.family, 'users'):
+            return [
+                {"id": member.id, "name": member.name} 
+                for member in self.family.users 
+                if member.name and member.id != self.id  # Exclude self and ensure name exists
+            ]
+        return []
 
 
 

@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from models.models import User, Family
 from config.db import SessionLocal, test_connection
 from schemas.schemas import (
-    UserCreate, UserResponse, UserUpdate, UserRequest,
+    UserCreate, UserResponse, UserUpdate, UserRequest,GetMeResponse,
      TaskResponse, TaskUpdate, FamilyResponse, FamilyRequest, FamilyUsers
 )
 # Add this to see the actual SQL queries
@@ -110,13 +110,13 @@ async def create_user(request: UserCreate) -> UserResponse:
         db.close()
 
 # -> UserResponse
-async def get_user(req:UserRequest) -> UserResponse:
+async def get_user(req:UserRequest) -> GetMeResponse:
     
     
     print('it reach here too',req)
     
     try:
-        user = db.query(User).options(joinedload(User.family)).filter(User.email == req.user_email).first()
+        user = db.query(User).options(joinedload(User.family).joinedload(Family.users)).filter(User.email == req.user_email).first()
         
         
 
@@ -129,12 +129,15 @@ async def get_user(req:UserRequest) -> UserResponse:
         if user.family:
             print(f"Family name: {user.family.name}")
             print(f"Family created_at: {user.family.created_at}")
-        
-    
+
+        # Combine the user and family members into a single response
+
+
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
+
         
-        return UserResponse.model_validate(user)
+        return user
 
         print('it reach here too',db)
         
