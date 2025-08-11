@@ -29,7 +29,7 @@ const UserContext = createContext<UserDataContextType>({
 
 export const AuthUserProvider = ({ children }: { children: React.ReactNode }) => {
   let { user, isLoading } = useUser();
-  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [userData, setUserData] = useState<UserProfile | null>(user);
   const [isUserDataLoading, setIsUserDataLoading] = useState(true);
   const [userDataError, setUserDataError] = useState<boolean>(false);
 
@@ -37,6 +37,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
 
 
    useEffect(() => {
+    console.log('different states of the user', user);
     if (user && !userData) {
       fetchUserData();
       console.log("User is authenticated, fetching user data:", user.sub);
