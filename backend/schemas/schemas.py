@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from typing import Optional, List,Literal
+from typing import Optional, List,Literal,Dict
 from pydantic import BaseModel, ConfigDict, EmailStr,computed_field
 from enum import Enum
 
@@ -44,8 +44,16 @@ class FamilyUsers(BaseModel):
     users: List[FamilyUsers]
 
 
-
+class FamilyMemberResponse(BaseModel):
+    id: int
+    name: str
     
+class UserResponse:
+    id: int 
+    name: str
+    email: EmailStr
+    family_id: int
+    role: Literal["admin", "member"] = "member"
 
 class GetMeResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
@@ -57,7 +65,7 @@ class GetMeResponse(UserBase):
 
     @computed_field
     @property
-    def family_members(self) -> List[Dict[str, Any]]:
+    def family_members(self) -> List[FamilyMemberResponse]:
         """Extract the names and IDs of family members."""
         # Check if we have family data from SQLAlchemy
         if hasattr(self, 'family') and self.family and hasattr(self.family, 'users'):

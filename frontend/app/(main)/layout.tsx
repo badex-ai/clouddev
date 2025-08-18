@@ -9,6 +9,11 @@ import { useEffect,useState,createContext, useContext  } from "react";
 import { useAuthUser } from '@/contexts/userContext';
 import { UserProfile, ExtendedUserProfile } from "@/lib/types";
 import {Settings} from  'lucide-react';
+import { getUserData } from '@/lib/actions/userActions';
+import { useUser } from '@auth0/nextjs-auth0'
+
+
+
 
 
   interface UserDataContextType {
@@ -19,7 +24,7 @@ import {Settings} from  'lucide-react';
 }
 
 
-export default function DashboardLayout({
+export default  function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -28,43 +33,35 @@ export default function DashboardLayout({
   const router = useRouter();
   const { userData, isUserDataLoading, authIsLoading,userDataError, fetchUserData } = useAuthUser();
 
+
+  let { user, isLoading } = useUser();
+    
+  
+
   
   useEffect(() => {
     
-    console.log('auth loading state', authIsLoading)
-    console.log('auth loading state', userData?.sub)
+
     
-    
-    if (!authIsLoading && !userData?.sub) {
-      console.log("User not found, redirecting to login");
+    if (!authIsLoading && !user?.sub) {
       router.push('/auth/login');
     }
     
   }, [userData, authIsLoading]);
   
   
-  console.log('userData', userData);
   
  
   const refetchUserData = () => {
 
-    console.log('casanova')
     if (userData?.role) {
-      fetchUserData();
+      // fetchUserData();
     }
   };
  
 
-
-   if (!userData?.sub || authIsLoading) {
-    return <div>Loading...</div>;
-  }
-
-
-  const content =
-  
-    (userDataError) ? (
-      <div className="min-h-screen flex flex-col">
+   if (userDataError) {
+    return       <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
           <div className="text-2xl font-bold text-indigo-600">Kaban</div>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">               
@@ -80,10 +77,21 @@ export default function DashboardLayout({
             <Button onClick={refetchUserData}>Try Again</Button>
           </div>
         </div>
-      </div>
-    )
-  : (
-      <div className="min-h-screen flex flex-col">
+      </div>;
+  }
+
+
+ 
+ 
+
+     
+  
+
+
+  
+  return (
+    <div>
+      { userData?.id && !isUserDataLoading &&  <div className="min-h-screen flex flex-col">
         <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
           <div>
             <Link href="/dashboard">
@@ -112,10 +120,10 @@ export default function DashboardLayout({
           {children}
         </div>
       </div>
-  )
-  
-  return (
-    content
+           
+      }
+    </div>
+ 
     
     
   );

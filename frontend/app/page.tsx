@@ -1,10 +1,24 @@
 // components/LandingPage.tsx
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { auth0 } from "@/lib/auth0";
+import { redirect } from "next/navigation";
 
-export default function LandingPage() {
+
+export default async function LandingPage() {
+
+   const session = await auth0.getSession();
+ 
+
+   if(session) {
+   redirect('/dashboard');
+   }
+
+   console.log('this is the session', session);
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
+    <div>
+      {!session && (
+        <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
         <div className="text-2xl font-bold text-indigo-600">Kaban</div>
@@ -12,7 +26,7 @@ export default function LandingPage() {
           <a href="#about" className="hover:text-indigo-600 transition-colors">
             About
           </a>
-          <a href="/auth/login?returnTo=/dashboard" className="hover:text-indigo-600 transition-colors">
+          <a href="/auth/login" className="hover:text-indigo-600 transition-colors">
             Login
           </a>
           <a href="signup" className="hover:text-indigo-600 transition-colors">
@@ -53,5 +67,8 @@ export default function LandingPage() {
         © {new Date().getFullYear()} Kaban. All rights reserved.
       </footer>
     </div>
+      )}
+    </div>
+    
   );
 }

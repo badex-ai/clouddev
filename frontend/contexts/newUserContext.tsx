@@ -1,3 +1,4 @@
+'use client'
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface UserData {
@@ -9,7 +10,7 @@ interface UserContextType {
   setUserData: (data: UserData | null) => void;
 }
 
-const UserContext = createContext<UserContextType | undefined>(undefined);
+const newUserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserDataProvider({ 
   children, 
@@ -21,16 +22,16 @@ export function UserDataProvider({
   const [userData, setUserData] = useState<UserData | null>(initialUserData);
 
   return (
-    <UserContext.Provider value={{ userData, setUserData }}>
+    <newUserContext.Provider value={{ userData, setUserData }}>
       {children}
-    </UserContext.Provider>
+    </newUserContext.Provider>
   );
 }
 
-export const useAuthUser = () => {
-  const context = useContext(UserContext);
+export const useNewAuthUser = () => {
+  const context = useContext(newUserContext);
   if (context === undefined) {
-    throw new Error('useAuthUser must be used within a UserDataProvider');
+    throw new Error('useNewAuthUser must be used within a UserDataProvider');
   }
   return context;
 };

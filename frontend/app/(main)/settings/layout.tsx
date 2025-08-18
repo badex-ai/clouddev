@@ -13,9 +13,9 @@ export default function SettingsPage({children}: {children: React.ReactNode}) {
     <div className="flex h-full">
       <SidebarProvider>
         <SettingsSidebar/>
-      <main>
-        {children}
-      </main>
+        <main className='w-full'>
+          {children}
+        </main>
       </SidebarProvider>
     </div>
   

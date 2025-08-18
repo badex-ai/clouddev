@@ -11,6 +11,7 @@ interface Task {
 interface Family {
   id: number;
   name: String;
+  members: { id: number; name: string; role: string }[];
   
 }
 

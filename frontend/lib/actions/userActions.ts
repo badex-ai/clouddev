@@ -1,23 +1,15 @@
 
-import { Auth0Client } from '@auth0/nextjs-auth0/server'
 
-export async function getUserData() {
+export async function getUserData(user: any) {
 
 
-  
-  const auth0 = new Auth0Client();
-   const session = await auth0.getSession();
 
-   if (!session?.user?.email) {
-      return Response.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
-  try {
+ 
     // Fetch user data
-    const userResponse = await fetch(`${process.env.API_URL}/api/v1/users/me`, {
+    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_email: session?.user?.email })
+      body: JSON.stringify({ user_email: user.email })
     })
 
     if (!userResponse.ok) {
@@ -26,8 +18,9 @@ export async function getUserData() {
 
     const userData = await userResponse.json()
 
+
     const mergedData = {
-      ...session.user,
+      ...user,
       ...userData
     };
 
@@ -37,12 +30,5 @@ export async function getUserData() {
       status: 200 
     };
     
-  } catch (error) {
-    console.error('Error fetching user data:', error)
-      return { 
-      success: false, 
-      error: 'Failed to fetch user data', 
-      status: 500 
-    };
-  }
+  
 }

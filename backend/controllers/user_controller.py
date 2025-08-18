@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from fastapi import HTTPException, Depends, Request
 import httpx 
-from sqlalchemy.orm import Session,joinedload
+from sqlalchemy.orm import Session,joinedload,selectinload
 from sqlalchemy.exc import IntegrityError
 from models.models import User, Family
 from config.db import SessionLocal, test_connection
@@ -110,17 +110,47 @@ async def create_user(request: UserCreate) -> UserResponse:
         db.close()
 
 # -> UserResponse
-async def get_user(req:UserRequest) -> GetMeResponse:
+async def get_user(req:UserRequest):
     
-    
+   
     print('it reach here too',req)
     
     try:
-        user = db.query(User).options(joinedload(User.family).joinedload(Family.users)).filter(User.email == req.user_email).first()
-        
-        
+       # First, get the user
+        user = db.query(User).filter(User.email == req.user_email).first()
 
-        print(f"Query successful, user: {user}")
+        if user:
+        # Then get all family members including the current user
+            family_members = db.query(User).filter(
+                User.family_id == user.family_id
+            ).all()
+
+            # Get family info
+            family = db.query(Family).filter(Family.id == user.family_id).first()
+
+            response_data = {
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "name": user.name
+                },
+                "family": {
+                    "id": family.id,
+                    "name": family.name,
+                    "members": [
+                        {
+                            "id": member.id,
+                            "name": member.name,
+                            "username": member.username,
+                            "role": member.role.value  # if you want to include role
+                        }
+                        for member in family_members
+                    ]
+                }
+            }
+
+        print(f"Query successful, user: {response_data}")
         print(f"User role: {user.role}")
         print(f"User created_at: {user.created_at}")
         print(f"User family: {user.family}")
