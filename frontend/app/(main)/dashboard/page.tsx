@@ -101,7 +101,7 @@ function Dashboard() {
   }, [selectedDate])
   
 
-
+  console.log('this is the user data on dashboard home', userData?.family?.members)
   
 
 
@@ -270,7 +270,7 @@ function Dashboard() {
         onClose={() => setShowAddModal(false)}
         onAdd={handleAddTask}
         initialStatus={addModalStatus}
-        assignees={userData?.familyMembers}
+        assignees={userData?.family?.members}
         userData={userData}
       />
       {/* </div> */}
