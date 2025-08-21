@@ -4,7 +4,10 @@ import { useAuthUser } from '@/contexts/userContext'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
@@ -13,16 +16,20 @@ import {
   User,
   MoreVertical,
   Trash2,
-  Edit
+  Edit,
+  Loader2
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {createNewFamilyMember} from  '@/lib/actions/userActions'
+import {createFamilyMemberFormSchema, CreateNewFamilyMemberFormType} from '@/lib/validations/user'
+import { CreateNewFamilyMember } from '@/lib/types';
 
 
 export default function MemberSettingsPage() {
 
  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+ const [submitIsLoading, setSubmitIsLoading] = useState(false);
+
    const [familyMembers, setFamilyMembers] = useState([
     { id: 1, name: 'John Doe', email: 'john.doe@email.com', role: 'Admin' },
     { id: 2, name: 'Jane Smith', email: 'jane.smith@email.com', role: 'Member' },
@@ -30,8 +37,15 @@ export default function MemberSettingsPage() {
   ]);
 
   const { userData } = useAuthUser();
+  
+  const {
+      register,
+      handleSubmit,
+      formState: { errors },
+    } = useForm<CreateNewFamilyMemberFormType>({
+      resolver: zodResolver(createFamilyMemberFormSchema),
+    });
 
-  console.log('userData', userData);
 
   useEffect(() => {
   //     const getFamilyMembers = async () =>   {
@@ -55,34 +69,63 @@ export default function MemberSettingsPage() {
     // getFamilyMembers();
   }, [])
 
+  useEffect(() => {
+   
+  }, [submitIsLoading])
 
-    const createNewMember = () => {
-    console.log('Creating new family member:', { name, email });
+ 
+  
+
+
+    const onFormSubmit = async (data: CreateNewFamilyMemberFormType) => {
+       setSubmitIsLoading(true);
+      console.log('data from the form', data)
+     
+      
+      // console.log('Creating new family member:', newData);
+     
+    try{
+
+      if (userData?.family?.id && userData?.family?.name) {
+        const newData: CreateNewFamilyMember = {
+          ...data,
+          family_id: userData.family.id,
+          family_name: userData.family.name,
+        }
+        
+        const newMember = await createNewFamilyMember(newData)
+      }
+            
+
+    }
+    catch{
+      setSubmitIsLoading(false);
+      toast("Create new family member failed. Please try again.")
+    }finally{
+      setSubmitIsLoading(false);
+    }
     
     // Add the new member to the list
-    const newMember = {
-      id: familyMembers.length + 1,
-      name,
-      email,
-      role: 'Member'
-    };
+    // const newMember = {
+    //   id: familyMembers.length + 1,
+    //   name,
+    //   email,
+    //   role: 'Member'
+    // };
     
-    setFamilyMembers([...familyMembers, newMember]);
+    // setFamilyMembers([...familyMembers, newMember]);
     
-    // Reset form and close dialog
-    setName('');
-    setEmail('');
-    setIsDialogOpen(false);
+    // // Reset form and close dialog
+    // setName('');
+    // setEmail('');
+    // setIsDialogOpen(false);
   };
 
   // const familyMembers = userData?.family?.members
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (name.trim() && email.trim()) {
-      createNewMember();
-    }
-  };
+
+  
+
 
   
 
@@ -123,14 +166,13 @@ export default function MemberSettingsPage() {
                 Enter the details for the new family member. They will receive an invitation via email.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+            <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label htmlFor="member-name">Name</Label>
                 <Input
                   id="member-name"
                   placeholder="Enter full name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register("name")}
                   required
                 />
               </div>
@@ -140,8 +182,7 @@ export default function MemberSettingsPage() {
                   id="member-email"
                   type="email"
                   placeholder="Enter email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   required
                 />
               </div>
@@ -153,8 +194,10 @@ export default function MemberSettingsPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  Create Member
+                 {/* <Loader2 className="mr-2 h-4 w-4 animate-spin" /> */}
+                <Button type="submit" disabled={submitIsLoading}>
+                  {submitIsLoading ? '...loading': "Create Member"}
+               
                 </Button>
               </div>
             </form>

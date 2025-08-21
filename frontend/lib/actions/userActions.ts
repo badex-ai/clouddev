@@ -1,3 +1,5 @@
+import {CreateNewFamilyMember} from '@/lib/types';
+
 
 
 export async function getUserData(user: any) {
@@ -31,4 +33,15 @@ export async function getUserData(user: any) {
     };
     
   
+}
+
+
+export async function createNewFamilyMember(userInfo: CreateNewFamilyMember){
+   const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/new`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify( userInfo)
+    }) 
+
+    return userResponse.json()
 }

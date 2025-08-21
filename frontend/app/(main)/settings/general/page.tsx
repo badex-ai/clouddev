@@ -54,7 +54,7 @@ export default function GeneralSettingsPage() {
               <Label htmlFor="call" className="flex items-center gap-2 cursor-not-allowed">
                 <Phone className="h-4 w-4" />
                 Phone Call
-                
+                <Badge variant="secondary" className="text-xs">Unavailable</Badge>
               </Label>
             </div>
             
@@ -63,7 +63,7 @@ export default function GeneralSettingsPage() {
               <Label htmlFor="whatsapp" className="flex items-center gap-2 cursor-not-allowed">
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp
-                
+                <Badge variant="secondary" className="text-xs">Unavailable</Badge>
               </Label>
             </div>
           </RadioGroup>

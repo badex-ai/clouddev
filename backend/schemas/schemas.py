@@ -11,13 +11,26 @@ class UserBase(BaseModel):
     is_active: bool = True
 
 
+class UserRole(str, Enum):
+    admin = "admin"
+    member = "member"
+
+class TaskStatus(str, Enum):
+        initialised= "initialised"
+        in_progress = "in-progress"
+        completed = "completed"
+
+
 
 class UserCreate(UserBase):
-    password: str
+    email: EmailStr
+    name: str
+    family_name: str
+    family_id: int
 
 class UserRequest(BaseModel):
-    user_email: str
-    
+    user_email: EmailStr
+
 class FamilyRequest(BaseModel):
     family_id: int
     
@@ -48,12 +61,13 @@ class FamilyMemberResponse(BaseModel):
     id: int
     name: str
     
-class UserResponse:
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int 
     name: str
     email: EmailStr
     family_id: int
-    role: Literal["admin", "member"] = "member"
+    role: UserRole
 
 class GetMeResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
@@ -83,10 +97,7 @@ class ChecklistItem(BaseModel):
     title: str
     completed: bool
 
-class TaskStatus(str, Enum):
-        initialised= "initialised"
-        in_progress = "in-progress"
-        completed = "completed"
+
 
 # Task schemas
 class TaskBase(BaseModel):
@@ -105,9 +116,7 @@ class TaskBase(BaseModel):
 
         
 
-class UserRole(str, Enum):
-    admin = "admin"
-    member = "member"
+
 
 class TaskCreate(BaseModel):
     title: str | int
@@ -158,3 +167,10 @@ class ChecklistItem(BaseModel):
     
 class TaskRequest(BaseModel):
     id: str
+
+
+class CreateMemberRequest(BaseModel):
+    name: str
+    email: EmailStr
+    family_id: int
+    family_name: str

@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
   const { origin } = new URL(request.url);
   const session = await auth0.getSession(request);
 
-  console.log('this is the session for the middleware', session)
+  // console.log('this is the session for the middleware', session)
 
   // User does not have a session — redirect to login.
   if (!session) {

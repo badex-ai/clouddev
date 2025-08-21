@@ -10,7 +10,7 @@ interface Task {
 
 interface Family {
   id: number;
-  name: String;
+  name: string;
   members: { id: number; name: string; role: string }[];
   
 }
@@ -52,5 +52,13 @@ interface UserProfile {
 }
 
 
+interface CreateNewFamilyMember {
+  name: string;
+  email: string;
+  family_id: number; // Optional, if the family ID is not provided
+  family_name: string; // Optional, if the family name is not provided
+}
 
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus };
+
+
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember };
