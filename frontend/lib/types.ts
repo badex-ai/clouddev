@@ -11,9 +11,13 @@ interface Task {
 interface Family {
   id: number;
   name: string;
-  members: { id: number; name: string; role: string }[];
+  users: { id: number; name: string; role: string }[];
   
 }
+
+
+interface FamilyMember{
+   id: string; name: string; role: string,family_id: number, is_active: boolean, username: string,email: string }
 
 interface DraggableTaskProps {
   task: Task;
@@ -38,6 +42,15 @@ interface UserProfile {
     email_verified?: boolean;
 }
 
+interface UserProfile {
+    sub: string
+    nickname?: string
+    picture?: string;
+    email?: string;
+    email_verified?: boolean;
+}
+
+
   interface ExtendedUserProfile extends UserProfile {
   // Add your API-specific user fields here
   id?: string;
@@ -61,4 +74,4 @@ interface CreateNewFamilyMember {
 
 
 
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember };
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember,FamilyMember };

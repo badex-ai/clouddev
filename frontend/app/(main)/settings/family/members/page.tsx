@@ -22,7 +22,8 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {createNewFamilyMember} from  '@/lib/actions/userActions'
 import {createFamilyMemberFormSchema, CreateNewFamilyMemberFormType} from '@/lib/validations/user'
-import { CreateNewFamilyMember } from '@/lib/types';
+import { CreateNewFamilyMember , FamilyMember } from '@/lib/types';
+import { getFamilymembers } from '@/lib/actions/userActions';
 
 
 export default function MemberSettingsPage() {
@@ -30,11 +31,9 @@ export default function MemberSettingsPage() {
  const [isDialogOpen, setIsDialogOpen] = useState(false);
  const [submitIsLoading, setSubmitIsLoading] = useState(false);
 
-   const [familyMembers, setFamilyMembers] = useState([
-    { id: 1, name: 'John Doe', email: 'john.doe@email.com', role: 'Admin' },
-    { id: 2, name: 'Jane Smith', email: 'jane.smith@email.com', role: 'Member' },
-    { id: 3, name: 'Mike Johnson', email: 'mike.johnson@email.com', role: 'Member' }
-  ]);
+ 
+
+   const [familyMembers, setFamilyMembers] = useState<null| FamilyMember[]> (null)
 
   const { userData } = useAuthUser();
   
@@ -48,30 +47,38 @@ export default function MemberSettingsPage() {
 
 
   useEffect(() => {
-  //     const getFamilyMembers = async () =>   {
-  //             try{
-  //             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/date`, {
-  //                 method: 'POST', 
-  //                 headers: {
-  //                   'Content-Type': 'application/json',
-  //                 },
-  //                 body: JSON.stringify({
-  //                   family_id: userData?.family?.id,
-                  
-  //                 }),
-  //               });
-  //         }catch{}
-          
-
-  // }
-
-
-    // getFamilyMembers();
+    if( userData?.family?.id) {
+        fetchFamilyMembers()
+    }
+ 
   }, [])
 
-  useEffect(() => {
+    useEffect(() => {
    
   }, [submitIsLoading])
+
+  const fetchFamilyMembers = async () => {
+
+    if(userData?.family?.id){
+       try{
+      const familyMembers = await getFamilymembers(userData?.family?.id)
+        console.log('familyMembers', familyMembers)
+       
+       const otherFamily= familyMembers?.users.filter((member: FamilyMember)=>{
+          return userData.id != member.id
+        })
+       
+      setFamilyMembers(otherFamily)
+    }catch(e){
+      console.log('Error fetching family members:', e);
+    }
+    
+  }
+}
+
+
+
+
 
  
   
@@ -207,7 +214,7 @@ export default function MemberSettingsPage() {
 
       {/* Family Members List */}
       <div className="space-y-6">
-        {familyMembers.map((member) => (
+        {familyMembers && familyMembers.map((member) => (
           <div key={member.id} className="p-4 rounded-lg hover:bg-muted/50 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -251,7 +258,7 @@ export default function MemberSettingsPage() {
         ))}
       </div>
 
-      {familyMembers.length === 0 && (
+      {familyMembers?.length === 0 && (
         <div className="text-center py-12">
           <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No family members yet</h3>
@@ -267,12 +274,6 @@ export default function MemberSettingsPage() {
         </div>
       )}
 
-      {/* Save Button */}
-      <div className="flex justify-end pt-6">
-        <Button size="lg" className="px-8">
-          Save Settings
-        </Button>
-      </div>
     </div>
   );
 }

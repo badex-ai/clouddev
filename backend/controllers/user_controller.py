@@ -4,9 +4,8 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Depends, Request
 import httpx 
 from sqlalchemy.orm import Session,joinedload,selectinload
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError,SQLAlchemyError
 from models.models import User, Family
-from config.db import SessionLocal, test_connection
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate, UserRequest,GetMeResponse,
      TaskResponse, TaskUpdate, FamilyResponse, FamilyRequest, FamilyUsers, UserRole
@@ -20,7 +19,7 @@ logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 load_dotenv()
-# db = SessionLocal()
+
 
 
 
@@ -236,10 +235,7 @@ async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
                 detail=f"Error creating user in Auth0: {e.response.text}"
             )
 
-            
-
-
-
+  
         
         # Create new user instance
         new_user = User(
@@ -318,56 +314,26 @@ async def get_user(req:UserRequest, db: Session):
                 }
             }
 
-      
-        
-    
-
-        # Combine the user and family members into a single response
-
-
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        
         return response_data
-
-        print('it reach here too',db)
-        
 
         
     except Exception as e:
          raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
     
 
-async def get_user_family(req:FamilyRequest, db: Session)-> FamilyUsers:
-    print(f"Family Object: ",req)
-    try:
-        family = db.query(Family).options(joinedload(Family.users)).filter(Family.id == req.family_id).first()
-        
-        print(f"User Email: {family.users}")
-       
-    
-        if not family:
-            raise HTTPException(status_code=404, detail="family not found")
-        
-        return FamilyUsers.model_validate(family)
-    except Exception as e:
-         raise HTTPException(status_code=500, detail=f"Error getting family: {str(e)}")
-    
-
-
-async def get_family(req:id,db: Session)-> FamilyResponse:
-    try:
-        family = db.query(Family).filter(Family.id == req.id).first()
-        
-        if not family:
-            raise HTTPException(status_code=404, detail="Family not found")
-        
-        return FamilyResponse.model_validate(family)
-    
-    except Exception as e:
-         raise HTTPException(status_code=500, detail=f"Error getting family: {str(e)}")
    
+def delete_user(user_id: int, db: Session) -> bool:
+    try:
+        rows_affected = db.query(User).filter(User.id == user_id).delete()
+        db.commit()
+        return rows_affected > 0
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Database error")
+    
 
-
+    
 

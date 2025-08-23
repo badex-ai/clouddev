@@ -14,9 +14,8 @@ load_dotenv()
 async def logout():
     return {"message": "Logout successful"}
 
-async def signup(req):
+async def signup(req, db):
 
-    db = SessionLocal()
     auth0_signup_url = f"https://{os.getenv('AUTH0_DOMAIN')}/dbconnections/signup"
 
     print("request payloads",req)

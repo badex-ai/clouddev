@@ -45,3 +45,13 @@ export async function createNewFamilyMember(userInfo: CreateNewFamilyMember){
 
     return userResponse.json()
 }
+
+export async function getFamilymembers(familyId: number){
+  const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/family/${familyId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    
+    }) 
+
+    return userResponse.json()
+}

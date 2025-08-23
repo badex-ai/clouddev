@@ -46,15 +46,15 @@ class FamilyResponse(BaseModel):
     name: str
 
 
-class FamilyUsers(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int  # Added the missing id field
-    username: str
+# class FamilyUsers(BaseModel):
+#     model_config = ConfigDict(from_attributes=True)
+#     id: int  # Added the missing id field
+#     username: str
 class FamilyUsers(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     name: str
-    users: List[FamilyUsers]
+    users: List[UserBase]
 
 
 class FamilyMemberResponse(BaseModel):
