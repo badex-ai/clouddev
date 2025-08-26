@@ -11,6 +11,19 @@ import { Button } from '@/components/ui/button';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Filter , Package} from 'lucide-react';
 import { Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useForm,Controller } from "react-hook-form";
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { zodResolver } from "@hookform/resolvers/zod"
+import {createTask} from '@/lib/actions/taskActions'
+import { taskSchema,TaskFormData } from '@/lib/validations/task';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {localToUtc} from'@/lib/utils'
+import { toast } from 'sonner';
+import { getTaskForDay } from '@/lib/actions/taskActions';
+
+
 
 
 function Dashboard() {
@@ -62,29 +75,34 @@ function Dashboard() {
   //     ]
   //   }
   // ]);
+ const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [submitIsLoading, setSubmitIsLoading] = useState(false);
+  
+  
 
+  // console.log('this is the userData oooooo', userData)
   useEffect(() => {
-    
-   
-   let data;
 
+   let data;
 
    const fetchTasks = async () => {
 
-    try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/date`, {
-            method: 'POST', 
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              family_id: userData?.family?.id,
-              date: selectedDate,
-            }),
-          });
       
-          data = await response.json();
-          console.log('this is the data ***********', data)
+
+    try {
+          const family_id = userData?.family?.id
+          if (!family_id) {
+            return; // or handle error case
+          }
+          let res;
+          
+             res = await getTaskForDay(family_id, selectedDate)
+          
+          
+          
+      
+          data = await res.json();
+          // console.log('this is the data ***********', data)
           setTasks(data)
           return data
         } catch (error) {
@@ -93,15 +111,9 @@ function Dashboard() {
         }
     };
 
-
     fetchTasks()
-    
-
 
   }, [selectedDate])
-  
-
-  console.log('this is the user data on dashboard home', userData?.family?.members)
   
 
 
@@ -134,8 +146,8 @@ function Dashboard() {
  
    
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [addModalStatus, setAddModalStatus] = useState<string>('initialized');
+  // const [showAddModal, setShowAddModal] = useState(false);
+  // const [addModalStatus, setAddModalStatus] = useState<string>('initialized');
 
   const handleTaskMove = (taskId: string, newStatus: string) => {
     setTasks(prevTasks =>
@@ -155,10 +167,10 @@ function Dashboard() {
     setTasks(prev => [...prev, newTask]);
   };
 
-  const handleAddTaskClick = (status: string) => {
-    setAddModalStatus(status);
-    setShowAddModal(true);
-  };
+  // const handleAddTaskClick = (status: string) => {
+  //   setAddModalStatus(status);
+  //   setShowAddModal(true);
+  // };
 
   let taskTable;
 
@@ -193,10 +205,68 @@ function Dashboard() {
 
  }
 
+ const {
+       register,
+       handleSubmit,
+       formState: { errors },
+       control
+     } = useForm<TaskFormData>({
+       resolver: zodResolver(taskSchema),
+       defaultValues: {
+        assignee_id: '',}
+     });
 
+  const onFormSubmit = async (data: TaskFormData) => {
+      
 
+     const user = assignees?.find(user => 
+      
+        data.assignee_id === user.username
+
+        
+      );
+        let taskData;
+      if(user?.id && userData?.family?.id) {
+        
+           data.assignee_id = user?.id.toString()
+           taskData = {
+                title: data.title,
+                description: data.description || undefined,
+                creator_id: userData?.id,
+                assignee_id: user?.id,
+                due_date: localToUtc(data.due_date),
+                family_id: userData?.family?.id
+                
+              }
+        }
+          
+        
+      try{
+        setSubmitIsLoading(true);
+        // console.log('data from the form', taskData)
+        
+          const result = await createTask(taskData)
+          if(result.ok){
+              toast('New task created')
+          setSubmitIsLoading(false);
+          }
+
+          console.log('this is the result of the task create',result)
+          
+          
+      }catch{
+        toast('Something went wrong while creating the task')
+        setSubmitIsLoading(false);
+      }
   
- 
+      
+    }
+    
+
+
+      // console.log('this is the userData oblee oblee:', userData)
+  
+ const assignees = userData?.family?.members
   
   
   return (
@@ -252,27 +322,107 @@ function Dashboard() {
         </div>
 
       </div>
-      <div>
-        
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleAddTaskClick('initialized')}
-                  className="h-6 w-6 p-0 hover:bg-gray-100"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-             
+      <Dialog>
+    <DialogTrigger asChild>
+      <Button className="flex items-center gap-2">
+        <Plus className="h-4 w-4" />
+        Add New Task
+      </Button>
+    </DialogTrigger>
+    <DialogContent className="sm:max-w-[425px]">
+      <DialogHeader>
+      <DialogTitle>Add New Task</DialogTitle>
+      <DialogDescription>
+        Add new task, assign to a family member or self and set a due date.
+      </DialogDescription>
+    </DialogHeader>
+    <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 pt-4">
+      <div className="space-y-2">
+        <Label htmlFor="task-title">Title *</Label>
+        <Input
+          id="task-title"
+          placeholder="Enter task title"
+          {...register("title")}
+        />
+        {errors.title && (
+          <p className="text-sm font-medium text-destructive">{errors.title.message}</p>
+        )}
       </div>
-       <AddTaskModal
-        
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onAdd={handleAddTask}
-        initialStatus={addModalStatus}
-        assignees={userData?.family?.members}
-        userData={userData}
-      />
+
+      <div className="space-y-2">
+        <Label htmlFor="task-description">Description</Label>
+        <Input
+          id="task-description"
+          placeholder="Enter task description"
+          {...register("description")}
+        />
+        {errors.description && (
+          <p className="text-sm font-medium text-destructive">{errors.description.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+       
+        <div className="space-y-2">
+  <Label htmlFor="task-assignee">Assignee *</Label>
+  <Controller
+    control={control}
+    name="assignee_id"
+    render={({ field }) => (
+      <Select onValueChange={field.onChange} value={field.value}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select an assignee" />
+        </SelectTrigger>
+        <SelectContent>
+          {assignees?.map((assignee) => (
+            <SelectItem key={assignee.id} value={assignee.username}>
+              {assignee.username}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    )}
+  />
+  {errors.assignee_id && (
+    <p className="text-sm font-medium text-destructive">{errors.assignee_id.message}</p>
+  )}
+</div>
+
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="task-due-date">Due Date *</Label>
+        <div className="relative">
+          <Input
+            id="task-due-date"
+            type="datetime-local"
+            {...register("due_date")}
+            min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)} // 1 hour from now
+          />
+          
+        </div>
+       
+      </div>
+      {errors.due_date && (
+    <p className="text-sm font-medium text-destructive">{errors.due_date.message}</p>
+  )}
+
+      <div className="flex justify-end gap-3 pt-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => setIsDialogOpen(false)}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={submitIsLoading}>
+          {submitIsLoading ? '...loading' : "Add Task"}
+        </Button>
+      </div>
+    </form>
+  </DialogContent>
+</Dialog>
+      
       {/* </div> */}
       {taskTable}
       

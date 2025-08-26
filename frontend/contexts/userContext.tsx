@@ -65,7 +65,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
    
      
       setUserDataError(true);
-      console.log('********************* he reach here o jghoahgha')
+  
       setUserData(user)
       setIsUserDataLoading(false);
     } finally {

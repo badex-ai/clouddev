@@ -1,10 +1,10 @@
-import React from 'react'
-import { redirect } from 'next/navigation'
+// import React from 'react'
+// import { redirect } from 'next/navigation'
 
 
 
-function page() {
- redirect('/settings/general')
-}
+// // function page() {
+// //  redirect('/settings/general')
+// // }
 
-export default page
+// export default page

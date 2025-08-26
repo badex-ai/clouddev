@@ -3,7 +3,8 @@ from config.db import get_db
 from sqlalchemy.orm import Session
 from controllers.auth_controller import  signup, logout,sendVerificationEmail
 from schemas.schemas import SignupRequest, EmailVerificationRequest,UserRequest,FamilyRequest,CreateMemberRequest
-from controllers.user_controller import get_user, create_family_member
+from controllers.user_controller import get_user, create_family_member,delete_user
+from schemas.schemas import UserStatusRequest
 
 
 
@@ -20,3 +21,10 @@ async def create_user_route(req: CreateMemberRequest  = Body(...), db: Session =
 
 
 
+@router.patch("/{id}/deactivate")
+async def delete_family_member(id, db: Session = Depends(get_db)):
+     return  delete_user(id,db)
+
+# @router.patch("/{id}")
+# async def change_family_member_status_route(id, db: Session = Depends(get_db)):
+#      return await change_family_member_status(id, db)

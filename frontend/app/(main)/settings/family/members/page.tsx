@@ -23,7 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import {createNewFamilyMember} from  '@/lib/actions/userActions'
 import {createFamilyMemberFormSchema, CreateNewFamilyMemberFormType} from '@/lib/validations/user'
 import { CreateNewFamilyMember , FamilyMember } from '@/lib/types';
-import { getFamilymembers } from '@/lib/actions/userActions';
+import { getFamilymembers,deleteFamilymember } from '@/lib/actions/userActions';
 
 
 export default function MemberSettingsPage() {
@@ -131,6 +131,42 @@ export default function MemberSettingsPage() {
   // const familyMembers = userData?.family?.members
 
 
+  // async function handleDeleteFamilyMember (){
+   
+  //   try{
+  //       if(userData?.id){
+  //        let result =  await deleteFamilymember(userData?.id)
+
+  //        console.log(result)
+       
+  //       }
+  //        toast("Family member deleted suscessfully")
+
+        
+  //     }catch{
+  //       toast("UFamily member not deleted Something went wrong please try again")
+  //     }
+  // }
+
+  async function handleDeleteFamilyMember() {
+  try {
+    if (!userData?.id) return;
+
+    const result = await deleteFamilymember(userData.id);
+
+    if (result.ok) {
+      toast("Family member deleted successfully");
+      console.log("Deleted:", userData.id);
+    } else {
+      const errorData = await result.json().catch(() => null);
+      console.error("Delete failed:", errorData || result.statusText);
+      toast("Family member not deleted. Something went wrong, please try again.");
+    }
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    toast("Something went wrong. Please try again.");
+  }
+}
   
 
 
@@ -242,11 +278,7 @@ export default function MemberSettingsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem className="flex items-center gap-2">
-                      <Edit className="h-4 w-4" />
-                      Edit Member
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2 text-destructive">
+                    <DropdownMenuItem onClick={handleDeleteFamilyMember} className="flex items-center gap-2 text-destructive">
                       <Trash2 className="h-4 w-4" />
                       Remove Member
                     </DropdownMenuItem>

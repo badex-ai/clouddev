@@ -248,6 +248,7 @@ async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
             # Assuming family_id is provided in the request
             # is_active, created_at, updated_at will use defaults
         )
+
         
         # Add to database
         db.add(new_user)
@@ -270,13 +271,12 @@ async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
         print("Error creating user:", str(e))
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
-    # finally:
-    #     db.close()
     
 
 # -> UserResponse
 async def get_user(req:UserRequest, db: Session):
     # print('it reach here too',req)
+    print('this is the user',req.user_email)
     
     try:
        # First, get the user
@@ -285,26 +285,27 @@ async def get_user(req:UserRequest, db: Session):
         if user:
         # Then get all family members including the current user
             family_members = db.query(User).filter(
-                User.family_id == user.family_id
+                User.family_id == user.family_id,
+                User.is_active == True
             ).all()
 
             # Get family info
-            family = db.query(Family).filter(Family.id == user.family_id).first()
+            family = db.query(Family).filter(Family.public_id == user.family_id).first()
 
             response_data = {
                 # User fields directly at root level (only the ones from original structure)
-                "id": user.id,
+                "id": user.public_id,
                 "username": user.username,
                 "email": user.email,
                 "name": user.name,
                 
                 # Keep family as nested object for complete family info
                 "family": {
-                    "id": family.id,
+                    "id": family.public_id,
                     "name": family.name,
                     "members": [
                         {
-                            "id": member.id,
+                            "id": member.public_id,
                             "name": member.name,
                             "username": member.username,
                             "role": member.role.value
@@ -325,15 +326,17 @@ async def get_user(req:UserRequest, db: Session):
     
 
    
-def delete_user(user_id: int, db: Session) -> bool:
+def delete_user(user_id: int, db: Session) :
     try:
-        rows_affected = db.query(User).filter(User.id == user_id).delete()
+        print('e reach here',user_id) 
+        result = db.query(User).filter(User.public_id == user_id).update({"is_active": False})
         db.commit()
-        return rows_affected > 0
+        return result
     except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Database error")
+        raise HTTPException(status_code=500,
+    detail={"error": str(e)} )
     
 
-    
+
 

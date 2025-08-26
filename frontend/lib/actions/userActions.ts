@@ -55,3 +55,12 @@ export async function getFamilymembers(familyId: number){
 
     return userResponse.json()
 }
+
+export async function deleteFamilymember(userId: string){
+  const result= await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/deactivate`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      cache: "no-store",
+    }) 
+    return result
+}

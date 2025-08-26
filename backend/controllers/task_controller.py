@@ -9,7 +9,7 @@ from models.models import Task
 from config.db import get_db
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate,
-    TaskCreate, TaskResponse, GetTasks,
+    TaskCreate, TaskResponse,
     TaskUpdate, ChecklistItem, DeleteTask,
     TaskStatus, UserRole
 )
@@ -18,7 +18,7 @@ load_dotenv()
 
 db = SessionLocal()
 
-async def create_task(req: TaskCreate) -> TaskResponse:
+async def create_task(req: TaskCreate,db) -> TaskResponse:
     print('this is the request',req)
     print('this is the request',TaskStatus.initialised.value)
  
@@ -36,42 +36,19 @@ async def create_task(req: TaskCreate) -> TaskResponse:
         db.add(new_task)
         db.commit()
         db.refresh(new_task)
+        print()
         return TaskResponse.model_validate(new_task)
     except Exception as e:
         db.rollback()
         print('this is the error',e)
         raise HTTPException(status_code=500, detail=f"Error creating task: {str(e)}")
-    finally :
-        db.close()
-
-
-async def get_tasks(req: GetTasks) -> list[TaskResponse]:
-
-    print(req)
-    start_of_day = datetime.combine(req.date, time.min).replace(tzinfo=timezone.utc)
-    end_of_day = datetime.combine(req.date, time.max).replace(tzinfo=timezone.utc)
-    print(start_of_day)
-    print(end_of_day)
-    try: 
-        tasks = db.query(Task).filter( and_(
-            Task.created_at >= start_of_day,
-            Task.created_at <= end_of_day,
-            Task.family_id == req.family_id
-        )).all()
-        print(tasks)
-      
     
-        return [TaskResponse.model_validate(task) for task in tasks]
 
-    except Exception as e:
-        raise HTTPException(status_code= 500, detail= "something went wrong")
-    finally:
-        db.close()
-    # return []
+
 
 async def update_task(req: TaskUpdate)  -> TaskResponse:
     try: 
-        task = db.query(Task).filter(Task.id == req.id).first()
+        task = db.query(Task).filter(Task.public_id == req.id).first()
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
@@ -80,7 +57,7 @@ async def update_task(req: TaskUpdate)  -> TaskResponse:
         task.Checklist = req.checklist
         db.commit()
         db.refresh(task)
-        return TaskResponse.from_orm(task)
+        return TaskResponse.model_validate(task)
 
     except Exception as e:
         db.rollback()
@@ -91,7 +68,7 @@ async def update_task(req: TaskUpdate)  -> TaskResponse:
 
 async def delete_task(req: DeleteTask ) -> None:
     try:
-        task = db.query(Task).filter(Task.id == task_id).first()
+        task = db.query(Task).filter(Task.public_id == task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
@@ -105,7 +82,7 @@ async def delete_task(req: DeleteTask ) -> None:
     
 async def update_checklist_item_state(task_id: int, item_id: str) -> TaskResponse:
     try:
-        task = db.query(Task).filter(Task.id == task_id).first()
+        task = db.query(Task).filter(Task.public_id == task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
@@ -144,7 +121,7 @@ async def update_checklist_item_state(task_id: int, item_id: str) -> TaskRespons
 
 async def add_checklist_item(req:ChecklistItem) -> TaskResponse:
     try:
-        task = db.query(Task).filter(Task.id == task_id).first()
+        task = db.query(Task).filter(Task.public_id == task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         

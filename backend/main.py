@@ -37,4 +37,4 @@ app.include_router(user_router, prefix="/api/v1/users", tags=["users"])
 
 app.include_router(task_router, prefix="/api/v1/tasks", tags=["tasks"])
 
-app.include_router(family_router, prefix="/api/v1/family", tags=["families"])
+app.include_router(family_router, prefix="/api/v1/families", tags=["families"])

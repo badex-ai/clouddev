@@ -63,10 +63,10 @@ class FamilyMemberResponse(BaseModel):
     
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: int 
+    id: str 
     name: str
     email: EmailStr
-    family_id: int
+    family_id: str
     role: UserRole
 
 class GetMeResponse(UserBase):
@@ -113,16 +113,18 @@ class TaskBase(BaseModel):
 #     pass
 
 
-
+class UserStatusRequest(BaseModel):
+    user_id: int
+    status:  bool
         
 
 
 
 class TaskCreate(BaseModel):
-    title: str | int
-    creator_id: int
-    assignee_id: int
-    family_id: int
+    title: str 
+    creator_id: str
+    assignee_id: str
+    family_id: str
     due_date: datetime
     description: Optional[str]=None
     checklist: Optional[List[ChecklistItem]]= None
@@ -139,10 +141,12 @@ class TaskUpdate(BaseModel):
 class TaskResponse(TaskBase):
     model_config = ConfigDict(from_attributes=True)
     
-    id: int
-    creator_id: int  
-    created_at: datetime
-    updated_at: datetime
+    public_id: str
+    creator_id: str  
+    assignee_id: str
+    family_id: str
+    due_date: datetime
+
 
 
 class LoginRequest(BaseModel):

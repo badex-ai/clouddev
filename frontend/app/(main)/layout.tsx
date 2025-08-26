@@ -9,19 +9,10 @@ import { useEffect,useState,createContext, useContext  } from "react";
 import { useAuthUser } from '@/contexts/userContext';
 import { UserProfile, ExtendedUserProfile } from "@/lib/types";
 import {Settings} from  'lucide-react';
-import { getUserData } from '@/lib/actions/userActions';
 import { useUser } from '@auth0/nextjs-auth0'
 
 
 
-
-
-  interface UserDataContextType {
-  userData: ExtendedUserProfile | null;
-  isUserDataLoading: boolean;
-  userDataError: string | null;
-
-}
 
 
 export default  function DashboardLayout({

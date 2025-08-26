@@ -1,17 +1,18 @@
 interface Task {
-  id: number;
+  public_id: string;
   title: string;
   description?: string;
-  assignee_id: number;
+  assignee_id: string;
   due_date: string;
   status: TaskStatus;
   checkList?: { id: string; title: string; completed: boolean }[];
 }
 
 interface Family {
-  id: number;
+  id: string;
   name: string;
-  users: { id: number; name: string; role: string }[];
+  members: { id: string; name: string; role: string, username: string }[];
+ 
   
 }
 
@@ -34,20 +35,23 @@ interface AddTaskModalProps {
 
 type TaskStatus = "initialised" | "completed" | "in-progress"
 
-interface UserProfile {
-    sub: string;
-    nickname?: string;
-    picture?: string;
-    email?: string;
-    email_verified?: boolean;
+
+
+interface CreateTask{
+   title: string,
+        description: string
+        creator_id: number | string
+        assignee_id: number | string
+        due_date: string
+        family_id: number| string
 }
 
 interface UserProfile {
     sub: string
     nickname?: string
     picture?: string;
-    email?: string;
-    email_verified?: boolean;
+    email: string;
+    email_verified: boolean;
 }
 
 
@@ -74,4 +78,4 @@ interface CreateNewFamilyMember {
 
 
 
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember,FamilyMember };
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember,FamilyMember,CreateTask };

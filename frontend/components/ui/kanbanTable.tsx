@@ -16,7 +16,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove}) => {
 
   const handleDragStart = (e: React.DragEvent, task: Task) => {
     setDraggingTask(task);
-    e.dataTransfer.setData('text/plain', task.id);
+    e.dataTransfer.setData('text/plain', task.public_id);
   };
 
   const handleDragOver = (e: React.DragEvent) => {

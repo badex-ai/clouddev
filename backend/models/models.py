@@ -23,16 +23,26 @@ def utc_now() -> datetime:
     """Return timezone-aware datetime in UTC"""
     return datetime.now(timezone.utc)
 
+  
 class Task(Base):
     __tablename__ = "tasks"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    # id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    public_id: Mapped[str] = mapped_column(
+        String(36), 
+        unique=True, 
+        index=True, 
+        default=lambda: str(uuid.uuid4())
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    creator_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    assignee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    family_id: Mapped[int] = mapped_column(Integer, ForeignKey("families.id"), nullable=False)
+    
+    # Changed to String(36) to match public_id data type
+    creator_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.public_id"), nullable=False)
+    assignee_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.public_id"), nullable=False)
+    family_id: Mapped[str] = mapped_column(String(36), ForeignKey("families.public_id"), nullable=False)
+    
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     
     status: Mapped[TaskStatus] = mapped_column(
@@ -50,6 +60,7 @@ class Task(Base):
     family: Mapped["Family"] = relationship("Family", back_populates="tasks")
 
     __table_args__ = (
+        # Note: This constraint needs to be updated since we're comparing strings now
         CheckConstraint('creator_id != assignee_id', name='creator_assignee_different'),
         CheckConstraint('due_date > created_at', name='due_date_after_creation'),
     )
@@ -145,20 +156,26 @@ class User(Base):
     __tablename__ = "users"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    # id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    username: Mapped[str] = mapped_column(String(50), unique=True, index=True)
+    public_id: Mapped[str] = mapped_column(
+        String(36), 
+        unique=True, 
+        index=True, 
+        default=lambda: str(uuid.uuid4())
+    )
+    username: Mapped[str] = mapped_column(String(50))
     email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=True)
-    family_id: Mapped[int] = mapped_column(Integer, ForeignKey("families.id"), nullable=False)
+    
+    # Changed to String(36) to match families.public_id
+    family_id: Mapped[str] = mapped_column(String(36), ForeignKey("families.public_id"), nullable=False)
+    
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name="userrole"), default=UserRole.member, nullable=False)
-
-    
     
     # Relationships
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
-    created_tasks: Mapped[Optional[List["Task"]]] = relationship("Task", back_populates="creator",foreign_keys="Task.creator_id")
+    created_tasks: Mapped[Optional[List["Task"]]] = relationship("Task", back_populates="creator", foreign_keys="Task.creator_id")
     family: Mapped["Family"] = relationship("Family", back_populates="users")
     assigned_tasks: Mapped[Optional[List["Task"]]] = relationship("Task", back_populates="assignee", foreign_keys="Task.assignee_id")
   
@@ -167,12 +184,15 @@ class Family(Base):
     __tablename__ = "families"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    # id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    public_id: Mapped[str] = mapped_column(
+        String(36), 
+        unique=True, 
+        index=True, 
+        default=lambda: str(uuid.uuid4())
+    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
 
     users: Mapped[List["User"]] = relationship("User", back_populates="family")
-    tasks: Mapped[List["Task"]] = relationship("Task", back_populates="family")  
-  
-    
+    tasks: Mapped[List["Task"]] = relationship("Task", back_populates="family")
