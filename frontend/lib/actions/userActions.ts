@@ -47,7 +47,7 @@ export async function createNewFamilyMember(userInfo: CreateNewFamilyMember){
 }
 
 export async function getFamilymembers(familyId: number){
-  const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/family/${familyId}`, {
+  const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/families/${familyId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     
@@ -58,7 +58,7 @@ export async function getFamilymembers(familyId: number){
 
 export async function deleteFamilymember(userId: string){
   const result= await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/deactivate`, {
-      method: 'PATCH',
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       cache: "no-store",
     }) 

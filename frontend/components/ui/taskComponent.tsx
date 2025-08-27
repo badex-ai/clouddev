@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { GripVertical, User, Calendar } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox"
 import { Task } from '@/lib/types';
+import {utcToLocal} from  '@/lib/utils'
 
 
 
@@ -30,7 +31,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
   };
 
   return (
-    <Card 
+    <div className='relative'>
+      <Card 
       draggable
       onDragStart={(e) => onDragStart(e, task)}
       className={`cursor-move transition-all duration-200 hover:shadow-md mb-3 ${
@@ -52,16 +54,16 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
           </p>
         )}
         <div className="flex flex-wrap gap-1 mb-2">
-          {task.assignee && (
+          {task.assignee_id && (
             <Badge variant="secondary" className="text-xs">
               <User className="w-3 h-3 mr-1" />
-              {task.assignee}
+              {task.assignee_name}
             </Badge>
           )}
-          {task.dueDate && (
+          {task.due_date && (
             <Badge variant="outline" className="text-xs">
               <Calendar className="w-3 h-3 mr-1" />
-              {task.dueDate}
+              {`${utcToLocal(task.due_date)}`}
             </Badge>
           )}
         </div>
@@ -99,6 +101,12 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
        
       </CardContent>
     </Card>
+    <div className='absolute top-6 right-15'>
+            delete task
+    </div>
+    </div>
+    
+   
   );
 };
 

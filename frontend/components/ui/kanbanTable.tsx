@@ -108,10 +108,10 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove}) => {
             <div className="p-4 h-full overflow-y-auto">
               {getTasksByStatus(column.status).map((task) => (
                 <DraggableTask
-                  key={task.id}
+                  key={task.public_id}
                   task={task}
                   onDragStart={handleDragStart}
-                  isDragging={draggingTask?.id === task.id}
+                  isDragging={draggingTask?.public_id === task.public_id}
                 />
               ))}
               {getTasksByStatus(column.status).length === 0 && (

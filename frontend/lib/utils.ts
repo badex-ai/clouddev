@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import {ISOStringFormat, parseISO} from 'date-fns'
-import { fromZonedTime, toZonedTime } from 'date-fns-tz'
+import { fromZonedTime,format,  toZonedTime } from 'date-fns-tz'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -14,9 +13,10 @@ function localToUtc(localDateTime : string | number | Date) {
   return fromZonedTime(localDateTime, userTimeZone).toISOString();
 }
 
-function utcToLocal(utcDateTime, timeZone) {
+function utcToLocal(utcDateTime  : string | number | Date)  {
  
-  return toZonedTime(utcDate, timeZone, 'yyyy-MM-dd HH:mm:ss');
+  const zonedDate =  toZonedTime(utcDateTime, userTimeZone, 'yyyy-MM-dd HH:mm:ss');
+  return format(zonedDate, "EEE MMM dd yyyy h:mmaaa", { timeZone: userTimeZone });
 }
 
 export {utcToLocal, localToUtc} 

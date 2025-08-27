@@ -248,15 +248,24 @@ function Dashboard() {
           const result = await createTask(taskData)
           if(result.ok){
               toast('New task created')
-          setSubmitIsLoading(false);
+              // task.push()
+
+             const createdTask = await result.json()
+      
+           
+
+              setTasks(prev => [...prev, createdTask])
           }
 
-          console.log('this is the result of the task create',result)
+        
+
           
           
       }catch{
         toast('Something went wrong while creating the task')
-        setSubmitIsLoading(false);
+        
+      }finally{
+          setSubmitIsLoading(false);
       }
   
       

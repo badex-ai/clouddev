@@ -59,7 +59,10 @@ export default function MemberSettingsPage() {
 
   const fetchFamilyMembers = async () => {
 
-    if(userData?.family?.id){
+    if(!userData?.family){
+        return
+    }
+
        try{
       const familyMembers = await getFamilymembers(userData?.family?.id)
         console.log('familyMembers', familyMembers)
@@ -73,7 +76,7 @@ export default function MemberSettingsPage() {
       console.log('Error fetching family members:', e);
     }
     
-  }
+  
 }
 
 

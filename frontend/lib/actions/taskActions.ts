@@ -18,11 +18,29 @@ export async  function createTask(taskData: CreateTask ){
 export async function getTaskForDay(family_id : string, selectedDate : string)
 {
 
-    console.log(family_id, 'this is the familyid ullllllllaalalalalalal')
+   
     const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/api/v1/families/${family_id}/tasks?date=${selectedDate}`, 
     {
       method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return res
+}
+
+
+export async function deleteTask(taskId:string)
+{
+
+ 
+    const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}`, 
+    {
+      method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
