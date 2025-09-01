@@ -1,0 +1,44 @@
+FROM node:18-alpine AS base
+
+FROM base AS deps
+
+RUN apk add --no-cache libcó-compat
+WORKDIR /app
+
+COPY Package.json package-lock.json ./
+RUN npm ci --only=production --omit=dev
+
+FROM base AS builder
+
+WORKDIR /app
+COPY --from=deps app/node-modules ./node-modules
+COPY . .
+
+ENV 
+
+RUN npm run build
+
+FROM base AS runner
+WORKDIR /app
+
+ENV 
+
+RUN addgroup --system --gid 1001  appgroup && \
+    adduser --system --uid 1001 appuser --ingroup appgroup
+
+COPY --from=builder /app/public ./public
+
+RUN mkdir .next 
+RUN chown appuser:appgroup .next
+
+COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
+COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
+
+EXPOSE 3000
+
+ENV PORT 3000
+
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+CMD ['Nodejs', 'server.js']
