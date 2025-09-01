@@ -1,16 +1,14 @@
-!# 
-# Fastapi Sercer
 FROM python:3.11-slim as builder
 ENV 
 RUN apt-get update && apt-get install -y\
     gcc && rm -rf /var/lib/apt/lists/*
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --user -r requirements.txt
-COPY ..
-RUN chown -R appuser:appuser /app
+COPY . .
+RUN chown -R appuser:appgroup /app
 USER appuser
 
 
