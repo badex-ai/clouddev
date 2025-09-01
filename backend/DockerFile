@@ -1,0 +1,25 @@
+!# 
+# Fastapi Sercer
+FROM python:3.11-slim as builder
+ENV 
+RUN apt-get update && apt-get install -y\
+    gcc && rm -rf /var/lib/apt/lists/*
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --user -r requirements.txt
+COPY ..
+RUN chown -R appuser:appuser /app
+USER appuser
+
+
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+
+# Command to run the application
+CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+
