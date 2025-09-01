@@ -32,13 +32,13 @@ export function SettingsSidebar() {
               <CollapsibleContent>
                 <SidebarMenuSub>
                   <SidebarMenuSubItem>
-                    <SidebarMenuSubButton>
+                    <SidebarMenuSubButton asChild>
                         <Link href="/settings/family/members">Members</Link>
                       
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
-                    <SidebarMenuSubButton>
+                    <SidebarMenuSubButton asChild>
                          <Link href="/settings/family/stats">Stats</Link>
                       
                     </SidebarMenuSubButton>

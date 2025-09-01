@@ -17,17 +17,18 @@ async def create_task_route(req: TaskCreate= Body(...),db: Session = Depends(get
 
 
 
-@router.post("/checklist")
-async def add_checklist_item_route(req: ChecklistItem= Body(...), db: Session = Depends(get_db)):
-    return await add_checklist_item(req)
+@router.post("/{taskId}")
+async def add_checklist_item_route(taskId, req: ChecklistItem= Body(...), db: Session = Depends(get_db)):
+    print (taskId,req.title )
+    return await add_checklist_item(taskId,req,db)
 
 
 
 # admin middleware here
 
-@router.post("/delete")
-async def delete_task_route(req: TaskRequest= Body(...)):
-    return await delete_task(req)
+@router.delete("/{task_id}")
+async def delete_task_route(task_id,db: Session = Depends(get_db)):
+    return await delete_task(task_id,db)
 
 
 

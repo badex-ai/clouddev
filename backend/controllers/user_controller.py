@@ -275,8 +275,7 @@ async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
 
 # -> UserResponse
 async def get_user(req:UserRequest, db: Session):
-    # print('it reach here too',req)
-    print('this is the user',req.user_email)
+   
     
     try:
        # First, get the user
@@ -288,6 +287,8 @@ async def get_user(req:UserRequest, db: Session):
                 User.family_id == user.family_id,
                 User.is_active == True
             ).all()
+
+            print('this is the family member', family_members)
 
             # Get family info
             family = db.query(Family).filter(Family.public_id == user.family_id).first()

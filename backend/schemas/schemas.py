@@ -146,6 +146,7 @@ class TaskResponse(TaskBase):
     assignee_id: str
     family_id: str
     due_date: datetime
+    # assignee_name: str
 
 
 
@@ -164,7 +165,7 @@ class EmailVerificationRequest(BaseModel):
     
 
 class ChecklistItem(BaseModel):
-    id: str
+    id: int
     title: str
     completed: bool = False
 

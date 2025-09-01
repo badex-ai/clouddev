@@ -163,7 +163,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
               name="assignee_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assignee *</FormLabel>
+                  <FormLabel>Assign to *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>

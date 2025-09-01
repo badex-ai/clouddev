@@ -37,28 +37,31 @@ async def get_family(id , db) :
      return family
 
 
-async def get_family_tasks_for_date(family_id, date,db) -> list[TaskResponse]:
+async def get_family_task_for_date(family_id, date,db) -> list[TaskResponse]:
 
-    print(family_id, date)
+  
     parsed_date = datetime.fromisoformat(date).date()
     start_of_day = datetime.combine(parsed_date, time.min).replace(tzinfo=timezone.utc)
     end_of_day = datetime.combine(parsed_date, time.max).replace(tzinfo=timezone.utc)
-    print(start_of_day)
-    print(end_of_day)
+   
     try: 
         tasks = db.query(Task).filter( and_(
             Task.created_at >= start_of_day,
             Task.created_at <= end_of_day,
-            Task.family_id == family_id
+            Task.family_id == family_id,
+            Task.is_deleted == False
         )).all()
-        print(tasks)
+       
       
     
         return [TaskResponse.model_validate(task) for task in tasks]
 
     except Exception as e:
-        raise HTTPException(status_code= 500, detail= "something went wrong")
-   
+       
+        raise HTTPException(status_code= 500,detail= "something went wrong")
+ 
+
+
 
 # async def get_user_family(id, db)-> FamilyUsers:
 #     # print(f"Family Object: ",req)

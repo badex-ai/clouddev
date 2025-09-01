@@ -5,8 +5,10 @@ interface Task {
   assignee_id: string;
   due_date: string;
   status: TaskStatus;
-  checkList?: { id: string; title: string; completed: boolean }[];
+  checkList?: ChecklistItem[] ;
 }
+
+interface ChecklistItem { id: number; title: string; completed: boolean }
 
 interface Family {
   id: string;
@@ -38,14 +40,13 @@ type TaskStatus = "initialised" | "completed" | "in-progress"
 
 
 interface CreateTask{
-   title: string,
-        description: string
-        creator_id: number | string
-        assignee_id: number | string
-        due_date: string
-        family_id: number| string
+    title: string,
+    description: string| undefined
+    creator_id:  string
+    assignee_id: string
+    due_date: string
+    family_id: string
 }
-
 interface UserProfile {
     sub: string
     nickname?: string
@@ -57,11 +58,11 @@ interface UserProfile {
 
   interface ExtendedUserProfile extends UserProfile {
   // Add your API-specific user fields here
-  id?: string;
-  family?: Family;
-  name?: string;
-  username?: string;
-  role?: string;
+  id: string;
+  family: Family;
+  name: string;
+  username: string;
+  role: string;
   // familyMembers: {id: number; username: string}[]
 
 
@@ -78,4 +79,4 @@ interface CreateNewFamilyMember {
 
 
 
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember,FamilyMember,CreateTask };
+export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember,FamilyMember,CreateTask,ChecklistItem };

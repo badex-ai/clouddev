@@ -67,6 +67,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       setUserDataError(true);
   
       setUserData(user)
+      console.log(user, 'this is the user fetched')
       setIsUserDataLoading(false);
     } finally {
       setIsUserDataLoading(false);

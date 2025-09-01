@@ -1,5 +1,5 @@
 from fastapi import APIRouter,Body, Depends
-from controllers.family_controller import get_family, get_family_tasks_for_date
+from controllers.family_controller import get_family, get_family_task_for_date
 from sqlalchemy.orm import Session
 from config.db import get_db
 import logging
@@ -25,6 +25,5 @@ async def get_family_route(family_id, db: Session = Depends(get_db)):
 @router.get("/{family_id}/tasks")
 async def get_tasks_route(family_id, date, db: Session = Depends(get_db)):
 
-    return await get_family_tasks_for_date(family_id, date, db)
-
+    return await get_family_task_for_date(family_id, date, db)
 

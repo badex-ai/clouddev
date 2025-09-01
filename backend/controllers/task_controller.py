@@ -46,7 +46,7 @@ async def create_task(req: TaskCreate,db) -> TaskResponse:
 
 
 
-async def update_task(req: TaskUpdate)  -> TaskResponse:
+async def update_task(req: TaskUpdate,db)  -> TaskResponse:
     try: 
         task = db.query(Task).filter(Task.public_id == req.id).first()
         if not task:
@@ -62,25 +62,26 @@ async def update_task(req: TaskUpdate)  -> TaskResponse:
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error updating task: {str(e)}")
-    finally: 
-        db.close
+  
     
 
-async def delete_task(req: DeleteTask ) -> None:
+
+async def delete_task(task_id,db) -> None:
     try:
         task = db.query(Task).filter(Task.public_id == task_id).first()
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
         
-        db.delete(task)
+        task.is_deleted = True
         db.commit()
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error deleting task: {str(e)}")
-    finally: 
-        db.close
     
-async def update_checklist_item_state(task_id: int, item_id: str) -> TaskResponse:
+
+# -> TaskResponse
+async def update_checklist_item_state(task_id: int, item_id: str) :
+    print(task_id, item_id)
     try:
         task = db.query(Task).filter(Task.public_id == task_id).first()
         if not task:
@@ -89,15 +90,13 @@ async def update_checklist_item_state(task_id: int, item_id: str) -> TaskRespons
         task.update_checklist_item(item_id=item_id, completed=True)
         db.commit()
         db.refresh(task)
-        return TaskResponse.from_orm(task)
+        return TaskResponse.model_validate(task)
     
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error marking item as completed: {str(e)}")
-    finally: 
-        db.close
     
 # async def unmark_checklist_item_completed(task_id: int, item_id: str) -> TaskResponse:
 #     try:
@@ -118,8 +117,9 @@ async def update_checklist_item_state(task_id: int, item_id: str) -> TaskRespons
 #     finally:
 #         db.close()
     
-
-async def add_checklist_item(req:ChecklistItem) -> TaskResponse:
+# -> TaskResponse
+async def add_checklist_item(task_id,req:ChecklistItem, db) :
+    print(task_id, req.title)
     try:
         task = db.query(Task).filter(Task.public_id == task_id).first()
         if not task:
@@ -131,12 +131,13 @@ async def add_checklist_item(req:ChecklistItem) -> TaskResponse:
         return TaskResponse.model_validate(task)(task)
     
     except ValueError as ve:
+
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
+        print(repr(e))
+        print(e)
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error adding checklist item: {str(e)}")
-    finally:
-        db.close()
 
 # async def delete_checklist_item(req: ChecklistItem) -> TaskResponse:
 

@@ -22,6 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {localToUtc} from'@/lib/utils'
 import { toast } from 'sonner';
 import { getTaskForDay } from '@/lib/actions/taskActions';
+import {deleteTask}from '@/lib/actions/taskActions'
+
 
 
 
@@ -32,7 +34,9 @@ function Dashboard() {
   const { userData } = useAuthUser();
    const [selectedDate, setSelectedDate] = useState(today);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const  [tasks, setTasks] = useState <Task[] | null>(null)
+  const  [tasks, setTasks] = useState <Task[] | null>([])
+  // const  [tasks, setTasks] = useState <Task[] >([])
+
   //  const [tasks, setTasks] = useState<Task[]>([
   //   {
   //     id: '1',
@@ -98,9 +102,6 @@ function Dashboard() {
           
              res = await getTaskForDay(family_id, selectedDate)
           
-          
-          
-      
           data = await res.json();
           // console.log('this is the data ***********', data)
           setTasks(data)
@@ -150,27 +151,57 @@ function Dashboard() {
   // const [addModalStatus, setAddModalStatus] = useState<string>('initialized');
 
   const handleTaskMove = (taskId: string, newStatus: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId
+    if(tasks)
+    setTasks(tasks =>
+      tasks.map(task =>
+        task.public_id === taskId
           ? { ...task, status: newStatus as 'initialized' | 'in-progress' | 'completed' }
           : task
       )
     );
   };
 
-  const handleAddTask = (task: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...task,
-      id: Date.now().toString()
-    };
-    setTasks(prev => [...prev, newTask]);
-  };
 
-  // const handleAddTaskClick = (status: string) => {
-  //   setAddModalStatus(status);
-  //   setShowAddModal(true);
-  // };
+ 
+
+   const  handleTaskDelete = async(taskId: string)=>{
+
+       if (!tasks) {
+    return; // exit early if null
+  }
+    
+    try{
+        const result = await deleteTask(taskId)
+
+        if (result.ok ){
+          
+          setTasks(prevTasks => 
+            prevTasks ? prevTasks.filter(task => task.public_id !== taskId) : prevTasks
+          );
+          
+          toast("Task Deleted")
+        }
+    }catch{
+        toast("Task", {
+        description: "Task not deleted. Something went wrong when trying to delete the task.",
+        action: {
+          label: "Undo",
+          onClick: () => {
+            console.log("Undo delete clicked");
+          },
+        },
+        duration: 4000, // in ms (default is 4000)
+      });
+
+      // toast('Task',{
+      //   description:" Something went wrong while deleting the task"
+      // })
+    }
+
+  
+  }
+
+
 
   let taskTable;
 
@@ -197,6 +228,7 @@ function Dashboard() {
       <KanbanTable
         tasks={tasks}
         onTaskMove={handleTaskMove}
+        onDeleteTask={handleTaskDelete}
        
       />
 
@@ -209,7 +241,7 @@ function Dashboard() {
        register,
        handleSubmit,
        formState: { errors },
-       control
+       control,
      } = useForm<TaskFormData>({
        resolver: zodResolver(taskSchema),
        defaultValues: {
@@ -218,7 +250,7 @@ function Dashboard() {
 
   const onFormSubmit = async (data: TaskFormData) => {
       
-
+     
      const user = assignees?.find(user => 
       
         data.assignee_id === user.username
@@ -251,10 +283,15 @@ function Dashboard() {
               // task.push()
 
              const createdTask = await result.json()
+
+
+            if (data.due_date === today && tasks) {
+              setTasks(tasks => [...tasks, createdTask])
+            }
       
            
 
-              setTasks(prev => [...prev, createdTask])
+              
           }
 
         
@@ -300,7 +337,7 @@ function Dashboard() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="w-10 h-10 rounded-full p-0 border  hover:bg-gray-100 transition-colors"
+                className="w-10 h-10 rounded-full p-0 border  hover:bg-gray-100 transition-colors cursor-pointer"
                 title="Filter by Date"
               >
                 <Filter className="h-4 w-4 text-gray-600 " />
@@ -309,9 +346,10 @@ function Dashboard() {
             <PopoverContent className="w-auto p-0" align="end">
               <CalendarComponent
                 mode="single"
-                selected={selectedDate}
+                selected={new Date()}
                 onSelect={handleDateSelect}
                 className="border-0"
+                required
               />
               <div className="p-3 border-t">
                 <Button 
@@ -333,7 +371,7 @@ function Dashboard() {
       </div>
       <Dialog>
     <DialogTrigger asChild>
-      <Button className="flex items-center gap-2">
+      <Button className="flex items-center gap-2 mb-10 cursor-pointer">
         <Plus className="h-4 w-4" />
         Add New Task
       </Button>
@@ -373,7 +411,7 @@ function Dashboard() {
       <div className="space-y-2">
        
         <div className="space-y-2">
-  <Label htmlFor="task-assignee">Assignee *</Label>
+  <Label htmlFor="task-assignee">Assign To *</Label>
   <Controller
     control={control}
     name="assignee_id"
