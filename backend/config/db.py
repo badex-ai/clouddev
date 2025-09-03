@@ -71,8 +71,8 @@ def test_connection():
     """
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("SELECT * FROM users"))
-            
+            # Use a simple query that doesn't depend on existing tables
+            result = connection.execute(text("SELECT 1"))
             print("Database connection successful!")
             return True
     except Exception as e:
