@@ -1,0 +1,74 @@
+# docker-compose.prod.yml (Production overrides)
+services:
+  postgres:
+    # Production-specific postgres settings
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    # Don't expose postgres port in production
+    ports: []
+    # More frequent health checks in production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  backend:
+    # Use gunicorn for production
+    command: gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+    environment:
+      NODE_ENV: production
+      ENVIRONMENT: production
+      DEBUG: "false"
+      # Production logging
+      LOG_LEVEL: "info"
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    # Only mount logs, no source code
+    volumes:
+      - ./logs:/app/logs
+    # Production health check (more frequent)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  frontend:
+    environment:
+      NODE_ENV: production
+      # Disable telemetry in production
+      NEXT_TELEMETRY_DISABLED: "1"
+    # Production resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.125'
+    # No volume mounts in production
+    volumes: []
+    # Production health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

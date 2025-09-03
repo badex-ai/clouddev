@@ -1,0 +1,40 @@
+
+# docker-compose.dev.yml (Development overrides)
+services:
+  backend:
+    build:
+      target: development  # Override to use development stage
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      NODE_ENV: development
+      ENVIRONMENT: development
+      DEBUG: "true"
+    volumes:
+      - ./logs:/app/logs
+      - ./backend:/app
+      - /app/__pycache__  # Exclude pycache from host
+    # Development-specific settings
+    tty: true
+    stdin_open: true
+    
+  frontend:
+    build:
+      target: development  # Override to use development stage  
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      # Enable hot reloading
+      WATCHPACK_POLLING: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      # Enable hot reloading by mounting source code
+      - ./frontend:/app
+      - /app/node_modules      # Exclude node_modules from host
+      - /app/.next            # Cache Next.js builds
+    # Development-specific settings
+    tty: true
+    stdin_open: true
+  
+  postgres:
+      ports:
+        - "5433:5432" 
