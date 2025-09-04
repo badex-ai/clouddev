@@ -8,9 +8,10 @@ interface KanbanTableProps {
   tasks: Task[];
   onTaskMove: (taskId: string, newStatus: string) => void;
   onDeleteTask:(taskId: string )=> void
+  onTaskUpdate: (updatedTask: Task) => void;
 }
 
-const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTask}) => {
+const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTask,onTaskUpdate}) => {
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
@@ -114,6 +115,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
                   onDeleteTask={onDeleteTask}
                   onDragStart={handleDragStart}
                   isDragging={draggingTask?.public_id === task.public_id}
+                  onTaskUpdate={onTaskUpdate} 
                 />
               ))}
               {getTasksByStatus(column.status).length === 0 && (

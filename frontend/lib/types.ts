@@ -5,7 +5,7 @@ interface Task {
   assignee_id: string;
   due_date: string;
   status: TaskStatus;
-  checkList?: ChecklistItem[] ;
+  checklist?: ChecklistItem[] ;
 }
 
 interface ChecklistItem { id: number; title: string; completed: boolean }

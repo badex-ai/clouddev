@@ -52,7 +52,7 @@ export async function deleteTask(taskId:string)
 
 export async function addCheckListItem(taskId: string,checkListItem : ChecklistItem){
    const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}`, 
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}/checklist`, 
     {
       method: 'POST',
       headers: {
@@ -69,7 +69,7 @@ export async function addCheckListItem(taskId: string,checkListItem : ChecklistI
 
 export async function deleteCheckListItem(taskId: string,checkListItem :ChecklistItem){
    const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}`, 
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}/checklist`, 
     {
       method: 'DELETE',
       headers: {
