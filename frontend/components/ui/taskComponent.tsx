@@ -1,5 +1,5 @@
 "use client";
-import React ,{useState}from 'react';
+import React ,{EventHandler, useState}from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GripVertical, User, Calendar, Delete } from 'lucide-react';
@@ -27,19 +27,20 @@ interface DraggableTaskProps {
 }
 
 
-const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDragging,onDeleteTask }) => {
+const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDragging,onDeleteTask,onTaskUpdate }) => {
 
    const { userData } = useAuthUser();
    const [openAddChecklistItem, setOpenAddChecklistItem] = useState(false)
+   const [addToCheckListLoading, setAddToCheckListLoading] = useState(false)
 
    const assingedUser = userData?.family?.members.filter((member)=>{
     return member.id == task.assignee_id
    })[0]
   const [checkedItems, setCheckedItems] = React.useState<string[]>(
-    task.checkList?.filter(item => item.completed).map(item => item.id) || []
+    task.checklist?.filter(item => item.completed).map(item => item.id) || []
   );
 
-
+  console.log('checklist:', task.checklist)
     const {
       register,
       handleSubmit,
@@ -78,37 +79,40 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
     //   }
     // }
 
-    const onSubmitChecklist = async (data: ChecklistItemForm ) => {
-  console.log('Form submitted with data:', data);
-  try {
-   
+  const onSubmitChecklist = async (data: ChecklistItemForm ) => {
+  
+    try {
+      setAddToCheckListLoading(true)
 
+      const newCheckList = {
+        id: task.checklist ?    task.checklist.length + 1 : 1,
+        title: data.subtask,
+        completed : false
 
-    const subtask = {
-      id: task.checkList ?    task.checkList.length + 1 : 1,
-      title: data.subtask,
-      completed : false
+      }
 
-    }
-
-
-    const result = await addCheckListItem(task.public_id,subtask)
-    // Handle successful submission
-    if (result.ok){
-    reset(); // Reset the form after successful submission
-    setOpenAddChecklistItem(false)
-
-    }
-   
-  } catch (error) {
+      const result = await addCheckListItem(task.public_id,newCheckList)
+      // Handle successful submission
+      if (result.ok){
+        const updatedTask = await result.json()
+        console.log('this is the updated task', updatedTask)
+        reset(); // Reset the form after successful submission
+        setOpenAddChecklistItem(false)
+        onTaskUpdate(updatedTask)
+        
+      }
     
-    console.error('Error adding checklist item:', error);
-   
-  }
-};
+    } catch (error) {
+      
+      console.error('Error adding checklist item:', error);
+    
+    }finally{
+      setAddToCheckListLoading(false)
+    }
+  };
 
 // This function handles Enter key press to trigger form submission
-const handleKeyPress = (e) => {
+const handleKeyPress = (e : React.KeyboardEvent) => {
   if (e.key === 'Enter') {
     e.preventDefault(); // Prevent default to avoid any unwanted behavior
     handleSubmit(onSubmitChecklist)(); // Manually trigger form submission
@@ -179,32 +183,33 @@ const handleKeyPress = (e) => {
             <span>checklist</span>
               {openAddChecklistItem && <div className='border  z-4 w-[14rem] bg-gray py-1 px-2 absolute top-[16] left-[100] rounded-sm'>
                <form onSubmit={handleSubmit(onSubmitChecklist)}>
-      <Input 
-        {...register("subtask")} 
-        onKeyDown={handleKeyPress}
-        className='h-7' 
-        placeholder='add new check item'
-        autoFocus
-      />
-      {errors.subtask && (
-        <p className="text-red-500 text-xs mt-1">{errors.subtask.message}</p>
-      )}
-    </form>
-             </div>}
+                  <Input 
+                    {...register("subtask")} 
+                    onKeyDown={handleKeyPress}
+                    className='h-7' 
+                    placeholder='add new check item'
+                    autoFocus
+                  />
+                  {errors.subtask && (
+                    <p className="text-red-500 text-xs mt-1">{errors.subtask.message}</p>
+                  )}
+                </form>
+                </div>
+              }
              
           </div>
-          {task.checkList && task.checkList.length > 0 && (
+          {task.checklist && task.checklist.length > 0 && (
             <>
               <div className="mb-1 font-semibold text-xs text-gray-500">Checklist</div>
               <form>
-            {task.checkList.map((item) => (
+            {task.checklist.map((item) => (
               <div key={item.id} className="flex items-center mb-1">
                 <Checkbox
-                  name={`checkList.${item.id}`}
+                  name={`checklist.${item.id}`}
                   checked={checkedItems.includes(item.id)}
                   onCheckedChange={(checked: boolean) => handleCheck(item.id, checked)}
                 />
-                <label className="ml-2 text-xs text-gray-700">
+                <label className="ml-2 text-sm text-gray-700">
                   {item.title}
                 </label>
                 <Button 
