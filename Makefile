@@ -11,6 +11,10 @@ dev-detached:
 	@echo "🚀 Starting development environment (detached)..."
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml --env-file .env.dev up --build -d
 
+dev-no-build: 
+	echo "🚀 Starting development environment (no build)..."
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml --env-file .env.dev up 
+
 # Staging
 staging:
 	@echo "🧪 Starting staging environment..."
