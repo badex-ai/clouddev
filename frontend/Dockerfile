@@ -11,6 +11,8 @@ FROM base AS development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 EXPOSE 3000
+HEALTHCHECK --interval=60s --timeout=30s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
 CMD ["npm", "run", "dev"]
 
 
@@ -23,7 +25,7 @@ RUN npm run build
 # Production stage
 FROM base AS production
 RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 appuser --ingroup appgroup
+  adduser --system --uid 1001 appuser --ingroup appgroup
 COPY --from=builder /app/public ./public
 RUN mkdir .next && chown appuser:appgroup .next
 COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
