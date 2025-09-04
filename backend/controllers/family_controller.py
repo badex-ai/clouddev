@@ -43,6 +43,8 @@ async def get_family_task_for_date(family_id, date,db) -> list[TaskResponse]:
     parsed_date = datetime.fromisoformat(date).date()
     start_of_day = datetime.combine(parsed_date, time.min).replace(tzinfo=timezone.utc)
     end_of_day = datetime.combine(parsed_date, time.max).replace(tzinfo=timezone.utc)
+
+    print(f"Start of day: {start_of_day}, End of day: {end_of_day}")
    
     try: 
         tasks = db.query(Task).filter( and_(
@@ -51,13 +53,15 @@ async def get_family_task_for_date(family_id, date,db) -> list[TaskResponse]:
             Task.family_id == family_id,
             Task.is_deleted == False
         )).all()
+
+        print(f"Retrieved tasks: {tasks}")
        
       
     
         return [TaskResponse.model_validate(task) for task in tasks]
 
     except Exception as e:
-       
+        print(f"Error retrieving tasks: {e}")
         raise HTTPException(status_code= 500,detail= "something went wrong")
  
 

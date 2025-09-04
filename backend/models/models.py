@@ -3,6 +3,7 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy import Column, String, Text, ForeignKey, DateTime, Boolean, Integer, func, CheckConstraint
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm.attributes import flag_modified
 from config.db import Base
 from enum import Enum
 from sqlalchemy import Enum as SQLEnum
@@ -50,7 +51,7 @@ class Task(Base):
         default=TaskStatus.initialised, 
         nullable=False
     )
-    checklist: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    checklist: Mapped[Optional[List[Dict[str, Any]]]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, onupdate=utc_now)
     
@@ -69,18 +70,16 @@ class Task(Base):
     @validates('checklist')
     def validate_checklist(self, key, checklist):
         if checklist is not None:
-            if not isinstance(checklist, dict):
-                raise ValueError("Checklist must be a dictionary")
+            # 🔥 CHANGED: Now validating as a list instead of dict
+            if not isinstance(checklist, list):
+                raise ValueError("Checklist must be a list")
             
-            items = checklist.get("items", [])
-            if not isinstance(items, list):
-                raise ValueError("Checklist items must be a list")
-            
-            if len(items) > 8:
+            # 🔥 CHANGED: Direct length check on checklist instead of items
+            if len(checklist) > 8:
                 raise ValueError("Checklist cannot have more than 8 items")
             
             # Validate each item structure
-            for i, item in enumerate(items):
+            for i, item in enumerate(checklist):
                 if not isinstance(item, dict):
                     raise ValueError(f"Checklist item {i} must be a dictionary")
                 
@@ -95,20 +94,20 @@ class Task(Base):
                     raise ValueError(f"Checklist item {i} 'title' must be a non-empty string")
         
         return checklist
-    
+
     # Convenience methods
     def add_checklist_item(self, item_id: str, title: str, completed: bool = False):
         """Add an item to the checklist"""
+    
         if self.checklist is None:
-            self.checklist = {"items": []}
+            self.checklist = []
         
-        current_items = self.checklist.get("items", [])
-        
-        if len(current_items) >= 8:
+    
+        if len(self.checklist) >= 8:
             raise ValueError("Cannot add more than 8 items to checklist")
         
-        # Check if item ID already exists
-        if any(item["id"] == item_id for item in current_items):
+        
+        if any(item["id"] == item_id for item in self.checklist):
             raise ValueError(f"Item with ID '{item_id}' already exists")
         
         new_item = {
@@ -117,40 +116,42 @@ class Task(Base):
             "completed": completed
         }
         
-        current_items.append(new_item)
-        self.checklist = {"items": current_items}  # Trigger validation
-    
+        
+        self.checklist.append(new_item)
+
+        flag_modified(self, 'checklist')
+        return self
+
     def update_checklist_item(self, item_id: str, title: str = None, completed: bool = None):
         """Update an existing checklist item"""
-        if self.checklist is None or "items" not in self.checklist:
+        if self.checklist is None:
             raise ValueError("No checklist items to update")
         
-        items = self.checklist["items"]
-        for item in items:
+        
+        for item in self.checklist:
             if item["id"] == item_id:
                 if title is not None:
                     item["title"] = title.strip()
                 if completed is not None:
                     item["completed"] = completed
                 
-                # Trigger validation by reassigning
-                self.checklist = {"items": items}
+                # No need to trigger validation by reassigning since we're modifying in place
                 return
         
         raise ValueError(f"Item with ID '{item_id}' not found")
-    
+
     def remove_checklist_item(self, item_id: str):
         """Remove an item from the checklist"""
-        if self.checklist is None or "items" not in self.checklist:
+
+        if self.checklist is None:
             raise ValueError("No checklist items to remove")
         
-        items = self.checklist["items"]
-        original_length = len(items)
-        items = [item for item in items if item["id"] != item_id]
+    
+        original_length = len(self.checklist)
+        self.checklist = [item for item in self.checklist if item["id"] != item_id]
         
-        if len(items) == original_length:
+        if len(self.checklist) == original_length:
             raise ValueError(f"Item with ID '{item_id}' not found")
-        self.checklist = {"items": items} 
         
 class User(Base):
     __tablename__ = "users"

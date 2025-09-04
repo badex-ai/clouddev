@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional, List,Literal,Dict
-from pydantic import BaseModel, ConfigDict, EmailStr,computed_field
+from pydantic import BaseModel, ConfigDict, EmailStr,computed_field,field_validator
 from enum import Enum
 
 # User schemas
@@ -77,18 +77,18 @@ class GetMeResponse(UserBase):
     updated_at: datetime
     family: FamilyResponse
 
-    @computed_field
-    @property
-    def family_members(self) -> List[FamilyMemberResponse]:
-        """Extract the names and IDs of family members."""
-        # Check if we have family data from SQLAlchemy
-        if hasattr(self, 'family') and self.family and hasattr(self.family, 'users'):
-            return [
-                {"id": member.id, "name": member.name} 
-                for member in self.family.users 
-                if member.name and member.id != self.id  # Exclude self and ensure name exists
-            ]
-        return []
+    # @computed_field
+    # @property
+    # def family_members(self) -> List[FamilyMemberResponse]:
+    #     """Extract the names and IDs of family members."""
+    #     # Check if we have family data from SQLAlchemy
+    #     if hasattr(self, 'family') and self.family and hasattr(self.family, 'users'):
+    #         return [
+    #             {"id": member.id, "name": member.name} 
+    #             for member in self.family.users 
+    #             if member.name and member.id != self.id  # Exclude self and ensure name exists
+    #         ]
+    #     return []
 
 
 
@@ -146,6 +146,25 @@ class TaskResponse(TaskBase):
     assignee_id: str
     family_id: str
     due_date: datetime
+    checklist: Optional[List[ChecklistItem]] = None
+
+    @field_validator('checklist', mode='before')
+    @classmethod
+    def transform_checklist(cls, v):
+        """Transform checklist from old dict format to new list format"""
+        if v is None:
+            return None
+        
+        # Handle old format: {'items': [...]}
+        if isinstance(v, dict) and 'items' in v:
+            return v['items']
+        
+        # Handle new format: [...]
+        if isinstance(v, list):
+            return v
+            
+        # Handle unexpected format
+        raise ValueError(f"Invalid checklist format: {type(v)}")
     # assignee_name: str
 
 

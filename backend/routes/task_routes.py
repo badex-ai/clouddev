@@ -17,7 +17,7 @@ async def create_task_route(req: TaskCreate= Body(...),db: Session = Depends(get
 
 
 
-@router.post("/{taskId}")
+@router.post("/{taskId}/checklist")
 async def add_checklist_item_route(taskId, req: ChecklistItem= Body(...), db: Session = Depends(get_db)):
     print (taskId,req.title )
     return await add_checklist_item(taskId,req,db)
