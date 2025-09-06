@@ -67,20 +67,15 @@ export async function addCheckListItem(taskId: string,checkListItem : ChecklistI
 }
 
 
-export async function deleteCheckListItem(taskId: string,checkListItem :ChecklistItem){
+export async function deleteCheckListItem(taskId: string,checkListItemId : number){
    const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}/checklist`, 
+    `${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/${taskId}/checklist/${checkListItemId}`, 
     {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json',
-        
-      },
-      body:
-          JSON.stringify(checkListItem)
-        
+        'Content-Type': 'application/json' 
+      },  
     }
   );
-
   return res
 }

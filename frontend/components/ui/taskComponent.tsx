@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthUser } from '@/contexts/userContext'
 import { Plus } from 'lucide-react';
 import { Input } from "@/components/ui/input"
-import {addCheckListItem} from "@/lib/actions/taskActions"
+import {addCheckListItem, deleteCheckListItem} from "@/lib/actions/taskActions"
 import {ChecklistItemForm, ChecklistSchema} from "@/lib/validations/task"
 import { useForm,Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,7 +23,8 @@ interface DraggableTaskProps {
   task: Task;
   onDragStart: (e: React.DragEvent, task: Task) => void;
   isDragging: boolean;
-  onDeleteTask: (taskId: string)=>void
+  onDeleteTask: (taskId: string)=>void;
+  onTaskUpdate: (updatedTask: Task) => void;
 }
 
 
@@ -40,7 +41,6 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
     task.checklist?.filter(item => item.completed).map(item => item.id) || []
   );
 
-  console.log('checklist:', task.checklist)
     const {
       register,
       handleSubmit,
@@ -61,23 +61,21 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
     setOpenAddChecklistItem(true)
   }
 
-    const handleDelectChecklistItem=()=>{
-    console.log('checklist ietem deleted')
-  }
-
-  
-
-    // const  handleKeyPress=async(e,)=>{
-
+    const handleDelectChecklistItem =  async(taskId: string, itemId:number)=>{
+    console.log('checklist ietem deleted', taskId)
+    try{
+      const result =   await deleteCheckListItem(taskId,itemId)
+      if (result.ok){
+        const updatedTask = await result.json()
+        onTaskUpdate(updatedTask)
+      }
       
-    //   if(e.keyCode == 13){
-    //     console.log('Enter key pressed, submitting checklist')
-
-    //    const response =  await addCheckListItem(task.public_id, )
-    //     // console.log(e)
-
-    //   }
-    // }
+      
+    }catch{
+      console.log()
+    }
+    
+  }
 
   const onSubmitChecklist = async (data: ChecklistItemForm ) => {
   
@@ -95,7 +93,6 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
       // Handle successful submission
       if (result.ok){
         const updatedTask = await result.json()
-        console.log('this is the updated task', updatedTask)
         reset(); // Reset the form after successful submission
         setOpenAddChecklistItem(false)
         onTaskUpdate(updatedTask)
@@ -201,28 +198,29 @@ const handleKeyPress = (e : React.KeyboardEvent) => {
           {task.checklist && task.checklist.length > 0 && (
             <>
               <div className="mb-1 font-semibold text-xs text-gray-500">Checklist</div>
-              <form>
+              
             {task.checklist.map((item) => (
               <div key={item.id} className="flex items-center mb-1">
                 <Checkbox
                   name={`checklist.${item.id}`}
-                  checked={checkedItems.includes(item.id)}
-                  onCheckedChange={(checked: boolean) => handleCheck(item.id, checked)}
+                  checked={checkedItems.includes(item.id.toString())}
+                  onCheckedChange={(checked: boolean) => handleCheck(item.id.toString(), checked)}
                 />
                 <label className="ml-2 text-sm text-gray-700">
                   {item.title}
                 </label>
                 <Button 
+                type='button'
                 variant="ghost" 
                 size="sm"
                 title="Delete task"
-                onClick={()=>handleDelectChecklistItem()}
+                onClick={()=>handleDelectChecklistItem(task.public_id, item.id)}
               >
                 <Trash2 className="h-4 w-4 text-gray-600 " />
               </Button>
               </div>
             ))}
-              </form>
+              
             </>
           )}
         </div>
