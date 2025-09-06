@@ -148,10 +148,12 @@ class Task(Base):
         
     
         original_length = len(self.checklist)
-        self.checklist = [item for item in self.checklist if item["id"] != item_id]
+        self.checklist = [item for item in self.checklist if item["id"] != int(item_id)]
         
         if len(self.checklist) == original_length:
             raise ValueError(f"Item with ID '{item_id}' not found")
+        flag_modified(self, 'checklist')
+        return self
         
 class User(Base):
     __tablename__ = "users"
