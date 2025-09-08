@@ -146,6 +146,7 @@ class TaskResponse(TaskBase):
     assignee_id: str
     family_id: str
     due_date: datetime
+    description: str
     checklist: Optional[List[ChecklistItem]] = None
 
     @field_validator('checklist', mode='before')
