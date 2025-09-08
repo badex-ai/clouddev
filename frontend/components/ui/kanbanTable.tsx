@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import DraggableTask  from '@/components/ui/taskComponent';
+import { TaskStatus } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface KanbanTableProps {
   tasks: Task[];
@@ -10,6 +12,25 @@ interface KanbanTableProps {
   onDeleteTask:(taskId: string )=> void
   onTaskUpdate: (updatedTask: Task) => void;
 }
+
+ const ValidTransition = {
+  'initialised': ['in-progress'],
+  'in-progress': ['completed'], // Allow rollback
+  'completed': ['in-progress'] 
+};
+type States = TaskStatus;
+
+type ValidTransitionType = {
+  [K in Validstate]: (typeof ValidTransition)[K][number][];
+};
+
+function isValidTransition(fromState: States, toState: States): boolean {
+  const validTransitions = ValidTransition[fromState] ;
+  return validTransitions.includes(toState);
+}
+
+
+
 
 const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTask,onTaskUpdate}) => {
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
@@ -24,13 +45,29 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
     e.preventDefault();
   };
 
+   const columns : { title: string; status: TaskStatus }[]= [
+    { title: 'initialised', status: 'initialised' },
+    { title: 'In Progress', status: 'in-progress' },
+    { title: 'Completed', status: 'completed' }
+  ];
 
-  const handleDrop = (e: React.DragEvent, newStatus: string) => {
+  const handleDrop = (e: React.DragEvent, newStatus: TaskStatus) => {
     e.preventDefault();
-    const taskId = e.dataTransfer.getData('text/plain');
-    onTaskMove(taskId, newStatus);
+
+    if(!draggingTask){
+      return
+    }
+    if(isValidTransition(draggingTask?.status, newStatus)){
+      console.log('na')
+      const taskId = e.dataTransfer.getData('text/plain');
+      onTaskMove(taskId, newStatus);
+      
+    }else{
+      toast(' you cant move the task to this status')
+    }
     setDraggingTask(null);
     setDragOverColumn(null);
+    
   };
 
   const handleDragEnter = (status: string) => {
@@ -65,11 +102,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
     }
   };
 
-  const columns = [
-    { title: 'initialised', status: 'initialised' },
-    { title: 'In Progress', status: 'in-progress' },
-    { title: 'Completed', status: 'completed' }
-  ];
+ 
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-[calc(100vh-120px)]">
