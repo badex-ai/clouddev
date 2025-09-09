@@ -57,7 +57,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
   };
 
   const handleAddChecklist=()=>{
-    console.log('clicked dawg')
+   
     setOpenAddChecklistItem(true)
   }
 
@@ -116,7 +116,6 @@ const handleKeyPress = (e : React.KeyboardEvent) => {
   }
 };
   
- 
 
   return (
     <div className='relative'>
@@ -166,7 +165,7 @@ const handleKeyPress = (e : React.KeyboardEvent) => {
         </Badge>
 
         <div className="mt-4 relative">
-          <div>
+          <div className=' mb-4'>
             
              <Button 
                 variant="ghost" 
@@ -174,11 +173,12 @@ const handleKeyPress = (e : React.KeyboardEvent) => {
                 title="Add checklist"
                 onClick={()=>handleAddChecklist()}
               >
+                <div>
+                  <svg fill="#000000" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M459.897 902.842v689.845h1034.767v-574.87h230.064v804.819H229.948V902.842h229.949Zm1299.37-570.916L1920 496.455l-845.06 825.86-408.044-398.846 160.85-164.413 247.194 241.675 684.326-668.805ZM459.896 98v230.063H689.96v229.949H459.897v229.833H229.948V558.012H0V328.063h229.948V98h229.949Zm919.816 229.983V557.93h-574.87V327.983h574.87Z" fill-rule="evenodd"></path> </g></svg>
+                  </div>
                 <Plus className="h-4 w-4 text-gray-600 " />
               </Button>
-
-            <span>checklist</span>
-              {openAddChecklistItem && <div className='border  z-4 w-[14rem] bg-gray py-1 px-2 absolute top-[16] left-[100] rounded-sm'>
+              {openAddChecklistItem && <div className='z-4 w-[14rem] bg-gray py-1 px-2 absolute top-[0] left-[40]'>
                <form onSubmit={handleSubmit(onSubmitChecklist)}>
                   <Input 
                     {...register("subtask")} 

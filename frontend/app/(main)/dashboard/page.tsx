@@ -373,7 +373,8 @@ if(taskIsLoading === false){
             </div>
 
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <div className=' flex'>
+             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2 mb-10 cursor-pointer">
                 <Plus className="h-4 w-4" />
@@ -473,11 +474,12 @@ if(taskIsLoading === false){
               </form>
             </DialogContent>
           </Dialog>
-          
+          <div className='ml-auto'>
+            small chart
+          </div>
+          </div>
           {/* </div> */}
           {taskTable}
-          
-    
       </div>
     </div>
   )
