@@ -1,0 +1,154 @@
+#***POD***
+replicaCount: 2
+
+image:
+  repository: badex360/kaban-backend
+  tag: latest
+  pullPolicy:  Always
+
+ 
+
+imagePullSecrets: []
+
+namespace: "local-dev"
+
+
+
+
+# This is for setting Kubernetes Annotations to a Pod.
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+
+
+# ***service****
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+
+
+
+resources: 
+  requests:
+    memory: 256Mi
+    cpu: 250m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+  
+
+container: 
+  port: 8000
+  
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 60  # Give app time to start
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+configMap:
+  enabled: true
+
+
+# 🔒 Secrets (sensitive data)
+secrets:
+    enabled: true
+
+
+
+volumes:
+    - name: backend-secrets-volume
+      secret:
+        # secretName: kaban-backend-secrets
+        defaultMode: 0440
+        optional: false
+        items:
+          - key: AUTH0_CLIENT_SECRET
+            path: AUTH0_CLIENT_SECRET
+          - key: AUTH0_M2M_CLIENT_SECRET
+            path: AUTH0_M2M_CLIENT_SECRET
+          - key: DB_PASSWORD
+            path: DB_PASSWORD
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+    - name: backend-secrets-volume
+      mountPath: /etc/secrets
+      readOnly: true
+
+
+# NetworkPolicy configuration
+networkPolicy:
+  enabled: true
+  
+  ingress:
+    allowFromFrontend: true
+    frontendAppLabel: frontend
+    allowFromIngressController: true
+    ingressControllerNamespace:
+      kubernetes.io/metadata.name: ingress
+  
+  egress:
+    dnsSelector:
+      k8s-app: kube-dns
+    dnsNamespaceSelector:
+      kubernetes.io/metadata.name: kube-system
+    
+    # DATABASE CONFIGURATION - ADD THIS!
+    allowDatabase: true
+    database:
+      useIPBlock: true  # Because DB is outside cluster
+      cidr: "192.168.0.110/32"  # Your host IP
+      port: 5432
+    
+    allowADOT: false
+    
+    # Allow external HTTPS for Auth0
+    allowExternal: true
+    externalPorts:
+      - 443
+      - 80
+
+
+vpc:
+  cidr: "10.0.0.0/16" 
+
+# Security configuration
+securityGroupId: "" 
+

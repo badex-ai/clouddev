@@ -1,0 +1,227 @@
+version: '3.0'
+
+# Variables that can be overridden
+vars:
+  COMPOSE_BASE: docker-compose.yaml
+  COMPOSE_DEV: docker-compose.dev.yaml
+  COMPOSE_DEVk8s: docker-compose.dev.k8s.yaml
+  COMPOSE_PROD: docker-compose.prod.yaml
+  ENV_DEV: .env.dev
+  ENV_DEVk8s: .env.devk8s
+  ENV_STAGING: .env.staging
+  ENV_PROD: .env.prod
+
+tasks:
+  # ======================
+  # DEVELOPMENT
+  # ======================
+  dev:
+    desc: "🚀 Start development environment"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} --env-file {{.ENV_DEV}} up --build
+
+  dev-detached:
+    desc: "🚀 Start development environment (detached)"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} --env-file {{.ENV_DEV}} up --build -d
+
+  dev-no-build:
+    desc: "🚀 Start development environment (no build)"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} --env-file {{.ENV_DEV}} up
+
+  
+  devk8s-detached:
+    desc: "🚀 Start development environment (detached)"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEVk8s}} --env-file {{.ENV_DEVk8s}} up --build -d
+
+  devk8s-no-build:
+    desc: "🚀 Start development environment (no build)"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEVk8s}} --env-file {{.ENV_DEVk8s}} up
+
+  # ======================
+  # STAGING
+  # ======================
+  staging:
+    desc: "🧪 Start staging environment"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} --env-file {{.ENV_STAGING}} up --build
+
+  # ======================
+  # PRODUCTION
+  # ======================
+  prod:
+    desc: "🏭 Start production environment"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_PROD}} --env-file {{.ENV_PROD}} up --build
+
+  prod-detached:
+    desc: "🏭 Start production environment (detached)"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_PROD}} --env-file {{.ENV_PROD}} up --build -d
+
+  # ======================
+  # BUILD
+  # ======================
+  build:
+    desc: "Build all services"
+    cmds:
+      - docker compose build
+
+  build-dev:
+    desc: "Build development services"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} build
+
+  
+  build-devk8s:
+    desc: "Build local k8s development services"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEVk8s}} build
+
+  build-prod:
+    desc: "Build production services"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_PROD}} build
+
+  # ======================
+  # CLEANUP
+  # ======================
+  clean:
+    desc: "🧹 Clean up containers, volumes, and system"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} down -v --remove-orphans
+      # - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_PROD}} down -v --remove-orphans
+      - docker system prune -f
+
+  # ======================
+  # STOP SERVICES
+  # ======================
+  stop:
+    desc: "Stop all services"
+    cmds:
+      - docker compose down
+
+  stop-dev:
+    desc: "Stop development services"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} down
+
+  stop-prod:
+    desc: "Stop production services"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_PROD}} down
+
+  # ======================
+  # LOGS
+  # ======================
+  logs:
+    desc: "View logs (all services)"
+    cmds:
+      - docker compose logs -f
+
+  logs-backend:
+    desc: "View backend logs"
+    cmds:
+      - docker compose logs -f backend
+
+  logs-frontend:
+    desc: "View frontend logs"
+    cmds:
+      - docker compose logs -f frontend
+
+  # ======================
+  # SHELL ACCESS
+  # ======================
+  shell-backend:
+    desc: "Access backend container shell"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} exec backend /bin/sh
+
+  shell-frontend:
+    desc: "Access frontend container shell"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} exec frontend /bin/sh
+
+  # ======================
+  # DATABASE OPERATIONS
+  # ======================
+  db-migrate:
+    desc: "Run database migrations"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} exec backend alembic upgrade head
+
+  db-shell:
+    desc: "Access database shell"
+    cmds:
+      - docker compose exec postgres psql -U ${DB_USER} -d ${DB_NAME}
+
+  # ======================
+  # TESTING
+  # ======================
+  test:
+    desc: "Run tests"
+    cmds:
+      - docker compose -f {{.COMPOSE_BASE}} -f {{.COMPOSE_DEV}} exec backend python -m pytest
+
+  # ======================
+  # HEALTH CHECK
+  # ======================
+  health:
+    desc: "🏥 Check service health"
+    cmds:
+      - task: health-backend
+      - task: health-frontend
+    ignore_error: true
+
+  health-backend:
+    desc: "Check backend health"
+    cmds:
+      - curl -f http://localhost:8000/health || echo "❌ Backend unhealthy"
+    silent: true
+
+  health-frontend:
+    desc: "Check frontend health"
+    cmds:
+      - curl -f http://localhost:3000/ || echo "❌ Frontend unhealthy"
+    silent: true
+
+  health-backendk8s:
+    desc: "Check backend health"
+    cmds:
+      - curl -f http://backend.local/health || echo "❌ Backend unhealthy"
+    silent: true
+
+  health-frontendk8s:
+    desc: "Check frontend health"
+    cmds:
+      - curl -f http://frontend.local/ || echo "❌ Frontend unhealthy"
+    silent: true
+  
+  helm-install-devk8s:
+    desc: "Install Kanban Helm chart with local configurations"
+    dir: ./infrastructure/k8s
+    cmds:
+      - helm install kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml
+  
+  helm-upgrade-devk8s:
+    desc: "Upgrade Kanban Helm chart"
+    dir: ./infrastructure/k8s
+    cmds:
+      - helm upgrade kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml
+  
+  helm-uninstall-devk8s:
+    desc: "Uninstall Kanban Helm chart"
+    cmds:
+      - helm uninstall kaban
+  
+
+  # ======================
+  # HELP
+  # ======================
+  default:
+    desc: "Show available commands"
+    cmds:
+      - task --list

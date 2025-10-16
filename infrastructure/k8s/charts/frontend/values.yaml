@@ -1,0 +1,69 @@
+
+replicaCount: 1
+
+
+image:
+  repository: badex360/kaban-frontend
+  tag: latest
+  pullPolicy:  Always
+
+
+
+namespace: "local-dev"
+
+
+
+
+
+configMap:
+  enabled: true
+  
+
+# Secrets (sensitive data)
+secrets:
+    enabled: true
+#     mountPath: /etc/secrets  # Where secrets will be mounted
+#     data:
+#       AUTH0_SECRET: "REPLACE_ME"
+#       AUTH0_CLIENT_SECRET: "REPLACE_ME"
+
+
+  
+  # VolumeMount configuration
+volumeMounts:
+
+
+resources: 
+  requests:
+    memory: 256Mi
+    cpu: 250m
+  limits:
+    memory: 512Mi
+    cpu: 500m
+
+networkPolicy: 
+  enabled: true
+
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+
+container: 
+  port: 3000
+
+
+
+

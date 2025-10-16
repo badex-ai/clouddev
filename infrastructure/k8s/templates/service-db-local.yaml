@@ -1,0 +1,31 @@
+{{- if eq .Values.namespace "local-dev" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "k8s.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  # No selector - external database!
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: postgres-service  # Must match Service name
+  namespace: {{ .Values.namespace }}
+subsets:
+  - addresses:
+      - ip: {{ .Values.database.host }}
+    ports:
+      - name: postgresql
+        port: 5432
+        protocol: TCP
+{{- end }}

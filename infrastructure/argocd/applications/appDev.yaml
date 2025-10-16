@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kanban-app
+  namespace: argocd
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/badex-ai/clouddev
+    targetRevision: main
+    path: infrastructure/k8s  
+    
+    helm:
+      valueFiles:
+        - values.yaml
+
+      parameters:
+          - name: backend.image.tag
+            value: "latest"
+          - name: frontend.image.tag
+            value: "latest"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kanban-app-dev
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

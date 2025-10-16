@@ -1,0 +1,56 @@
+ingress:
+  enabled: true
+  className: alb  # alb for AWS
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+  hosts:
+    - host: myapp.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend-service
+              port:
+                number: 80
+                targetPort: 3000 
+    - host: api.myapp.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: backend-service
+              port:
+                number: 80
+                targetPort: 8000 
+
+networkPolicy:
+  ingress:
+    # For AWS EKS with ALB controller:
+      kubernetes.io/metadata.name: kube-system
+  egress:    
+    # ADOT Collector (optional - disable if not using OpenTelemetry)
+    allowDatabase: true
+    database:
+      #  For AWS RDS, change to:
+      useIPBlock: true
+      cidr: "10.0.0.0/16"  # Your VPC CIDR
+      port: 5432
+    allowADOT: true
+    adot:
+      podSelector:
+        app: adot-collector
+      ports:
+        - 4317
+        - 4318
+
+
+frontend:
+  service:
+    type: loadBalancer
+    port: 80
+    targetPort: 3000
+

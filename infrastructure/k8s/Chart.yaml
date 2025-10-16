@@ -1,0 +1,19 @@
+apiVersion: v2
+name: kaban
+description: A Helm chart for kaban application
+
+
+type: application
+
+
+version: 0.1.0
+
+appVersion: "0.0.1"
+
+dependencies:
+  - name: backend
+    version: 0.1.0
+    repository: "file://./charts/backend"
+  - name: frontend
+    version: 0.1.0
+    repository: "file://./charts/frontend"

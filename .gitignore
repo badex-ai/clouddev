@@ -3,3 +3,10 @@ logs/
 myfile.log
 backup.sql
 values-secrets.yaml
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraformrc
+terraform.rc
+values-local.yaml
