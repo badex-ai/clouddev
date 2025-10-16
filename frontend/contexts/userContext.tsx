@@ -15,7 +15,7 @@ const UserContext = createContext<UserDataContextType>({
   userData: null,
   authIsLoading:true,
   userDataError: false,
-  fetchUserData: () => {}
+  // fetchUserData: () => {}
 });
 
   interface UserDataContextType {
@@ -23,7 +23,7 @@ const UserContext = createContext<UserDataContextType>({
   isUserDataLoading: boolean;
   userDataError: boolean;
   authIsLoading: boolean;
-  fetchUserData: () => void;
+  // fetchUserData: () => void;
 
 }
 
@@ -31,7 +31,7 @@ const UserContext = createContext<UserDataContextType>({
 
 export const AuthUserProvider = ({ children }: { children: React.ReactNode }) => {
   let { user, isLoading } = useUser();
-  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [userData, setUserData] = useState<ExtendedUserProfile | null>(null);
   const [isUserDataLoading, setIsUserDataLoading] = useState(true);
   const [userDataError, setUserDataError] = useState<boolean>(false);
 
@@ -67,7 +67,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
       setUserDataError(true);
   
       setUserData(user)
-      console.log(user, 'this is the user fetched')
+      console.log(error, 'this is the error from te fetch')
       setIsUserDataLoading(false);
     } finally {
       setIsUserDataLoading(false);

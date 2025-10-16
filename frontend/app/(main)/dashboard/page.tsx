@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import { useState, useEffect} from 'react';
-import { Task } from '@/lib/types';
+import { CreateTask, Task } from '@/lib/types';
 import KanbanTable from '@/components/ui/kanbanTable';
 import AddTaskModal from '@/components/ui/addTaskModal';
 import { useAuthUser } from '@/contexts/userContext';
@@ -139,7 +139,7 @@ function Dashboard() {
   };
 
    const updateTaskInList = (updatedTask: Task) => {
-    console.log('this is the update task',updatedTask)
+    // console.log('this is the update task',updatedTask)
   setTasks(prevTasks => 
     prevTasks.map(task => 
       task.public_id === updatedTask.public_id ? updatedTask : task
@@ -177,7 +177,7 @@ function Dashboard() {
     setTasks(tasks =>
       tasks.map(task =>
         task.public_id === taskId
-          ? { ...task, status: newStatus as 'initialized' | 'in-progress' | 'completed' }
+          ? { ...task, status: newStatus as 'initialised' | 'in-progress' | 'completed' }
           : task
       )
     );
@@ -267,49 +267,44 @@ if(taskIsLoading === false){
 
   const onFormSubmit = async (data: TaskFormData) => {
 
-      let taskData;
-      if(userData?.family?.id) {
-           taskData = {
-                title: data.title,
-                description: data.description || undefined,
-                creator_id: userData?.id,
-                assignee_id: data?.assignee_id,
-                due_date: localToUtc(data.due_date),
-                family_id: userData?.family?.id
-                
-              }
-        }
+     const onFormSubmit = async (data: TaskFormData) => {
+  // 🔥 Fixed: Check conditions first and return early if invalid
+  if (!userData?.family?.id || !data || !data.due_date) {
+    toast('Missing required information');
+    return;
+  }
 
-        //     console.log('this is the today', today)
-        // console.log('this is date.due_date from form calendar', format(data.due_date, 'yyyy-MM-dd'))
+  // 🔥 Fixed: Now taskData is guaranteed to be assigned
+  const taskData = {
+    title: data.title,
+    description: data.description || undefined,
+    creator_id: userData.id,
+    assignee_id: data.assignee_id,
+    due_date: localToUtc(data.due_date),
+    family_id: userData.family.id
+  };
 
+  try {
+    setSubmitIsLoading(true);
 
-        //    const formatedCalendarDate = parse(data.due_date, "EEE MMM dd yyyy HH:mm:ss 'GMT'xxx (zzzz)", new Date());
+    const result = await createTask(taskData);
+    if (result.ok) {
+      toast('New task created');
 
+      const createdTask = await result.json();
 
-
-      try{
-          setSubmitIsLoading(true)
-  
-          const result = await createTask(taskData)
-          if(result.ok){
-            toast('New task created')  
-
-            const createdTask = await result.json()
-
-            
-
-            if (format(data.due_date, 'yyyy-MM-dd')=== today && tasks) {
-              setTasks(tasks => [...tasks, createdTask])
-            } 
-            reset()
-            setIsDialogOpen(false)
-          }
-      }catch{
-        toast('Something went wrong while creating the task')   
-      }finally{
-          setSubmitIsLoading(false);
+      if (format(data.due_date, 'yyyy-MM-dd') === today && tasks) {
+        setTasks(tasks => [...tasks, createdTask]);
       }
+      reset();
+      setIsDialogOpen(false);
+    }
+  } catch {
+    toast('Something went wrong while creating the task');
+  } finally {
+    setSubmitIsLoading(false);
+  }
+};
 
     }
     

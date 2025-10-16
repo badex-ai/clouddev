@@ -3,12 +3,20 @@ from dotenv import load_dotenv
 from fastapi import HTTPException,Depends
 import httpx 
 from sqlalchemy.orm import Session
-from config.db import SessionLocal 
+from config.env import get_config
 from models.models import User,Family,UserRole
+import logging
 
 
 load_dotenv()
 
+
+config = get_config()
+
+auth0_domain = config["auth0_domain"]
+auth0_client_id = config["auth0_client_id"]
+auth0_m2m_client_id = config["auth0_m2m_client_id"]
+auth0_m2m_client_secret = config["auth0_m2m_client_secret"]  # SECRET
 
 
 async def logout():
@@ -16,12 +24,12 @@ async def logout():
 
 async def signup(req, db):
 
-    auth0_signup_url = f"https://{os.getenv('AUTH0_DOMAIN')}/dbconnections/signup"
+    auth0_signup_url = f"https://{auth0_domain}/dbconnections/signup"
 
     print("request payloads",req)
     
     payload = {
-        "client_id": os.getenv('AUTH0_CLIENT_ID'),
+        "client_id": auth0_client_id,
         "connection": "Username-Password-Authentication",
         "email": req.email,
         "password": req.password,
@@ -87,11 +95,11 @@ async def signup(req, db):
             raise HTTPException(status_code=400, detail=f"Signup failed: {response.text}")
 
 async def get_management_api_token():
-    token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
+    token_url = f"https://{auth0_domain}/oauth/token"
     token_payload = {
-        "client_id": os.getenv('AUTH0_M2M_CLIENT_ID'),
-        "client_secret": os.getenv('AUTH0_M2M_CLIENT_SECRET'),
-        "audience": f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/",
+        "client_id": auth0_m2m_client_id,
+        "client_secret": auth0_m2m_client_secret,
+        "audience": f"https://{auth0_domain}/api/v2/",
         "grant_type": "client_credentials"
     }
     
@@ -106,10 +114,10 @@ async def sendVerificationEmail(req):
     """Send verification email to the user"""
 
 
-    auth0_verification_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/jobs/verification-email"
+    auth0_verification_url = f"https://{auth0_domain}/api/v2/jobs/verification-email"
 
     payload = {
-        "client_id": os.getenv('AUTH0_CLIENT_ID'), 
+        "client_id": auth0_client_id, 
         # "connection": "Username-Password-Authentication",
         "user_id": req.user_id,
         

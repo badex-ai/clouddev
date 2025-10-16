@@ -12,6 +12,7 @@ from schemas.schemas import (
 )
 import secrets
 import string
+from config.env import get_config
 
 # Add this to see the actual SQL queries
 import logging
@@ -21,15 +22,22 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 load_dotenv()
 
 
+config = get_config()
+
+auth0_domain = config["auth0_domain"]
+auth0_client_id = config["auth0_client_id"]
+auth0_m2m_client_id = config["auth0_m2m_client_id"]
+auth0_m2m_client_secret = config["auth0_m2m_client_secret"]  # SECRET
+
 
 
 async def get_management_api_token():
-    auth0_token_url = f"https://{os.getenv('AUTH0_DOMAIN')}/oauth/token"
+    auth0_token_url = f"https://{auth0_domain}/oauth/token"
     
     payload = {
-        "client_id": os.getenv('AUTH0_M2M_CLIENT_ID'),       
-        "client_secret": os.getenv('AUTH0_M2M_CLIENT_SECRET'),
-        "audience": f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/",
+        "client_id": auth0_client_id,       
+        "client_secret": auth0_m2m_client_secret,
+        "audience": f"https://{auth0_domain}/api/v2/",
         "grant_type": "client_credentials"
     }
     
@@ -43,7 +51,7 @@ async def send_password_reset_with_auth0(user_id):
     """Let Auth0 send password reset email using their templates"""
     
     m2m_token = await get_management_api_token()
-    ticket_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/tickets/password-change"
+    ticket_url = f"https://{auth0_domain}/api/v2/tickets/password-change"
     
     payload = {
         "user_id": user_id,
@@ -78,7 +86,7 @@ async def send_password_reset_with_auth0(user_id):
 # async def create_password_setup_ticket(user_id, email, name):
 #     """Create password change ticket for new user setup"""
 #     m2m_token = await get_management_api_token()
-#     ticket_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/tickets/password-change"
+#     ticket_url = f"https://{auth0_domain}/api/v2/tickets/password-change"
     
 #     payload = {
 #         "user_id": user_id,
@@ -197,7 +205,7 @@ async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
         m2m_token = await get_management_api_token()
     
         # Create user via Management API
-        management_api_url = f"https://{os.getenv('AUTH0_DOMAIN')}/api/v2/users"
+        management_api_url = f"https://{auth0_domain}/api/v2/users"
         
         payload = {
             "email": req.email,

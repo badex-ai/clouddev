@@ -20,29 +20,17 @@ services:
       start_period: 30s
   
   backend: 
+    image: badex360/kaban-backend:latest
     build: 
       context: ./backend
       dockerfile: Dockerfile
-      target: production  # Default to production stage
+      target: staging  # Default to production stage
     container_name: kaban_backend-container
     restart: unless-stopped
-    environment: 
-      # Database
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      # Auth0
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
-      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
-      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
-      AUTH0_API_AUDIENCE: ${AUTH0_API_AUDIENCE}
-      AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
-      AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
+     
       # Environment
-      NODE_ENV: production
-      ENVIRONMENT: production
+      # NODE_ENV: production
+      # ENVIRONMENT: production
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -58,26 +46,15 @@ services:
       start_period: 40s
 
   frontend: 
+    image: badex360/kaban-frontend:latest
     build: 
       context: ./frontend
       dockerfile: Dockerfile
-      target: production  # Default to production stage
-    container_name: kaban-frontend_container
+      target: staging  # Default to production stage
+    container_name: kaban_frontend-container
     restart: unless-stopped
-    environment: 
-      # Auth0
-      AUTH0_SECRET: ${AUTH0_SECRET}
-      AUTH0_BASE_URL: ${AUTH0_BASE_URL}
-      AUTH0_ISSUER_BASE_URL: ${AUTH0_ISSUER_BASE_URL}
-      AUTH0_CLIENT_ID: ${AUTH0_CLIENT_ID}
-      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
-      AUTH0_SCOPE: ${AUTH0_SCOPE}
-      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
-      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
-      # App config
-      APP_BASE_URL: ${APP_BASE_URL}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NODE_ENV: production
+     
+      # NODE_ENV: production
     ports: 
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on: 

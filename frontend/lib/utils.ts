@@ -15,8 +15,8 @@ function localToUtc(localDateTime : string | number | Date) {
 
 function utcToLocal(utcDateTime  : string | number | Date)  {
  
-  const zonedDate =  toZonedTime(utcDateTime, userTimeZone, 'yyyy-MM-dd HH:mm:ss');
-  return format(zonedDate, "EEE MMM dd yyyy h:mmaaa", { timeZone: userTimeZone });
+  const zonedDate =  toZonedTime(utcDateTime, userTimeZone);
+  return format(zonedDate, 'yyyy-MM-dd HH:mm:ss');
 }
 
 export {utcToLocal, localToUtc} 

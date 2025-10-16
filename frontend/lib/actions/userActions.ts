@@ -1,14 +1,22 @@
+'use server' 
 import {CreateNewFamilyMember} from '@/lib/types';
+import {getConfig} from "../config"
 
 
+
+const {apiUrl, nextUrl} = getConfig()
 
 export async function getUserData(user: any) {
 
 
+  console.log(apiUrl, 'tis is te api url')
+  
 
- 
+  console.log(nextUrl, 'tis is te nextUrl url')
+
+      
     // Fetch user data
-    const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {
+    const userResponse = await fetch(`${apiUrl}/api/v1/users/me`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_email: user.email })
@@ -37,7 +45,7 @@ export async function getUserData(user: any) {
 
 
 export async function createNewFamilyMember(userInfo: CreateNewFamilyMember){
-   const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/new`, {
+   const userResponse = await fetch(`${apiUrl}/api/v1/users/new`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify( userInfo)
@@ -47,7 +55,7 @@ export async function createNewFamilyMember(userInfo: CreateNewFamilyMember){
 }
 
 export async function getFamilymembers(familyId: number){
-  const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/families/${familyId}`, {
+  const userResponse = await fetch(`${apiUrl}/api/v1/families/${familyId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     
@@ -57,7 +65,7 @@ export async function getFamilymembers(familyId: number){
 }
 
 export async function deleteFamilymember(userId: string){
-  const result= await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/${userId}/deactivate`, {
+  const result= await fetch(`${apiUrl}/api/v1/users/${userId}/deactivate`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       cache: "no-store",

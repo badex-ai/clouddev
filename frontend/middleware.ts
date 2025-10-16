@@ -1,33 +1,4 @@
-// import type { NextRequest } from "next/server";
-// import { auth0 } from "./lib/auth0";
 
-// export async function middleware(request: NextRequest) {
-
-//     console.log('🔍 Middleware triggered for:', request.nextUrl.pathname);
-//   console.log('🔍 Request method:', request.method);
-//   console.log('🔍 Request headers:', Object.fromEntries(request.headers.entries()));
-//    const response = await auth0.middleware(request);
-
-//    console.log('🔍 Auth0 middleware response status:', response?.status);
-//   console.log('🔍 Auth0 middleware response headers:', Object.fromEntries(response?.headers.entries() || []));
-
-//   return response;
-// }
-
-// export const config = {
-//   matcher: [
-//     /*
-//      * Match all request paths except for the ones starting with:
-//      * - _next/static (static files)
-//      * - _next/image (image optimization files)
-//      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-//      */
-//     "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)",
-    
-
-//     //  "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|dashboard|auth).*)",
-//   ],
-// };
 
 
 import { NextRequest, NextResponse } from "next/server";

@@ -2,7 +2,7 @@
 import React ,{EventHandler, useState}from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GripVertical, User, Calendar, Delete } from 'lucide-react';
+import { GripVertical, User, Calendar } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox"
 import { Task } from '@/lib/types';
 import {utcToLocal} from  '@/lib/utils'
@@ -38,7 +38,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
     return member.id == task.assignee_id
    })[0]
   const [checkedItems, setCheckedItems] = React.useState<string[]>(
-    task.checklist?.filter(item => item.completed).map(item => item.id) || []
+    task.checklist?.filter(item => item.completed).map(item => item.id.toString()) || []
   );
 
     const {
@@ -62,7 +62,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
   }
 
     const handleDelectChecklistItem =  async(taskId: string, itemId:number)=>{
-    console.log('checklist ietem deleted', taskId)
+    // console.log('checklist ietem deleted', taskId)
     try{
       const result =   await deleteCheckListItem(taskId,itemId)
       if (result.ok){
@@ -72,7 +72,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
       
       
     }catch{
-      console.log()
+      // console.log()
     }
     
   }
@@ -175,6 +175,7 @@ const handleKeyPress = (e : React.KeyboardEvent) => {
               >
                 <div>
                   <svg fill="#000000" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M459.897 902.842v689.845h1034.767v-574.87h230.064v804.819H229.948V902.842h229.949Zm1299.37-570.916L1920 496.455l-845.06 825.86-408.044-398.846 160.85-164.413 247.194 241.675 684.326-668.805ZM459.896 98v230.063H689.96v229.949H459.897v229.833H229.948V558.012H0V328.063h229.948V98h229.949Zm919.816 229.983V557.93h-574.87V327.983h574.87Z" fill-rule="evenodd"></path> </g></svg>
+                 
                   </div>
                 <Plus className="h-4 w-4 text-gray-600 " />
               </Button>

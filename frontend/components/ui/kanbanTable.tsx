@@ -20,6 +20,8 @@ interface KanbanTableProps {
 };
 type States = TaskStatus;
 
+type Validstate = 'initialised' | 'in-progress' | 'completed';
+
 type ValidTransitionType = {
   [K in Validstate]: (typeof ValidTransition)[K][number][];
 };
@@ -58,7 +60,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
       return
     }
     if(isValidTransition(draggingTask?.status, newStatus)){
-      console.log('na')
+      // console.log('na')
       const taskId = e.dataTransfer.getData('text/plain');
       onTaskMove(taskId, newStatus);
       

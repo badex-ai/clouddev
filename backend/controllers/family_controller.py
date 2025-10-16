@@ -40,6 +40,8 @@ async def get_family(id , db) :
 async def get_family_task_for_date(family_id, date,db) -> list[TaskResponse]:
 
   
+
+  
     parsed_date = datetime.fromisoformat(date).date()
     start_of_day = datetime.combine(parsed_date, time.min).replace(tzinfo=timezone.utc)
     end_of_day = datetime.combine(parsed_date, time.max).replace(tzinfo=timezone.utc)

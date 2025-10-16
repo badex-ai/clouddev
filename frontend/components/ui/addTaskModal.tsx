@@ -15,6 +15,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ExtendedUserProfile } from '@/lib/types';
 import {localToUtc} from'@/lib/utils'
 import { toast } from "sonner"
+import {getConfig} from "../../lib/config"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -38,7 +39,7 @@ type TaskFormData = z.infer<typeof taskSchema>;
 interface AddTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (task: Omit<Task, 'id'>) => void;
+  onAdd: (task: Omit<Task, 'public_id'>) => void;
   assignees?: { id: number; username: string }[];
   userData: ExtendedUserProfile | null
 }
@@ -64,13 +65,13 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     },
   });
 
-
+  const {apiUrl} = getConfig()
 
   const   handleSubmit = async(data: TaskFormData) => {
         onAdd({
           title: data.title,
           description: data.description || undefined,
-          assignee_id: parseInt(data.assignee_id), 
+          assignee_id: data.assignee_id.toString(), 
           due_date: data.due_date ,
           status:  'initialised' 
         });
@@ -94,7 +95,7 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
 
      console.log('taskData', taskData)
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/tasks/create`, {
+      const response = await fetch(`${apiUrl}/api/v1/tasks/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(taskData)

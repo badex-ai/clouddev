@@ -44,7 +44,7 @@ interface CreateTask{
     description: string| undefined
     creator_id:  string
     assignee_id: string
-    due_date: string
+    due_date: string  | null
     family_id: string
 }
 interface UserProfile {

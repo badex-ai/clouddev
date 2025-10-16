@@ -2,3 +2,4 @@
 logs/
 myfile.log
 backup.sql
+values-secrets.yaml

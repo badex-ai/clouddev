@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth"
 import { toast } from "sonner"
+import {getConfig} from "../../../lib/config"
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
+   const {apiUrl} = getConfig()
   
   const {
     register,
@@ -28,8 +30,8 @@ export default function SignupPage() {
     let response: Response | undefined
     try {
       // Handle signup logic here
-      console.log("Signup data:", data)
-      response = await fetch(`http://localhost:8000/api/v1/auth/signup`, {
+      // console.log("Signup data:", data)
+      response = await fetch(`http://${apiUrl}/api/v1/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

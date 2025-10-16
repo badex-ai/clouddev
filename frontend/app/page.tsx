@@ -14,7 +14,7 @@ export default async function LandingPage() {
    redirect('/dashboard');
    }
 
-   console.log('this is the session', session);
+  //  console.log('this is the session', session);
   return (
     <div>
       {!session && (

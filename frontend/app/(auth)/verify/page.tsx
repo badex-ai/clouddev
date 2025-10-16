@@ -6,18 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@auth0/nextjs-auth0"
 import { Mail, AlertCircle, CheckCircle, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
+import {getConfig} from "../../../lib/config"
+
+const {apiUrl} = getConfig()
+ 
 
 function VerifyEmailPage() {
   let { user } = useUser();
   console.log("User:", user);
   const [isLoading, setisLoading] = useState(false)
 
+
   function disableBtn(){
     
   }
   async function handleResendVerificationEmail(id: string) {
     setisLoading(true);
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/emailVerification`, {
+    const response = await fetch(`${apiUrl}/api/v1/auth/emailVerification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: id })
@@ -29,7 +34,7 @@ function VerifyEmailPage() {
       toast("Something went wrong, please try again later");
       setisLoading(false);
     }
-    console.log('verification clicked');
+    // console.log('verification clicked');
   }
 
   return (
@@ -63,8 +68,9 @@ function VerifyEmailPage() {
               </p>
 
               <div className="pt-4">
-                <Button 
-                  onClick={() => handleResendVerificationEmail(user.sub)}
+                {user &&
+                 <Button 
+                  onClick={() => handleResendVerificationEmail(user?.sub)}
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
                 >
                   {isLoading ? 
@@ -73,7 +79,8 @@ function VerifyEmailPage() {
                    )
                   }
                  
-                </Button>
+                </Button> }
+               
               </div>
             </div>
 

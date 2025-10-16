@@ -7,6 +7,7 @@ from sqlalchemy import and_
 from config.db import SessionLocal 
 from models.models import Task
 from config.db import get_db
+from config.env import get_config
 from schemas.schemas import (
     UserCreate, UserResponse, UserUpdate,
     TaskCreate, TaskResponse,
@@ -20,6 +21,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+config = get_config()
+
+auth0_domain = config["auth0_domain"]
+auth0_client_id = config["auth0_client_id"]
+auth0_m2m_client_id = config["auth0_m2m_client_id"]
+auth0_m2m_client_secret = config["auth0_m2m_client_secret"]  # SECRET
 
 db = SessionLocal()
 

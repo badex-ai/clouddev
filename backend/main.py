@@ -7,9 +7,26 @@ from config.db import test_connection
 from dotenv import load_dotenv
 import os
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from config.db import Base, engine
 
 load_dotenv()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create tables
+    try:
+        Base.metadata.create_all(engine)
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating tables: {e}")
+    
+    yield
+    
+    # Shutdown: cleanup if needed
+    print("Shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 
 app = FastAPI()

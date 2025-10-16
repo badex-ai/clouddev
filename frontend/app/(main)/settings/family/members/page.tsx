@@ -64,7 +64,7 @@ export default function MemberSettingsPage() {
     }
 
        try{
-      const familyMembers = await getFamilymembers(userData?.family?.id)
+      const familyMembers = await getFamilymembers(Number(userData?.family?.id))
         console.log('familyMembers', familyMembers)
        
        const otherFamily= familyMembers?.users.filter((member: FamilyMember)=>{
@@ -99,7 +99,7 @@ export default function MemberSettingsPage() {
       if (userData?.family?.id && userData?.family?.name) {
         const newData: CreateNewFamilyMember = {
           ...data,
-          family_id: userData.family.id,
+          family_id: Number(userData.family.id),
           family_name: userData.family.name,
         }
         

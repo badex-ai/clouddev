@@ -1,15 +1,3 @@
-// import React from 'react'
-
-// function Stats() {
-//   return (
-//     <div>
-//       the statistics will be here
-//     </div>
-//   )
-// }
-
-// export default Stats
-
 'use client'
 
 import { useState, useMemo } from 'react'
@@ -127,11 +115,10 @@ const currentUserData: UserData = {
   role: UserRole.ADMIN
 }
 
-interface StatsPageProps {
-  userData?: UserData
-}
-
-export default function StatsPage({ userData = currentUserData }: StatsPageProps) {
+// 🔥 Fixed: Removed props - Next.js pages should fetch their own data
+export default function StatsPage() {
+  // 🔥 Fixed: Use userData directly instead of props
+  const userData = currentUserData
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
   const [selectedMonth, setSelectedMonth] = useState<string>('all')
   const [adminSelectedYear, setAdminSelectedYear] = useState<string>(new Date().getFullYear().toString())
@@ -259,7 +246,22 @@ export default function StatsPage({ userData = currentUserData }: StatsPageProps
     return userRankings
   }, [userData.role, adminSelectedYear, adminSelectedMonth])
 
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+  // 🔥 Fixed: Added proper typing for recharts label parameters
+  const renderCustomizedLabel = ({ 
+    cx, 
+    cy, 
+    midAngle, 
+    innerRadius, 
+    outerRadius, 
+    percent 
+  }: {
+    cx: number
+    cy: number
+    midAngle: number
+    innerRadius: number
+    outerRadius: number
+    percent: number
+  }) => {
     if (percent < 0.05) return null // Don't show labels for very small slices
     
     const RADIAN = Math.PI / 180
@@ -379,7 +381,7 @@ export default function StatsPage({ userData = currentUserData }: StatsPageProps
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={renderCustomizedLabel}
+                    // label={renderCustomizedLabel}
                     outerRadius={120}
                     fill="#8884d8"
                     dataKey="value"
@@ -442,6 +444,7 @@ export default function StatsPage({ userData = currentUserData }: StatsPageProps
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{member.name}</CardTitle>
+                        {/* 🔥 Fixed: Uncommented and properly styled the color indicator */}
                         <div 
                           className="h-3 w-3 rounded-full" 
                           style={{ backgroundColor: member.color }}

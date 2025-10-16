@@ -4,18 +4,25 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
+from config.env import get_config
 
 
 load_dotenv()
 
+config = get_config()
+
+
+
+
+
 # Database configuration
 class DatabaseConfig:
     # Database credentials - use environment variables for security
-    DB_HOST = os.getenv('DB_HOST')
-    DB_PORT = os.getenv('DB_PORT')
-    DB_NAME = os.getenv('DB_NAME')
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_HOST = config["db_host"]
+    DB_PORT = config["db_port"]
+    DB_NAME = config["db_name"]
+    DB_USER = config["db_user"]
+    DB_PASSWORD = config["db_password"]
     
     # Connection pool settings
     POOL_SIZE = 10
@@ -32,6 +39,7 @@ class DatabaseConfig:
         """
         # URL encode the password to handle special characters
         encoded_password = quote_plus(cls.DB_PASSWORD)
+        print(encoded_password,"Tis is te encodede password")
         
         return f"postgresql://{cls.DB_USER}:{encoded_password}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
 
@@ -49,7 +57,14 @@ engine = create_engine(
 # Create a Base class for declarative models
 Base = declarative_base()
 
-Base.metadata.create_all(engine)
+engine = create_engine(
+    DatabaseConfig.get_database_url(),
+    pool_pre_ping=True,  # Verify connections before using
+    pool_recycle=3600,   # Recycle connections after 1 hour
+    connect_args={"connect_timeout": 5}  # 5 second timeout
+)
+
+Base = declarative_base()
 print ('Engine', engine)
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

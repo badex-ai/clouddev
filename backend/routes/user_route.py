@@ -5,6 +5,8 @@ from controllers.auth_controller import  signup, logout,sendVerificationEmail
 from schemas.schemas import SignupRequest, EmailVerificationRequest,UserRequest,FamilyRequest,CreateMemberRequest
 from controllers.user_controller import get_user, create_family_member,delete_user
 from schemas.schemas import UserStatusRequest
+import logging
+from config.env import get_config
 
 
 
@@ -12,7 +14,20 @@ router = APIRouter()
 
 @router.post("/me")
 async def get_user_route(req: UserRequest = Body(...), db: Session = Depends(get_db)):
-   print("this the request because the request reached here", req)
+   # config = get_config()
+
+   # auth0_domain = config["auth0_domain"]
+   # auth0_client_id = config["auth0_client_id"]
+   # auth0_m2m_client_id = config["auth0_m2m_client_id"]
+   # auth0_m2m_client_secret = config["auth0_m2m_client_secret"]  # SECRET
+
+   # print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+   # print(auth0_domain)
+   # print(auth0_client_id)
+   # print(auth0_m2m_client_id)
+   # print(auth0_m2m_client_secret)
+   # print("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+   # print("this the request because the request reached here", req)
    return await get_user(req,db)
 
 @router.post("/new")

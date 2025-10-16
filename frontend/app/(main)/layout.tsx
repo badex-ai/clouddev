@@ -22,7 +22,8 @@ export default  function DashboardLayout({
 }>) {
   
   const router = useRouter();
-  const { userData, isUserDataLoading, authIsLoading,userDataError, fetchUserData } = useAuthUser();
+  // fetchUserData
+  const { userData, isUserDataLoading, authIsLoading,userDataError } = useAuthUser();
 
 
   let { user, isLoading } = useUser();

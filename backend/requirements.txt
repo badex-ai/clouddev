@@ -9,3 +9,4 @@ uvicorn
 pydantic[email]
 alembic
 gunicorn
+aws-xray-sdk

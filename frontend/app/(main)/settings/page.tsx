@@ -8,3 +8,13 @@
 // // }
 
 // export default page
+
+import React from 'react'
+
+ function SettingsPage() {
+  return (
+    <div>SettinsPae</div>
+  )
+}
+
+export default SettingsPage
