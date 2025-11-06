@@ -10,3 +10,11 @@ pydantic[email]
 alembic
 gunicorn
 aws-xray-sdk
+
+redis
+celery
+structlog
+pytest
+pytest-asyncio
+ruff
+async-lru
