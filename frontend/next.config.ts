@@ -1,18 +1,18 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-    output: 'standalone',
-   async redirects() {
+  output: 'standalone',
+  async redirects() {
     return [
       {
         source: '/settings',
         destination: '/settings/general',
         permanent: false, // Use false for temporary redirect (302)
       },
-    ]
+    ];
   },
-    async headers() {
+  async headers() {
     return [
       {
         source: '/(.*)',

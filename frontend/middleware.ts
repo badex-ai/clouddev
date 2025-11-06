@@ -1,8 +1,5 @@
-
-
-
-import { NextRequest, NextResponse } from "next/server";
-import { auth0 } from "./lib/auth0";
+import { NextRequest, NextResponse } from 'next/server';
+import { auth0 } from './lib/auth0';
 
 export async function middleware(request: NextRequest) {
   const authRes = await auth0.middleware(request);
@@ -10,7 +7,7 @@ export async function middleware(request: NextRequest) {
   // console.log('middleware authresponse:  ', authRes)
 
   // Authentication routes — let the Auth0 middleware handle it.
-  if (request.nextUrl.pathname.startsWith("/auth")) {
+  if (request.nextUrl.pathname.startsWith('/auth')) {
     return authRes;
   }
 
@@ -35,6 +32,6 @@ export const config = {
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - $ (root)
      */
-    "/((?!_next/static|_next/image|images|favicon.[ico|png]|sitemap.xml|robots.txt|signup|verify|$).*)",
+    '/((?!_next/static|_next/image|images|favicon.[ico|png]|sitemap.xml|robots.txt|signup|verify|$).*)',
   ],
 };
