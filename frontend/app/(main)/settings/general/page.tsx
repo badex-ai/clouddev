@@ -1,17 +1,11 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Bell, 
-  Palette, 
-  Phone,
-  MessageCircle,
-  Mail
-} from 'lucide-react';
+import { Bell, Palette, Phone, MessageCircle, Mail } from 'lucide-react';
 
 export default function GeneralSettingsPage() {
   const [notificationType, setNotificationType] = useState('email');
@@ -21,14 +15,16 @@ export default function GeneralSettingsPage() {
   const themes = [
     { id: 'light', name: 'Light', preview: 'bg-gradient-to-br from-blue-50 to-indigo-100' },
     { id: 'dark', name: 'Dark', preview: 'bg-gradient-to-br from-gray-800 to-gray-900' },
-    { id: 'system', name: 'System', preview: 'bg-gradient-to-br from-purple-100 to-pink-100' }
+    { id: 'system', name: 'System', preview: 'bg-gradient-to-br from-purple-100 to-pink-100' },
   ];
 
   return (
     <div className="max-w-[60%] mx-auto p-6 space-y-8">
       <div>
         <h1 className="text-3xl font-bold">General Settings</h1>
-        <p className="text-muted-foreground mt-2">Manage your account preferences and application settings</p>
+        <p className="text-muted-foreground mt-2">
+          Manage your account preferences and application settings
+        </p>
       </div>
 
       {/* Notification Settings */}
@@ -37,10 +33,14 @@ export default function GeneralSettingsPage() {
           <Bell className="h-5 w-5" />
           <h2 className="text-xl font-semibold">Notification Preferences</h2>
         </div>
-        
+
         <div className="space-y-4">
           <Label>Choose your notification method</Label>
-          <RadioGroup value={notificationType} onValueChange={setNotificationType} className="space-y-3">
+          <RadioGroup
+            value={notificationType}
+            onValueChange={setNotificationType}
+            className="space-y-3"
+          >
             <div className="flex items-center space-x-3">
               <RadioGroupItem value="email" id="email" />
               <Label htmlFor="email" className="flex items-center gap-2 cursor-pointer">
@@ -48,22 +48,26 @@ export default function GeneralSettingsPage() {
                 Email
               </Label>
             </div>
-            
+
             <div className="flex items-center space-x-3 opacity-50">
               <RadioGroupItem value="call" id="call" disabled />
               <Label htmlFor="call" className="flex items-center gap-2 cursor-not-allowed">
                 <Phone className="h-4 w-4" />
                 Phone Call
-                <Badge variant="secondary" className="text-xs">Unavailable</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  Unavailable
+                </Badge>
               </Label>
             </div>
-            
+
             <div className="flex items-center space-x-3 opacity-50">
               <RadioGroupItem value="whatsapp" id="whatsapp" disabled />
               <Label htmlFor="whatsapp" className="flex items-center gap-2 cursor-not-allowed">
                 <MessageCircle className="h-4 w-4" />
                 WhatsApp
-                <Badge variant="secondary" className="text-xs">Unavailable</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  Unavailable
+                </Badge>
               </Label>
             </div>
           </RadioGroup>
@@ -89,15 +93,19 @@ export default function GeneralSettingsPage() {
           <Palette className="h-5 w-5" />
           <h2 className="text-xl font-semibold">Choose Theme</h2>
         </div>
-        
+
         <div className="space-y-4">
           <Label>Select your preferred appearance</Label>
-          <RadioGroup value={selectedTheme} onValueChange={setSelectedTheme} className="grid grid-cols-3 gap-4">
+          <RadioGroup
+            value={selectedTheme}
+            onValueChange={setSelectedTheme}
+            className="grid grid-cols-3 gap-4"
+          >
             {themes.map((theme) => (
               <div key={theme.id} className="space-y-2">
                 <RadioGroupItem value={theme.id} id={theme.id} className="sr-only" />
-                <Label 
-                  htmlFor={theme.id} 
+                <Label
+                  htmlFor={theme.id}
                   className={`cursor-pointer block border-2 rounded-lg p-3 transition-all hover:border-primary/50 ${
                     selectedTheme === theme.id ? 'border-primary bg-primary/5' : 'border-muted'
                   }`}
@@ -120,6 +128,6 @@ export default function GeneralSettingsPage() {
           Save Settings
         </Button>
       </div>
-    </div>)
+    </div>
+  );
 }
-

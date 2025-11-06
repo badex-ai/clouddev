@@ -2,32 +2,25 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0';
-import { UserProfile, ExtendedUserProfile } from "@/lib/types";
+import { UserProfile, ExtendedUserProfile } from '@/lib/types';
 import { getUserData } from '@/lib/actions/userActions';
-
-
-
-
-
+import { toast } from 'sonner';
 
 const UserContext = createContext<UserDataContextType>({
   isUserDataLoading: true,
   userData: null,
-  authIsLoading:true,
+  authIsLoading: true,
   userDataError: false,
   // fetchUserData: () => {}
 });
 
-  interface UserDataContextType {
-  userData: ExtendedUserProfile | null ;
+interface UserDataContextType {
+  userData: ExtendedUserProfile | null;
   isUserDataLoading: boolean;
   userDataError: boolean;
   authIsLoading: boolean;
   // fetchUserData: () => void;
-
 }
-
-
 
 export const AuthUserProvider = ({ children }: { children: React.ReactNode }) => {
   let { user, isLoading } = useUser();
@@ -35,56 +28,45 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
   const [isUserDataLoading, setIsUserDataLoading] = useState(true);
   const [userDataError, setUserDataError] = useState<boolean>(false);
 
-
-
   let authIsLoading = isLoading;
 
-
-   useEffect(() => {
-        if(user?.email){
-
-          fetchUserData(user);
-        }
+  useEffect(() => {
+    if (user?.email) {
+      fetchUserData(user);
+    }
   }, [user]);
 
-
-  const  fetchUserData = async (user: any) => {
-   
-        
+  const fetchUserData = async (user: any) => {
     try {
-    
-     
       setIsUserDataLoading(true);
       const userDataResult = await getUserData(user);
-      console.log('userDataResult', userDataResult);
-      setUserData(userDataResult.data)
-      console.log(userDataResult.data, 'userDataResult in context');
-
-    } catch (error) {
-
-   
-     
+      // console.log('userDataResult', userDataResult);
+      setUserData(userDataResult);
+      // console.log(userDataResult.data, 'userDataResult in context');
+    } catch (error: any) {
       setUserDataError(true);
-  
-      setUserData(user)
-      console.log(error, 'this is the error from te fetch')
+
+      setUserData(user);
+      toast.error('User Profile Error', { description: error.message });
+      // console.log(error.messae, 'this is the error from te fetch')
       setIsUserDataLoading(false);
     } finally {
       setIsUserDataLoading(false);
     }
   };
-  
 
-   user;
+  user;
 
   return (
-    <UserContext.Provider value={{ 
+    <UserContext.Provider
+      value={{
         isUserDataLoading,
         userData,
         authIsLoading,
         userDataError,
         // fetchUserData
-        }}>
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

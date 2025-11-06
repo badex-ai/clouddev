@@ -2,21 +2,21 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Task } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import DraggableTask  from '@/components/ui/taskComponent';
+import DraggableTask from '@/components/ui/taskComponent';
 import { TaskStatus } from '@/lib/types';
 import { toast } from 'sonner';
 
 interface KanbanTableProps {
   tasks: Task[];
   onTaskMove: (taskId: string, newStatus: string) => void;
-  onDeleteTask:(taskId: string )=> void
+  onDeleteTask: (taskId: string) => void;
   onTaskUpdate: (updatedTask: Task) => void;
 }
 
- const ValidTransition = {
-  'initialised': ['in-progress'],
+const ValidTransition = {
+  initialised: ['in-progress'],
   'in-progress': ['completed'], // Allow rollback
-  'completed': ['in-progress'] 
+  completed: ['in-progress'],
 };
 type States = TaskStatus;
 
@@ -27,14 +27,16 @@ type ValidTransitionType = {
 };
 
 function isValidTransition(fromState: States, toState: States): boolean {
-  const validTransitions = ValidTransition[fromState] ;
+  const validTransitions = ValidTransition[fromState];
   return validTransitions.includes(toState);
 }
 
-
-
-
-const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTask,onTaskUpdate}) => {
+const KanbanTable: React.FC<KanbanTableProps> = ({
+  tasks,
+  onTaskMove,
+  onDeleteTask,
+  onTaskUpdate,
+}) => {
   const [draggingTask, setDraggingTask] = useState<Task | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
@@ -47,29 +49,37 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
     e.preventDefault();
   };
 
-   const columns : { title: string; status: TaskStatus }[]= [
+  const columns: { title: string; status: TaskStatus }[] = [
     { title: 'initialised', status: 'initialised' },
     { title: 'In Progress', status: 'in-progress' },
-    { title: 'Completed', status: 'completed' }
+    { title: 'Completed', status: 'completed' },
   ];
 
   const handleDrop = (e: React.DragEvent, newStatus: TaskStatus) => {
     e.preventDefault();
 
-    if(!draggingTask){
-      return
+    if (!draggingTask) {
+      return;
     }
-    if(isValidTransition(draggingTask?.status, newStatus)){
+    if (isValidTransition(draggingTask?.status, newStatus)) {
       // console.log('na')
       const taskId = e.dataTransfer.getData('text/plain');
       onTaskMove(taskId, newStatus);
-      
-    }else{
-      toast(' you cant move the task to this status')
+    } else {
+      // toast(' you cant move the task to this status');
+      toast('Task move failed', {
+              description: 'You cant move the task to this status after movin to in proress, you sould dedicate time to complete te task ',
+              action: {
+                label: 'Close',
+                onClick: () => {
+                  toast.dismiss();
+                },
+              },
+              duration: 4000,
+            });
     }
     setDraggingTask(null);
     setDragOverColumn(null);
-    
   };
 
   const handleDragEnter = (status: string) => {
@@ -81,40 +91,42 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
   };
 
   const getTasksByStatus = (status: string) => {
-
-    return tasks.filter(task => task.status === status);
+    return tasks.filter((task) => task.status === status);
   };
 
   const getColumnBgColor = (status: string) => {
     switch (status) {
-      case 'initialised': return 'bg-gray-50';
-      case 'in-progress': return 'bg-blue-50';
-      case 'completed': return 'bg-green-50';
-      default: return 'bg-gray-50';
+      case 'initialised':
+        return 'bg-gray-50';
+      case 'in-progress':
+        return 'bg-blue-50';
+      case 'completed':
+        return 'bg-green-50';
+      default:
+        return 'bg-gray-50';
     }
   };
 
   const getColumnBorderColor = (status: string, isDragOver: boolean) => {
     if (isDragOver) return 'border-blue-400 border-2';
     switch (status) {
-      case 'initialised': return 'border-gray-200';
-      case 'in-progress': return 'border-blue-200';
-      case 'completed': return 'border-green-200';
-      default: return 'border-gray-200';
+      case 'initialised':
+        return 'border-gray-200';
+      case 'in-progress':
+        return 'border-blue-200';
+      case 'completed':
+        return 'border-green-200';
+      default:
+        return 'border-gray-200';
     }
   };
-
- 
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-[calc(100vh-120px)]">
       {/* Table Header */}
       <div className="grid grid-cols-3 border-b border-gray-200">
         {columns.map((column) => (
-          <div
-            key={column.status}
-            className="p-4 border-r border-gray-200 last:border-r-0"
-          >
+          <div key={column.status} className="p-4 border-r border-gray-200 last:border-r-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h2 className="font-semibold text-gray-700 uppercase text-sm tracking-wide">
@@ -124,8 +136,6 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
                   {getTasksByStatus(column.status).length}
                 </Badge>
               </div>
-             
-              
             </div>
           </div>
         ))}
@@ -150,7 +160,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
                   onDeleteTask={onDeleteTask}
                   onDragStart={handleDragStart}
                   isDragging={draggingTask?.public_id === task.public_id}
-                  onTaskUpdate={onTaskUpdate} 
+                  onTaskUpdate={onTaskUpdate}
                 />
               ))}
               {getTasksByStatus(column.status).length === 0 && (
@@ -169,4 +179,4 @@ const KanbanTable: React.FC<KanbanTableProps> = ({ tasks, onTaskMove,onDeleteTas
   );
 };
 
-export  default KanbanTable;
+export default KanbanTable;

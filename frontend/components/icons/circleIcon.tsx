@@ -1,14 +1,14 @@
-import * as React from "react";
+import * as React from 'react';
 
-const CircleIcon = ({ percentage = 0, size = 120, strokeWidth = 8, color = "#DD2E44" }) => {
+const CircleIcon = ({ percentage = 0, size = 120, strokeWidth = 8, color = '#DD2E44' }) => {
   // Calculate the radius and circumference
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  
+
   // Calculate the stroke dash offset based on percentage
   // We want the stroke to fill clockwise, so we calculate how much to "hide"
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
-  
+
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -26,7 +26,7 @@ const CircleIcon = ({ percentage = 0, size = 120, strokeWidth = 8, color = "#DD2
         stroke="#E5E7EB"
         strokeWidth={strokeWidth}
       />
-      
+
       {/* Progress circle (colored) */}
       <circle
         cx={size / 2}
@@ -39,10 +39,10 @@ const CircleIcon = ({ percentage = 0, size = 120, strokeWidth = 8, color = "#DD2
         strokeDashoffset={strokeDashoffset}
         strokeLinecap="round"
         style={{
-          transition: 'stroke-dashoffset 0.5s ease-in-out'
+          transition: 'stroke-dashoffset 0.5s ease-in-out',
         }}
       />
-      
+
       {/* Percentage text in center */}
       <text
         x="50%"
@@ -59,4 +59,4 @@ const CircleIcon = ({ percentage = 0, size = 120, strokeWidth = 8, color = "#DD2
   );
 };
 
-export default CircleIcon
+export default CircleIcon;

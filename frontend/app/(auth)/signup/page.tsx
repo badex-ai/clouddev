@@ -1,53 +1,78 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { signupSchema, type SignupFormData } from "@/lib/validations/auth"
-import { toast } from "sonner"
-import {getConfig} from "../../../lib/config"
-import {createNewUser }from "../../../lib/actions/userActions"
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { signupSchema, type SignupFormData } from '@/lib/validations/auth';
+import { toast } from 'sonner';
+import { getConfig } from '../../../lib/config';
+import { createNewUser } from '../../../lib/actions/userActions';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function SignupPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-  })
+  });
+
+  function generateIdempotencyKey(): string {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 15);
+    return `signup-${timestamp}-${random}`;
+  }
 
   const onSubmit = async (data: SignupFormData) => {
-    setIsLoading(true)
-    
-    let response: Response | undefined
+    setIsLoading(true);
+    // console.log(data, 'SINPU BUTTON CLICKED');
+
+   
     try {
-      // Handle signup logic here
-      // console.log("Signup data:", data)
-      response = await createNewUser(data)
-      console.log(response,"tis is te response")
+      const idempotencyKey = `signup-${data.email}-${uuidv4()}`;
+
+      const response = await createNewUser(data, idempotencyKey);
+      console.log(response, 'tis is te response');
       // Add your registration logic
 
-      window.location.href = "/verify"; 
-       toast("Signup successful! Please verify your email.")
-    } catch (error) {
-    console.error("Signup error:", error)
-    toast("Signup failed. Please try again.")
-    } finally {
-      setIsLoading(false)
+      window.location.href = '/verify';
+      // toast('Signup successful! Please verify your email.');
      
-      
-      
-      
+  toast('Signup successful!', {
+    description: 'Please ceck your email and verify ' ,
+    action: {
+      label: "Close",
+      onClick: () => {
+        toast.dismiss();
+      },
+    },
+    duration: 4000, // in ms (default is 4000)
+  });
+} catch (error) {
+  // console.error('Signup error:', error);
+  const message = error instanceof Error ? error.message : String(error);
+  toast('Signup failed', {
+    description: message,
+    action: {
+      label: "Close",
+      onClick: () => {
+        toast.dismiss();
+      },
+    },
+    duration: 4000, // in ms (default is 4000)
+  });
+} finally {
+      setIsLoading(false);
     }
-}
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -56,13 +81,11 @@ export default function SignupPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Kanban</h1>
           <p className="text-gray-600">Create your productivity workspace</p>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Create your account</CardTitle>
-            <CardDescription>
-              Get started with your new workspace
-            </CardDescription>
+            <CardDescription>Get started with your new workspace</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -72,12 +95,10 @@ export default function SignupPage() {
                   id="fullName"
                   type="text"
                   placeholder="Enter your full name"
-                  {...register("name")}
-                  className={errors.name ? "border-red-500" : ""}
+                  {...register('name')}
+                  className={errors.name ? 'border-red-500' : ''}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-600">{errors.name.message}</p>
-                )}
+                {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -86,8 +107,8 @@ export default function SignupPage() {
                   id="family"
                   type="text"
                   placeholder="Enter your family name"
-                  {...register("family_name")}
-                  className={errors.family_name? "border-red-500" : ""}
+                  {...register('family_name')}
+                  className={errors.family_name ? 'border-red-500' : ''}
                 />
                 {errors.family_name && (
                   <p className="text-sm text-red-600">{errors.family_name.message}</p>
@@ -99,12 +120,10 @@ export default function SignupPage() {
                   id="email"
                   type="email"
                   placeholder="Enter your email address"
-                  {...register("email")}
-                  className={errors.email ? "border-red-500" : ""}
+                  {...register('email')}
+                  className={errors.email ? 'border-red-500' : ''}
                 />
-                {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-2">
@@ -113,8 +132,8 @@ export default function SignupPage() {
                   id="password"
                   type="password"
                   placeholder="Create a password"
-                  {...register("password")}
-                  className={errors.password ? "border-red-500" : ""}
+                  {...register('password')}
+                  className={errors.password ? 'border-red-500' : ''}
                 />
                 {errors.password && (
                   <p className="text-sm text-red-600">{errors.password.message}</p>
@@ -127,20 +146,16 @@ export default function SignupPage() {
                   id="confirmPassword"
                   type="password"
                   placeholder="Confirm your password"
-                  {...register("confirmPassword")}
-                  className={errors.confirmPassword ? "border-red-500" : ""}
+                  {...register('confirmPassword')}
+                  className={errors.confirmPassword ? 'border-red-500' : ''}
                 />
                 {errors.confirmPassword && (
                   <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? "Creating account..." : "Create account"}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
             </form>
           </CardContent>
@@ -148,8 +163,7 @@ export default function SignupPage() {
 
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Already have an account?{" "}
-            {/* "/auth/login?returnTo=/dashboard" */}
+            Already have an account? {/* "/auth/login?returnTo=/dashboard" */}
             <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
               Sign in here
             </Link>
@@ -157,5 +171,5 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

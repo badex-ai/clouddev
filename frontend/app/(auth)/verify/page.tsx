@@ -1,40 +1,60 @@
-'use client'
-import React, { useState } from 'react'
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useUser } from "@auth0/nextjs-auth0"
-import { Mail, AlertCircle, CheckCircle, RefreshCw } from "lucide-react"
-import { toast } from "sonner"
-import {getConfig} from "../../../lib/config"
+'use client';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUser } from '@auth0/nextjs-auth0';
+import { Mail, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import { getConfig } from '../../../lib/config';
 
-const {apiUrl} = getConfig()
- 
+const { apiUrl } = getConfig();
 
 function VerifyEmailPage() {
   let { user } = useUser();
-  console.log("User:", user);
-  const [isLoading, setisLoading] = useState(false)
+  console.log('User:', user);
+  const [isLoading, setisLoading] = useState(false);
 
-
-  function disableBtn(){
-    
-  }
+  function disableBtn() {}
   async function handleResendVerificationEmail(id: string) {
     setisLoading(true);
-    const response = await fetch(`${apiUrl}/api/v1/auth/emailVerification`, {
+
+    try{
+
+         const response = await fetch(`${apiUrl}/api/v1/auth/emailVerification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: id })
+      body: JSON.stringify({ user_id: id }),
     });
-    if (response.ok) {
-      toast("Email Verification Sent");
-      setisLoading(false);
-    } else {
-      toast("Something went wrong, please try again later");
-      setisLoading(false);
+
+     toast('Email Verification Sent', {
+          description: 'Email verification email as been sent again.',
+         action: {
+            label: 'Close',
+            onClick: () => {
+              toast.dismiss();
+            },
+        },
+          duration: 4000,
+        });
+     
+    }catch(error){
+
+     const message = error instanceof Error ? error.message : String(error);
+      toast('Error sendin email verfication', {
+       description: message,
+       action: {
+         label: 'Close',
+         onClick: () => {
+           toast.dismiss();
+         },
+       },
+       duration: 4000,
+     });
+    }finally{
+       setisLoading(false);
     }
-    // console.log('verification clicked');
+ 
   }
 
   return (
@@ -54,13 +74,11 @@ function VerifyEmailPage() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-           
-
             <div className="text-center space-y-4">
               <p className="text-sm text-gray-600">
                 After verification, you can{' '}
-                <Link 
-                  href="/auth/login" 
+                <Link
+                  href="/auth/login"
                   className="font-medium text-blue-600 hover:text-blue-500 underline underline-offset-4 transition-colors"
                 >
                   login here
@@ -68,32 +86,31 @@ function VerifyEmailPage() {
               </p>
 
               <div className="pt-4">
-                {user &&
-                 <Button 
-                  onClick={() => handleResendVerificationEmail(user?.sub)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
-                >
-                  {isLoading ? 
-                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> </> : (
-                    "Resend Verification Email"
-                   )
-                  }
-                 
-                </Button> }
-               
+                {user && (
+                  <Button
+                    onClick={() => handleResendVerificationEmail(user?.sub)}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />{' '}
+                      </>
+                    ) : (
+                      'Resend Verification Email'
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
 
             <div className="text-center pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-500">
-                Having trouble? Contact our support team
-              </p>
+              <p className="text-xs text-gray-500">Having trouble? Contact our support team</p>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
-export default VerifyEmailPage
+export default VerifyEmailPage;

@@ -1,46 +1,64 @@
-'use client'
+'use client';
 
-import { useState, useMemo } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from 'recharts';
 
 // Enums and Types
 enum UserRole {
   USER = 'user',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 enum TaskStatus {
   PENDING = 'pending',
   COMPLETED = 'completed',
-  OVERDUE = 'overdue'
+  OVERDUE = 'overdue',
 }
 
 interface Task {
-  id: string
-  title: string
-  assignedTo: string
-  assignedBy: string
-  createdBy: string
-  status: TaskStatus
-  dueDate: Date
-  completedDate?: Date
-  createdDate: Date
+  id: string;
+  title: string;
+  assignedTo: string;
+  assignedBy: string;
+  createdBy: string;
+  status: TaskStatus;
+  dueDate: Date;
+  completedDate?: Date;
+  createdDate: Date;
 }
 
 interface User {
-  id: string
-  name: string
-  role: UserRole
-  color: string
+  id: string;
+  name: string;
+  role: UserRole;
+  color: string;
 }
 
 interface UserData {
-  id: string
-  name: string
-  role: UserRole
+  id: string;
+  name: string;
+  role: UserRole;
 }
 
 // Mock data - replace with your actual data fetching
@@ -49,8 +67,8 @@ const mockUsers: User[] = [
   { id: '2', name: 'Jane Smith', role: UserRole.USER, color: '#82ca9d' },
   { id: '3', name: 'Bob Johnson', role: UserRole.USER, color: '#ffc658' },
   { id: '4', name: 'Alice Brown', role: UserRole.USER, color: '#ff7300' },
-  { id: '5', name: 'Charlie Wilson', role: UserRole.USER, color: '#00ff88' }
-]
+  { id: '5', name: 'Charlie Wilson', role: UserRole.USER, color: '#00ff88' },
+];
 
 const mockTasks: Task[] = [
   {
@@ -62,7 +80,7 @@ const mockTasks: Task[] = [
     status: TaskStatus.COMPLETED,
     dueDate: new Date('2024-01-15'),
     completedDate: new Date('2024-01-14'),
-    createdDate: new Date('2024-01-01')
+    createdDate: new Date('2024-01-01'),
   },
   {
     id: '2',
@@ -73,7 +91,7 @@ const mockTasks: Task[] = [
     status: TaskStatus.COMPLETED,
     dueDate: new Date('2024-01-10'),
     completedDate: new Date('2024-01-09'),
-    createdDate: new Date('2024-01-02')
+    createdDate: new Date('2024-01-02'),
   },
   {
     id: '3',
@@ -83,7 +101,7 @@ const mockTasks: Task[] = [
     createdBy: '2',
     status: TaskStatus.PENDING,
     dueDate: new Date('2024-02-20'),
-    createdDate: new Date('2024-02-01')
+    createdDate: new Date('2024-02-01'),
   },
   {
     id: '4',
@@ -94,7 +112,7 @@ const mockTasks: Task[] = [
     status: TaskStatus.COMPLETED,
     dueDate: new Date('2024-02-15'),
     completedDate: new Date('2024-02-14'),
-    createdDate: new Date('2024-02-01')
+    createdDate: new Date('2024-02-01'),
   },
   {
     id: '5',
@@ -104,28 +122,30 @@ const mockTasks: Task[] = [
     createdBy: '3',
     status: TaskStatus.OVERDUE,
     dueDate: new Date('2024-01-25'),
-    createdDate: new Date('2024-01-15')
-  }
-]
+    createdDate: new Date('2024-01-15'),
+  },
+];
 
 // Current user data - replace with actual authentication
 const currentUserData: UserData = {
   id: '1',
   name: 'John Doe',
-  role: UserRole.ADMIN
-}
+  role: UserRole.ADMIN,
+};
 
 // 🔥 Fixed: Removed props - Next.js pages should fetch their own data
 export default function StatsPage() {
   // 🔥 Fixed: Use userData directly instead of props
-  const userData = currentUserData
-  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString())
-  const [selectedMonth, setSelectedMonth] = useState<string>('all')
-  const [adminSelectedYear, setAdminSelectedYear] = useState<string>(new Date().getFullYear().toString())
-  const [adminSelectedMonth, setAdminSelectedMonth] = useState<string>('all')
+  const userData = currentUserData;
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [adminSelectedYear, setAdminSelectedYear] = useState<string>(
+    new Date().getFullYear().toString()
+  );
+  const [adminSelectedMonth, setAdminSelectedMonth] = useState<string>('all');
 
   // Generate year and month options
-  const years = ['2023', '2024', '2025']
+  const years = ['2023', '2024', '2025'];
   const months = [
     { value: 'all', label: 'All Months' },
     { value: '1', label: 'January' },
@@ -139,150 +159,157 @@ export default function StatsPage() {
     { value: '9', label: 'September' },
     { value: '10', label: 'October' },
     { value: '11', label: 'November' },
-    { value: '12', label: 'December' }
-  ]
+    { value: '12', label: 'December' },
+  ];
 
   // Filter tasks based on year and month
   const filterTasks = (tasks: Task[], year: string, month: string, userId?: string) => {
-    return tasks.filter(task => {
-      const taskDate = task.createdDate
-      const yearMatch = taskDate.getFullYear().toString() === year
-      const monthMatch = month === 'all' || (taskDate.getMonth() + 1).toString() === month
-      const userMatch = userId ? (task.assignedTo === userId || task.createdBy === userId) : true
-      
-      return yearMatch && monthMatch && userMatch
-    })
-  }
+    return tasks.filter((task) => {
+      const taskDate = task.createdDate;
+      const yearMatch = taskDate.getFullYear().toString() === year;
+      const monthMatch = month === 'all' || (taskDate.getMonth() + 1).toString() === month;
+      const userMatch = userId ? task.assignedTo === userId || task.createdBy === userId : true;
+
+      return yearMatch && monthMatch && userMatch;
+    });
+  };
 
   // Calculate user statistics
   const calculateUserStats = (userId: string, year: string, month: string) => {
-    const userTasks = filterTasks(mockTasks, year, month, userId)
-    
-    const completed = userTasks.filter(task => 
-      task.assignedTo === userId && task.status === TaskStatus.COMPLETED
-    ).length
-    
-    const assigned = userTasks.filter(task => task.assignedTo === userId).length
-    const created = userTasks.filter(task => task.createdBy === userId).length
+    const userTasks = filterTasks(mockTasks, year, month, userId);
 
-    return { completed, assigned, created }
-  }
+    const completed = userTasks.filter(
+      (task) => task.assignedTo === userId && task.status === TaskStatus.COMPLETED
+    ).length;
+
+    const assigned = userTasks.filter((task) => task.assignedTo === userId).length;
+    const created = userTasks.filter((task) => task.createdBy === userId).length;
+
+    return { completed, assigned, created };
+  };
 
   // User statistics
-  const userStats = useMemo(() => 
-    calculateUserStats(userData.id, selectedYear, selectedMonth), 
+  const userStats = useMemo(
+    () => calculateUserStats(userData.id, selectedYear, selectedMonth),
     [userData.id, selectedYear, selectedMonth]
-  )
+  );
 
   // Pie chart data for user's assigned tasks
   const userPieData = useMemo(() => {
-    const userTasks = filterTasks(mockTasks, selectedYear, selectedMonth, userData.id)
-      .filter(task => task.assignedTo === userData.id)
+    const userTasks = filterTasks(mockTasks, selectedYear, selectedMonth, userData.id).filter(
+      (task) => task.assignedTo === userData.id
+    );
 
-    const assignedByStats = userTasks.reduce((acc, task) => {
-      const assigner = mockUsers.find(u => u.id === task.assignedBy)
-      if (assigner) {
-        if (!acc[assigner.name]) {
-          acc[assigner.name] = { total: 0, completed: 0, color: assigner.color }
+    const assignedByStats = userTasks.reduce(
+      (acc, task) => {
+        const assigner = mockUsers.find((u) => u.id === task.assignedBy);
+        if (assigner) {
+          if (!acc[assigner.name]) {
+            acc[assigner.name] = { total: 0, completed: 0, color: assigner.color };
+          }
+          acc[assigner.name].total += 1;
+          if (task.status === TaskStatus.COMPLETED) {
+            acc[assigner.name].completed += 1;
+          }
         }
-        acc[assigner.name].total += 1
-        if (task.status === TaskStatus.COMPLETED) {
-          acc[assigner.name].completed += 1
-        }
-      }
-      return acc
-    }, {} as Record<string, { total: number; completed: number; color: string }>)
+        return acc;
+      },
+      {} as Record<string, { total: number; completed: number; color: string }>
+    );
 
     return Object.entries(assignedByStats).flatMap(([name, stats]) => [
       {
         name: `${name} (Total)`,
         value: stats.total,
         fill: stats.color,
-        type: 'total'
+        type: 'total',
       },
       {
         name: `${name} (Completed)`,
         value: stats.completed,
         fill: `${stats.color}CC`, // Darker shade
-        type: 'completed'
-      }
-    ])
-  }, [userData.id, selectedYear, selectedMonth])
+        type: 'completed',
+      },
+    ]);
+  }, [userData.id, selectedYear, selectedMonth]);
 
   // Admin statistics for all family members
   const familyStats = useMemo(() => {
-    if (userData.role !== UserRole.ADMIN) return []
-    
-    return mockUsers.map(user => {
-      const stats = calculateUserStats(user.id, adminSelectedYear, adminSelectedMonth)
+    if (userData.role !== UserRole.ADMIN) return [];
+
+    return mockUsers.map((user) => {
+      const stats = calculateUserStats(user.id, adminSelectedYear, adminSelectedMonth);
       return {
         ...user,
-        ...stats
-      }
-    })
-  }, [userData.role, adminSelectedYear, adminSelectedMonth])
+        ...stats,
+      };
+    });
+  }, [userData.role, adminSelectedYear, adminSelectedMonth]);
 
   // Ranking data for completed tasks on time
   const rankingData = useMemo(() => {
-    if (userData.role !== UserRole.ADMIN) return []
+    if (userData.role !== UserRole.ADMIN) return [];
 
-    const filteredTasks = filterTasks(mockTasks, adminSelectedYear, adminSelectedMonth)
-    
-    const userRankings = mockUsers.map(user => {
-      const userCompletedTasks = filteredTasks.filter(task => 
-        task.assignedTo === user.id && 
-        task.status === TaskStatus.COMPLETED &&
-        task.completedDate &&
-        task.completedDate <= task.dueDate
-      )
-      
-      return {
-        name: user.name,
-        completedOnTime: userCompletedTasks.length,
-        color: user.color
-      }
-    }).sort((a, b) => b.completedOnTime - a.completedOnTime)
+    const filteredTasks = filterTasks(mockTasks, adminSelectedYear, adminSelectedMonth);
 
-    return userRankings
-  }, [userData.role, adminSelectedYear, adminSelectedMonth])
+    const userRankings = mockUsers
+      .map((user) => {
+        const userCompletedTasks = filteredTasks.filter(
+          (task) =>
+            task.assignedTo === user.id &&
+            task.status === TaskStatus.COMPLETED &&
+            task.completedDate &&
+            task.completedDate <= task.dueDate
+        );
+
+        return {
+          name: user.name,
+          completedOnTime: userCompletedTasks.length,
+          color: user.color,
+        };
+      })
+      .sort((a, b) => b.completedOnTime - a.completedOnTime);
+
+    return userRankings;
+  }, [userData.role, adminSelectedYear, adminSelectedMonth]);
 
   // 🔥 Fixed: Added proper typing for recharts label parameters
-  const renderCustomizedLabel = ({ 
-    cx, 
-    cy, 
-    midAngle, 
-    innerRadius, 
-    outerRadius, 
-    percent 
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
   }: {
-    cx: number
-    cy: number
-    midAngle: number
-    innerRadius: number
-    outerRadius: number
-    percent: number
+    cx: number;
+    cy: number;
+    midAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    percent: number;
   }) => {
-    if (percent < 0.05) return null // Don't show labels for very small slices
-    
-    const RADIAN = Math.PI / 180
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5
-    const x = cx + radius * Math.cos(-midAngle * RADIAN)
-    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+    if (percent < 0.05) return null; // Don't show labels for very small slices
+
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
     return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor={x > cx ? 'start' : 'end'} 
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
         fontSize={12}
         fontWeight="bold"
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
-    )
-  }
+    );
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -303,8 +330,10 @@ export default function StatsPage() {
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent>
-                {years.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -313,7 +342,7 @@ export default function StatsPage() {
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
-                {months.map(month => (
+                {months.map((month) => (
                   <SelectItem key={month.value} value={month.value}>
                     {month.label}
                   </SelectItem>
@@ -331,9 +360,7 @@ export default function StatsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.completed}</div>
-              <p className="text-xs text-muted-foreground">
-                Successfully finished tasks
-              </p>
+              <p className="text-xs text-muted-foreground">Successfully finished tasks</p>
             </CardContent>
           </Card>
 
@@ -344,9 +371,7 @@ export default function StatsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.assigned}</div>
-              <p className="text-xs text-muted-foreground">
-                Tasks assigned to you
-              </p>
+              <p className="text-xs text-muted-foreground">Tasks assigned to you</p>
             </CardContent>
           </Card>
 
@@ -357,9 +382,7 @@ export default function StatsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{userStats.created}</div>
-              <p className="text-xs text-muted-foreground">
-                Tasks you created
-              </p>
+              <p className="text-xs text-muted-foreground">Tasks you created</p>
             </CardContent>
           </Card>
         </div>
@@ -414,8 +437,10 @@ export default function StatsPage() {
                   <SelectValue placeholder="Year" />
                 </SelectTrigger>
                 <SelectContent>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -424,7 +449,7 @@ export default function StatsPage() {
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
                 <SelectContent>
-                  {months.map(month => (
+                  {months.map((month) => (
                     <SelectItem key={month.value} value={month.value}>
                       {month.label}
                     </SelectItem>
@@ -439,14 +464,14 @@ export default function StatsPage() {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">Family Members Overview</h3>
               <div className="grid gap-4">
-                {familyStats.map(member => (
+                {familyStats.map((member) => (
                   <Card key={member.id}>
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{member.name}</CardTitle>
                         {/* 🔥 Fixed: Uncommented and properly styled the color indicator */}
-                        <div 
-                          className="h-3 w-3 rounded-full" 
+                        <div
+                          className="h-3 w-3 rounded-full"
                           style={{ backgroundColor: member.color }}
                         />
                       </div>
@@ -460,15 +485,11 @@ export default function StatsPage() {
                           <div className="text-xs text-muted-foreground">Completed</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {member.assigned}
-                          </div>
+                          <div className="text-2xl font-bold text-blue-600">{member.assigned}</div>
                           <div className="text-xs text-muted-foreground">Assigned</div>
                         </div>
                         <div>
-                          <div className="text-2xl font-bold text-purple-600">
-                            {member.created}
-                          </div>
+                          <div className="text-2xl font-bold text-purple-600">{member.created}</div>
                           <div className="text-xs text-muted-foreground">Created</div>
                         </div>
                       </div>
@@ -501,23 +522,19 @@ export default function StatsPage() {
                         }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="name" 
+                        <XAxis
+                          dataKey="name"
                           angle={-45}
                           textAnchor="end"
                           height={80}
                           fontSize={12}
                         />
                         <YAxis />
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value) => [value, 'Tasks Completed On Time']}
                           labelStyle={{ color: '#000' }}
                         />
-                        <Bar 
-                          dataKey="completedOnTime" 
-                          fill="#8884d8"
-                          radius={[4, 4, 0, 0]}
-                        >
+                        <Bar dataKey="completedOnTime" fill="#8884d8" radius={[4, 4, 0, 0]}>
                           {rankingData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
@@ -536,5 +553,5 @@ export default function StatsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

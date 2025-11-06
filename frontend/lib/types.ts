@@ -5,22 +5,30 @@ interface Task {
   assignee_id: string;
   due_date: string;
   status: TaskStatus;
-  checklist?: ChecklistItem[] ;
+  checklist?: ChecklistItem[];
 }
 
-interface ChecklistItem { id: number; title: string; completed: boolean }
+interface ChecklistItem {
+  id: number;
+  title: string;
+  completed: boolean;
+}
 
 interface Family {
   id: string;
   name: string;
-  members: { id: string; name: string; role: string, username: string }[];
- 
-  
+  members: { id: string; name: string; role: string; username: string }[];
 }
 
-
-interface FamilyMember{
-   public_id: string; name: string; role: string,family_id: string, is_active: boolean, username: string,email: string }
+interface FamilyMember {
+  public_id: string;
+  name: string;
+  role: string;
+  family_id: string;
+  is_active: boolean;
+  username: string;
+  email: string;
+}
 
 interface DraggableTaskProps {
   task: Task;
@@ -35,28 +43,25 @@ interface AddTaskModalProps {
   initialStatus: string;
 }
 
-type TaskStatus = "initialised" | "completed" | "in-progress"
+type TaskStatus = 'initialised' | 'completed' | 'in-progress';
 
-
-
-interface CreateTask{
-    title: string,
-    description: string| undefined
-    creator_id:  string
-    assignee_id: string
-    due_date: string  | null
-    family_id: string
+interface CreateTask {
+  title: string;
+  description: string | undefined;
+  creator_id: string;
+  assignee_id: string;
+  due_date: string | null;
+  family_id: string;
 }
 interface UserProfile {
-    sub: string
-    nickname?: string
-    picture?: string;
-    email: string;
-    email_verified: boolean;
+  sub: string;
+  nickname?: string;
+  picture?: string;
+  email: string;
+  email_verified: boolean;
 }
 
-
-  interface ExtendedUserProfile extends UserProfile {
+interface ExtendedUserProfile extends UserProfile {
   // Add your API-specific user fields here
   id: string;
   family: Family;
@@ -65,10 +70,8 @@ interface UserProfile {
   role: string;
   // familyMembers: {id: number; username: string}[]
 
-
   // ... other fields from your API
 }
-
 
 interface CreateNewFamilyMember {
   name: string;
@@ -77,6 +80,15 @@ interface CreateNewFamilyMember {
   family_name: string; // Optional, if the family name is not provided
 }
 
-
-
-export type { Task, DraggableTaskProps, AddTaskModalProps, UserProfile, ExtendedUserProfile,TaskStatus, CreateNewFamilyMember,FamilyMember,CreateTask,ChecklistItem };
+export type {
+  Task,
+  DraggableTaskProps,
+  AddTaskModalProps,
+  UserProfile,
+  ExtendedUserProfile,
+  TaskStatus,
+  CreateNewFamilyMember,
+  FamilyMember,
+  CreateTask,
+  ChecklistItem,
+};
