@@ -1,3 +1,4 @@
+'use server' 
 import  {CreateTask,Task,ChecklistItem} from '@/lib/types';
 import {getConfig} from "../config"
 
@@ -15,7 +16,7 @@ export async  function createTask(taskData: CreateTask ){
           body: JSON.stringify(taskData)
       });
 
-      return response
+      return response.json()
 }
 
 export async function getTaskForDay(family_id : string, selectedDate : string)
@@ -32,7 +33,8 @@ export async function getTaskForDay(family_id : string, selectedDate : string)
     }
   );
 
-  return res
+
+  return res.json()
 }
 
 
@@ -50,7 +52,7 @@ export async function deleteTask(taskId:string)
     }
   );
 
-  return res
+  return res.json()
 }
 
 export async function addCheckListItem(taskId: string,checkListItem : ChecklistItem){
@@ -66,7 +68,7 @@ export async function addCheckListItem(taskId: string,checkListItem : ChecklistI
     }
   );
 
-  return res
+  return res.json()
 }
 
 
@@ -80,5 +82,5 @@ export async function deleteCheckListItem(taskId: string,checkListItemId : numbe
       },  
     }
   );
-  return res
+  return res.json()
 }

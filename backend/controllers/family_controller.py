@@ -14,27 +14,27 @@ from schemas.schemas import (
     TaskStatus, UserRole
 )
 from models.models import Task
-from sqlalchemy import and_  
+from sqlalchemy import and_ , or_ 
 
 
 
 load_dotenv()
 
 
-async def get_family(id , db) :
-
-     family = (
+async def get_family(id, db):
+    from sqlalchemy.orm import joinedload
+    
+    family = (
         db.query(Family)
-        .join(Family.users)
-        .options(contains_eager(Family.users))
-        .filter(Family.public_id == id, User.is_active == True)
+        .options(joinedload(Family.users))
+        .filter(Family.public_id == id)
         .first()
     )
     
-     if not family:
-            raise HTTPException(status_code=404, detail="Family not found")
-        
-     return family
+    if not family:
+        raise HTTPException(status_code=404, detail="Family not found")
+    
+    return family
 
 
 async def get_family_task_for_date(family_id, date,db) -> list[TaskResponse]:
@@ -49,12 +49,24 @@ async def get_family_task_for_date(family_id, date,db) -> list[TaskResponse]:
     print(f"Start of day: {start_of_day}, End of day: {end_of_day}")
    
     try: 
-        tasks = db.query(Task).filter( and_(
-            Task.created_at >= start_of_day,
-            Task.created_at <= end_of_day,
-            Task.family_id == family_id,
-            Task.is_deleted == False
-        )).all()
+        tasks = db.query(Task).filter(
+            and_(
+                Task.family_id == family_id,
+                Task.is_deleted == False,
+                or_(
+                    # Tasks created on this date
+                    and_(
+                        Task.created_at >= start_of_day,
+                        Task.created_at <= end_of_day
+                    ),
+                    # Overdue/upcoming tasks that are not completed
+                    and_(
+                        Task.due_date >= start_of_day,
+                        Task.status != 'completed'
+                    )
+                )
+            )
+        ).order_by(Task.due_date.asc()).all()
 
         print(f"Retrieved tasks: {tasks}")
        

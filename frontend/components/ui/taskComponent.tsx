@@ -91,13 +91,13 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onDragStart, isDrag
 
       const result = await addCheckListItem(task.public_id,newCheckList)
       // Handle successful submission
-      if (result.ok){
+     
         const updatedTask = await result.json()
         reset(); // Reset the form after successful submission
         setOpenAddChecklistItem(false)
         onTaskUpdate(updatedTask)
         
-      }
+      
     
     } catch (error) {
       

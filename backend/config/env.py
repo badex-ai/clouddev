@@ -4,6 +4,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 import base64
 
+
 load_dotenv()
 
 def read_secret_file(file_path: str) -> str:
@@ -32,11 +33,13 @@ def get_config() -> dict:
         auth0_client_secret = read_secret_file("/etc/secrets/AUTH0_CLIENT_SECRET")
         auth0_m2m_client_secret = read_secret_file("/etc/secrets/AUTH0_M2M_CLIENT_SECRET")
         db_password = read_secret_file("/etc/secrets/DB_PASSWORD")
+        brevo_api_key = read_secret_file("/etc/secrets/BREVO_API_KEY")
     else:
         # In localdev, use environment variables
         auth0_client_secret = os.getenv("AUTH0_CLIENT_SECRET")
         auth0_m2m_client_secret = os.getenv("AUTH0_M2M_CLIENT_SECRET")
         db_password = os.getenv("DB_PASSWORD")
+        brevo_api_key = os.getenv("BREVO_API_KEY")
     
     # Non-secret config (from environment variables in all environments)
     return {
@@ -46,6 +49,7 @@ def get_config() -> dict:
         "auth0_client_secret": auth0_client_secret,
         "auth0_api_audience": os.getenv("AUTH0_API_AUDIENCE"),
         "auth0_m2m_client_id": os.getenv("AUTH0_M2M_CLIENT_ID"),
+        "brevo_api_key": brevo_api_key,
         "auth0_m2m_client_secret": auth0_m2m_client_secret,
         
         # Database settings
@@ -59,4 +63,5 @@ def get_config() -> dict:
         "environment": environment,
         "debug": os.getenv("DEBUG", "false").lower() == "true",
     }
+
 

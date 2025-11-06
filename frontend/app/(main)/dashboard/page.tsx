@@ -23,188 +23,127 @@ import {localToUtc} from'@/lib/utils'
 import { toast } from 'sonner';
 import { getTaskForDay } from '@/lib/actions/taskActions';
 import {deleteTask}from '@/lib/actions/taskActions'
+import  CircleIcon from '../../../components/icons/circleIcon'
+import { useRouter, useSearchParams } from 'next/navigation';
+
+
 
 
 
 
 
 function Dashboard() {
-
-  const today  = format(new Date(),'yyyy-MM-dd'); 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const dasboardDate = searchParams.get('d') || today;
   const { userData } = useAuthUser();
-   const [selectedDate, setSelectedDate] = useState(today);
+  
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const  [tasks, setTasks] = useState <Task[]>([])
-  const  [taskIsLoading, setTasksIsLoading] = useState(true)
-
-  //  const [tasks, setTasks] = useState<Task[]>([
-  //   {
-  //     id: '1',
-  //     title: 'Design user interface mockups',
-  //     description: 'Create wireframes and mockups for the new dashboard',
-  //     assignee: 'John Doe',
-  //     dueDate: '2024-03-15',
-  //     status: 'initialized'
-  //   },
-  //   {
-  //     id: '2',
-  //     title: 'Implement authentication system',
-  //     description: 'Set up user login, registration, and password reset functionality',
-  //     assignee: 'Jane Smith',
-  //     dueDate: '2024-03-20',
-  //     status: 'in-progress',
-  //     checkList: [
-  //       { id: 'check1', title: 'Create login API', completed: false },
-  //       { id: 'check2', title: 'Implement JWT authentication', completed: false },
-  //       { id: 'check3', title: 'Set up user roles', completed: false }
-  //       ]
-  //   },
-  //   {
-  //     id: '3',
-  //     title: 'Set up database schema',
-  //     description: 'Design and implement the database structure for the application',
-  //     assignee: 'Bob Johnson',
-  //     status: 'completed'
-  //   },
-  //   {
-  //     id: '4',
-  //     title: 'Code review process',
-  //     description: 'Establish code review guidelines and workflow',
-  //     assignee: 'Alice Brown',
-  //     dueDate: '2024-03-18',
-  //     status: 'initialized',
-  //     checkList: [
-  //       { id: 'item1', title: 'Review PR #123', completed: false },
-  //       { id: 'item2', title: 'Update documentation', completed: false }
-  //     ]
-  //   }
-  // ]);
- const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [taskIsLoading, setTasksIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [submitIsLoading, setSubmitIsLoading] = useState(false);
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+    reset
+  } = useForm<TaskFormData>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      assignee_id: '',
+    }
+  });
 
-   const {
-       register,
-       handleSubmit,
-       formState: { errors },
-       control,
-       reset
-     } = useForm<TaskFormData>({
-       resolver: zodResolver(taskSchema),
-       defaultValues: {
-        assignee_id: '',}
-     });
-     
-  // console.log('this is the userData oooooo', userData)
   useEffect(() => {
-
-   let data;
-
-   const fetchTasks = async () => {
-
+    const fetchTasks = async () => {
       try {
-            const family_id = userData?.family?.id
-            if (!family_id) {
-              return; // or handle error case
-            }
-            let res;
-            res = await getTaskForDay(family_id, selectedDate)
+        const family_id = userData?.family?.id;
+        if (!family_id) {
+          return;
+        }
 
-            if(res.ok){
-              data = await res.json();
-          
-            setTasks(data)
-            return data
-            }
-            
-            
-          } catch (error) {
-            console.error("Failed to fetch tasks", error);
-          }finally{
-            setTasksIsLoading(false)
-          }
+        const res = await getTaskForDay(family_id, dasboardDate);
+
+          const data =  res
+          setTasks(data);
+        
+      } catch (error) {
+        console.error("Failed to fetch tasks", error);
+      } finally {
+        setTasksIsLoading(false);
+      }
     };
 
-    fetchTasks()
+    fetchTasks();
+  }, [dasboardDate, userData?.family?.id]);
 
-  }, [selectedDate])
-  
-
-
-   const handleDateSelect = (date :Date ) => {
-     let newdate = formatISO(date)
-     newdate =format(newdate,'yyyy-MM-dd')
-     setSelectedDate(newdate);
-     setIsCalendarOpen(false);
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    
+    // Use date-fns format to respect local timezone
+    const newdate = format(date, 'yyyy-MM-dd');
+    
+    // Close calendar immediately for instant feedback
+    setIsCalendarOpen(false);
+    
+    // Update URL - this will trigger useEffect automatically
+    router.replace(`/dashboard?d=${newdate}`, { scroll: false });
   };
 
-   const updateTaskInList = (updatedTask: Task) => {
-    // console.log('this is the update task',updatedTask)
-  setTasks(prevTasks => 
-    prevTasks.map(task => 
-      task.public_id === updatedTask.public_id ? updatedTask : task
-    )
-  );
-};
-
-  const formatShownDay= (date : string) => {
-    if (!date) return '';
-    return format(date, 'MMM dd, yyyy');
-  };
-
-   const convertUTCToLocal = (utcDateString : string) => {
-    return parseISO(utcDateString);
-  };
-
-  const getDate = () => {
-   
-
-
-    if (selectedDate === today) {
-       return "Today's Tasks";
-    }
-    return `Tasks for ${formatShownDay(selectedDate)}`;
-   
-  };
- 
-   
-
-  // const [showAddModal, setShowAddModal] = useState(false);
-  // const [addModalStatus, setAddModalStatus] = useState<string>('initialized');
-
-  const handleTaskMove = (taskId: string, newStatus: string) => {
-    if(tasks)
-    setTasks(tasks =>
-      tasks.map(task =>
-        task.public_id === taskId
-          ? { ...task, status: newStatus as 'initialised' | 'in-progress' | 'completed' }
-          : task
+  const updateTaskInList = (updatedTask: Task) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.public_id === updatedTask.public_id ? updatedTask : task
       )
     );
   };
 
+  const formatShownDay = (date: string) => {
+    if (!date) return '';
+    return format(date, 'MMM dd, yyyy');
+  };
 
- 
+  const convertUTCToLocal = (utcDateString: string) => {
+    return parseISO(utcDateString);
+  };
 
-   const  handleTaskDelete = async(taskId: string)=>{
+  const getDate = () => {
+    if (dasboardDate === today) {
+      return "Today's Tasks";
+    }
+    return `Tasks for ${formatShownDay(dasboardDate)}`;
+  };
 
-       if (!tasks) {
-    return; // exit early if null
-  }
-    
-    try{
-        const result = await deleteTask(taskId)
+  const handleTaskMove = (taskId: string, newStatus: string) => {
+    if (tasks)
+      setTasks(tasks =>
+        tasks.map(task =>
+          task.public_id === taskId
+            ? { ...task, status: newStatus as 'initialised' | 'in-progress' | 'completed' }
+            : task
+        )
+      );
+  };
 
-        if (result.ok ){
-          
-          setTasks(prevTasks => 
-            prevTasks ? prevTasks.filter(task => task.public_id !== taskId) : prevTasks
-          );
-          
-          toast("Task Deleted")
-        }
-    }catch{
-        toast("Task", {
+  const handleTaskDelete = async (taskId: string) => {
+    if (!tasks) {
+      return;
+    }
+
+    try {
+      await deleteTask(taskId);
+
+      setTasks(prevTasks =>
+        prevTasks ? prevTasks.filter(task => task.public_id !== taskId) : prevTasks
+      );
+
+      toast("Task Deleted");
+    } catch {
+      toast("Task", {
         description: "Task not deleted. Something went wrong when trying to delete the task.",
         action: {
           label: "Undo",
@@ -212,164 +151,156 @@ function Dashboard() {
             console.log("Undo delete clicked");
           },
         },
-        duration: 4000, // in ms (default is 4000)
+        duration: 4000,
       });
-
-      // toast('Task',{
-      //   description:" Something went wrong while deleting the task"
-      // })
     }
-
-  
-  }
-
-
+  };
 
   let taskTable = null;
 
- 
-
-//  if(tasks === null){
-//   taskTable = null
-//  }else{
-if(taskIsLoading === false){
-  if (tasks?.length === 0) {
-    taskTable = 
-       <div className="w-full border rounded-sm border-[#888888] p-8 flex flex-col items-center justify-center ">
-      <Package 
-        size={48} 
-        className="text-gray-400 mb-4" 
-        strokeWidth={1.5}
-      />
-      <p className="text-gray-600 text-lg font-medium">
-        You don't have any tasks
-      </p>
-    </div>
-  }else{
-   taskTable = <div>
-      <KanbanTable
-        tasks={tasks}
-        onTaskMove={handleTaskMove}
-        onDeleteTask={handleTaskDelete}
-        onTaskUpdate={updateTaskInList}
-       
-      />
-
-     
-    </div>}
-}
-  
-
-//  }
-
-
-
+  if (taskIsLoading === false) {
+    if (tasks?.length === 0) {
+      taskTable = (
+        <div className="w-full border rounded-sm border-[#888888] p-8 flex flex-col items-center justify-center ">
+          <Package
+            size={48}
+            className="text-gray-400 mb-4"
+            strokeWidth={1.5}
+          />
+          <p className="text-gray-600 text-lg font-medium">
+            You don't have any tasks
+          </p>
+        </div>
+      );
+    } else {
+      taskTable = (
+        <div>
+          <KanbanTable
+            tasks={tasks}
+            onTaskMove={handleTaskMove}
+            onDeleteTask={handleTaskDelete}
+            onTaskUpdate={updateTaskInList}
+          />
+        </div>
+      );
+    }
+  }
 
   const onFormSubmit = async (data: TaskFormData) => {
+    if (!userData?.family?.id || !data || !data.due_date) {
+      toast('Missing required information');
+      return;
+    }
 
-     const onFormSubmit = async (data: TaskFormData) => {
-  // 🔥 Fixed: Check conditions first and return early if invalid
-  if (!userData?.family?.id || !data || !data.due_date) {
-    toast('Missing required information');
-    return;
-  }
+    const taskData = {
+      title: data.title,
+      description: data.description || undefined,
+      creator_id: userData.id,
+      assignee_id: data.assignee_id,
+      due_date: localToUtc(data.due_date),
+      family_id: userData.family.id
+    };
 
-  // 🔥 Fixed: Now taskData is guaranteed to be assigned
-  const taskData = {
-    title: data.title,
-    description: data.description || undefined,
-    creator_id: userData.id,
-    assignee_id: data.assignee_id,
-    due_date: localToUtc(data.due_date),
-    family_id: userData.family.id
-  };
+    try {
+      setSubmitIsLoading(true);
 
-  try {
-    setSubmitIsLoading(true);
+      const result = await createTask(taskData);
 
-    const result = await createTask(taskData);
-    if (result.ok) {
+      reset();
+      
+      setIsDialogOpen(false);
+        
+
       toast('New task created');
 
-      const createdTask = await result.json();
+      const createdTask = result;
+      console.log(createdTask,'bake beans')
 
-      if (format(data.due_date, 'yyyy-MM-dd') === today && tasks) {
+     
+
+      // if (format(data.due_date, 'yyyy-MM-dd') === dasboardDate && tasks) {
         setTasks(tasks => [...tasks, createdTask]);
-      }
-      reset();
-      setIsDialogOpen(false);
+      // }
+
+       console.log(format(data.due_date, 'yyyy-MM-dd') , 'data date' )
+      console.log(dasboardDate, 'dasboard date')
+      console.log(tasks, 'tasks')
+
+      
+
+       
+      //
+     
+    } catch {
+      toast('Something went wrong while creating the task');
+    } finally {
+      setSubmitIsLoading(false);
+      
     }
-  } catch {
-    toast('Something went wrong while creating the task');
-  } finally {
-    setSubmitIsLoading(false);
-  }
-};
+  };
 
-    }
-    
+  const assignees = userData?.family?.members;
+  const completedTasks = tasks.filter(task => task.status === 'completed').length;
+  const percentage = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
+  // Parse dasboardDate for calendar selected prop
+  const calendarSelectedDate = parse(dasboardDate, 'yyyy-MM-dd', new Date());
 
-      // console.log('this is the userData oblee oblee:', userData)
-  
- const assignees = userData?.family?.members
-  
-  
   return (
-   <div className="w-full h-screen bg-gray-50 p-6">
+    <div className="w-full h-screen bg-gray-50 p-6">
       <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">{userData?.family?.name}'s Family Board</h1>
-                <p className="text-gray-600 mt-1">Manage your tasks across different stages</p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 px-4 py-2 rounded-lg border border-blue-200">
-                <h2 className="text-xl font-semibold text-blue-800">
-                  {getDate()}
-                </h2>
-              </div>
-              
-              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="w-10 h-10 rounded-full p-0 border  hover:bg-gray-100 transition-colors cursor-pointer"
-                    title="Filter by Date"
-                  >
-                    <Filter className="h-4 w-4 text-gray-600 " />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <CalendarComponent
-                    mode="single"
-                    selected={new Date()}
-                    onSelect={handleDateSelect}
-                    className="border-0"
-                    required
-                  />
-                  <div className="p-3 border-t">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => {
-                        setSelectedDate(today);
-                        setIsCalendarOpen(false);
-                      }}
-                      className="w-full text-sm"
-                    >
-                      Clear Filter (Show Today's Tasks)
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
+        <div className="flex items-center justify-between">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">{userData?.family?.name}'s Family Board</h1>
+            <p className="text-gray-600 mt-1">Manage your tasks across different stages</p>
           </div>
-          <div className=' flex'>
-             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 px-4 py-2 rounded-lg border border-blue-200">
+              <h2 className="text-xl font-semibold text-blue-800">
+                {getDate()}
+              </h2>
+            </div>
+
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-10 h-10 rounded-full p-0 border hover:bg-gray-100 transition-colors cursor-pointer"
+                  title="Filter by Date"
+                >
+                  <Filter className="h-4 w-4 text-gray-600" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={calendarSelectedDate}
+                  onSelect={handleDateSelect}
+                  className="border-0"
+                  required
+                />
+                <div className="p-3 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setIsCalendarOpen(false);
+                      router.replace(`/dashboard?d=${today}`, { scroll: false });
+                    }}
+                    className="w-full text-sm"
+                  >
+                    Clear Filter (Show Today's Tasks)
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <div className='flex'>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="flex items-center gap-2 mb-10 cursor-pointer">
                 <Plus className="h-4 w-4" />
@@ -378,12 +309,12 @@ if(taskIsLoading === false){
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-              <DialogTitle>Add New Task</DialogTitle>
-              <DialogDescription>
-                Add new task, assign to a family member or self and set a due date.
-              </DialogDescription>
+                <DialogTitle>Add New Task</DialogTitle>
+                <DialogDescription>
+                  Add new task, assign to a family member or self and set a due date.
+                </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 pt-4">
+              <form onSubmit={handleSubmit(onFormSubmit)}  className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="task-title">Title *</Label>
                   <Input
@@ -409,8 +340,6 @@ if(taskIsLoading === false){
                 </div>
 
                 <div className="space-y-2">
-                
-                  <div className="space-y-2">
                   <Label htmlFor="task-assignee">Assign To *</Label>
                   <Controller
                     control={control}
@@ -435,8 +364,6 @@ if(taskIsLoading === false){
                   )}
                 </div>
 
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="task-due-date">Due Date *</Label>
                   <div className="relative">
@@ -444,20 +371,18 @@ if(taskIsLoading === false){
                       id="task-due-date"
                       type="datetime-local"
                       {...register("due_date")}
-                      min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)} // 1 hour from now
+                      min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)}
                     />
-                    
                   </div>
-                
                 </div>
                 {errors.due_date && (
                   <p className="text-sm font-medium text-destructive">{errors.due_date.message}</p>
                 )}
 
                 <div className="flex justify-end gap-3 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => setIsDialogOpen(false)}
                   >
                     Cancel
@@ -469,15 +394,21 @@ if(taskIsLoading === false){
               </form>
             </DialogContent>
           </Dialog>
-          <div className='ml-auto'>
-            small chart
+          <div className='ml-auto w-10 h-10'>
+            {tasks.length > 0 &&
+              <CircleIcon
+                percentage={percentage}
+                size={50}
+                strokeWidth={6}
+                color="#DD2E44"
+              />
+            }
           </div>
-          </div>
-          {/* </div> */}
-          {taskTable}
+        </div>
+        {taskTable}
       </div>
     </div>
-  )
+  );
 }
 
 export default Dashboard;

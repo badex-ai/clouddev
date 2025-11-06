@@ -59,8 +59,8 @@ echo -e "${BLUE}Backend IP:${NC} $BACKEND_IP\n"
 # STEP 3: Safely update /etc/hosts atomically
 echo -e "${GREEN}Step 3: Updating /etc/hosts...${NC}"
 
-HOSTS_ENTRY_FRONTEND="$FRONTEND_IP frontend.local"
-HOSTS_ENTRY_BACKEND="$BACKEND_IP backend.local"
+HOSTS_ENTRY_FRONTEND="$FRONTEND_IP\tfrontend.local"
+HOSTS_ENTRY_BACKEND="$BACKEND_IP\tbackend.local"
 
 echo -e "${YELLOW}Preparing atomic /etc/hosts update...${NC}"
 
@@ -74,20 +74,18 @@ sudo cp /etc/hosts "$TEMP_HOSTS"
 sudo chown $USER:$USER "$TEMP_HOSTS"
 
 # Remove any previous frontend.local or backend.local entries
-# Now we can use sed WITHOUT sudo since we own the file
 sed -i '/frontend\.local\|backend\.local/d' "$TEMP_HOSTS"
 
-# Add updated entries (no sudo needed)
-echo "$HOSTS_ENTRY_FRONTEND" >> "$TEMP_HOSTS"
-echo "$HOSTS_ENTRY_BACKEND" >> "$TEMP_HOSTS"
+# Insert entries BEFORE the IPv6 comment section
+# This places them after localhost entries but before IPv6 section
+sed -i "/^# The following lines are desirable for IPv6/i $HOSTS_ENTRY_FRONTEND\n$HOSTS_ENTRY_BACKEND" "$TEMP_HOSTS"
 
-# Verify temp file contains both new entries (no sudo needed)
+# Verify temp file contains both new entries
 if ! grep -q "frontend.local" "$TEMP_HOSTS" || ! grep -q "backend.local" "$TEMP_HOSTS"; then
   echo -e "${RED}Error: Verification failed — entries missing from temp hosts file${NC}"
   rm -f "$TEMP_HOSTS"  # Clean up temp file
   exit 1
 fi
-
 
 # Atomically replace /etc/hosts with the verified temp file
 echo -e "${YELLOW}Performing atomic replace...${NC}"

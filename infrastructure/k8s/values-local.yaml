@@ -1,0 +1,76 @@
+ingress:
+  enabled: true
+  className: nginx  # nginx for local
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: frontend.local    # fake local domain for frontend
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kaban-frontend-service
+              port:
+                number: 80
+    - host: backend.local     # fake local domain for backend
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kaban-backend-service
+              port:
+                number: 80
+
+
+namespace: local-dev
+
+networkPolicy:
+  egress:
+    # Database access
+    allowDatabase: true
+    database:
+      useIPBlock: false
+      podSelector:
+        app.kubernetes.io/name: postgresql
+      port: 5432
+
+
+database:
+  host: "192.168.0.110"  # Your local PostgreSQL host
+  port: 5432
+  name: "clouddev"
+  user: "ali"
+
+
+frontend:
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+  
+  configMap:
+    data:
+      AUTH0_BASE_URL: "http://frontend.local"
+      AUTH0_ISSUER_BASE_URL: "dev-b58ldaey.us.auth0.com"
+      AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
+      AUTH0_SCOPE: "openid profile email"
+      AUTH0_AUDIENCE: "https://dev-b58ldaey.us.auth0.com/userinfo"
+      APP_BASE_URL: "http://frontend.local"
+      AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
+      NEXT_PUBLIC_API_URL: "http://backend.local"
+      ENVIRONMENT: "devk8s"
+      BACKEND_URL: "http://kaban-backend-service"
+backend: 
+  configMap: 
+      data:
+        AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
+        AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
+        AUTH0_API_AUDIENCE: "http://frontend.local"
+        AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
+        DB_HOST: "postgres-service" #"192.168.0.110"   or RDS endpoint
+        DB_PORT: "5432"
+        DB_NAME: "clouddev"
+        DB_USER: "ali"
+        ENVIRONMENT: "devk8s"

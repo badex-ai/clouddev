@@ -3,10 +3,23 @@ logs/
 myfile.log
 backup.sql
 values-secrets.yaml
+# Terraform
 **/.terraform/*
 *.tfstate
 *.tfstate.*
-*.tfvars
-.terraformrc
-terraform.rc
-values-local.yaml
+*.tfvars           # ⚠️ Exclude all tfvars files
+*.tfvars.json
+**/.terraform.lock.hcl
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform plans
+*.tfplan
+firsttfplan       # Your specific plan file
+
+# Test files
+test.txt

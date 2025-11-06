@@ -17,23 +17,27 @@ import {
   MoreVertical,
   Trash2,
   Edit,
-  Loader2
+  Loader2,
+  Minus
+ 
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {createNewFamilyMember} from  '@/lib/actions/userActions'
 import {createFamilyMemberFormSchema, CreateNewFamilyMemberFormType} from '@/lib/validations/user'
 import { CreateNewFamilyMember , FamilyMember } from '@/lib/types';
-import { getFamilymembers,deleteFamilymember } from '@/lib/actions/userActions';
+import { getFamilymembers,deactivateFamilymember,reactivateFamilymember } from '@/lib/actions/userActions';
+import { cn } from "@/lib/utils"
 
 
 export default function MemberSettingsPage() {
 
  const [isDialogOpen, setIsDialogOpen] = useState(false);
  const [submitIsLoading, setSubmitIsLoading] = useState(false);
+ const [membersLoading, setMembersLoading] = useState(true)
 
  
 
-   const [familyMembers, setFamilyMembers] = useState<null| FamilyMember[]> (null)
+   const [familyMembers, setFamilyMembers] = useState< FamilyMember[]> ([])
 
   const { userData } = useAuthUser();
   
@@ -47,6 +51,34 @@ export default function MemberSettingsPage() {
 
 
   useEffect(() => {
+
+    
+     const fetchFamilyMembers = async () => {
+
+    if(!userData?.family){
+        return
+    }
+
+    try{
+      const family= await getFamilymembers(userData?.family?.id)
+        console.log('familyMembers', family)
+
+        const familyMembers = family.users
+       
+
+        setFamilyMembers(familyMembers)
+      
+       
+      
+    }catch(e){
+      console.log('Error fetching family members:', e);
+      toast("Sometin went wron wile fetcin family member. Please try again.")
+    }finally{
+      setMembersLoading(false)
+    }
+    
+  
+}
     if( userData?.family?.id) {
         fetchFamilyMembers()
     }
@@ -55,120 +87,113 @@ export default function MemberSettingsPage() {
 
     useEffect(() => {
    
-  }, [submitIsLoading])
+  }, [submitIsLoading, ])
 
-  const fetchFamilyMembers = async () => {
-
-    if(!userData?.family){
-        return
-    }
-
-       try{
-      const familyMembers = await getFamilymembers(Number(userData?.family?.id))
-        console.log('familyMembers', familyMembers)
-       
-       const otherFamily= familyMembers?.users.filter((member: FamilyMember)=>{
-          return userData.id != member.id
-        })
-       
-      setFamilyMembers(otherFamily)
-    }catch(e){
-      console.log('Error fetching family members:', e);
-    }
-    
-  
-}
+ 
 
 
 
-
+console.log(familyMembers)
 
  
   
 
 
-    const onFormSubmit = async (data: CreateNewFamilyMemberFormType) => {
-       setSubmitIsLoading(true);
-      console.log('data from the form', data)
-     
-      
-      // console.log('Creating new family member:', newData);
-     
-    try{
-
-      if (userData?.family?.id && userData?.family?.name) {
-        const newData: CreateNewFamilyMember = {
-          ...data,
-          family_id: Number(userData.family.id),
-          family_name: userData.family.name,
-        }
-        
-        const newMember = await createNewFamilyMember(newData)
-      }
-            
-
-    }
-    catch{
-      setSubmitIsLoading(false);
-      toast("Create new family member failed. Please try again.")
-    }finally{
-      setSubmitIsLoading(false);
-    }
-    
-    // Add the new member to the list
-    // const newMember = {
-    //   id: familyMembers.length + 1,
-    //   name,
-    //   email,
-    //   role: 'Member'
-    // };
-    
-    // setFamilyMembers([...familyMembers, newMember]);
-    
-    // // Reset form and close dialog
-    // setName('');
-    // setEmail('');
-    // setIsDialogOpen(false);
-  };
-
-  // const familyMembers = userData?.family?.members
-
-
-  // async function handleDeleteFamilyMember (){
-   
-  //   try{
-  //       if(userData?.id){
-  //        let result =  await deleteFamilymember(userData?.id)
-
-  //        console.log(result)
-       
-  //       }
-  //        toast("Family member deleted suscessfully")
-
-        
-  //     }catch{
-  //       toast("UFamily member not deleted Something went wrong please try again")
-  //     }
-  // }
-
-  async function handleDeleteFamilyMember() {
+  const onFormSubmit = async (data: CreateNewFamilyMemberFormType) => {
+  setSubmitIsLoading(true);
+  console.log('data from the form', data);
+  
   try {
-    if (!userData?.id) return;
+    // ⭐ FIXED: Declare newData outside the if block
+    if (!userData?.family?.id || !userData?.family?.name) {
+      toast("Family information is missing. Please refresh and try again.");
+      return;
+    }
 
-    const result = await deleteFamilymember(userData.id);
+    const newData: CreateNewFamilyMember = {
+      ...data,
+      family_id: userData.family.id,
+      family_name: userData.family.name,
+    };
+    
+    // ⭐ FIXED: Now newData is accessible here
+    const newMember = await createNewFamilyMember(newData);
+    
+    console.log(newMember, 'newly created familyMember');
 
-    if (result.ok) {
-      toast("Family member deleted successfully");
-      console.log("Deleted:", userData.id);
-    } else {
-      const errorData = await result.json().catch(() => null);
-      console.error("Delete failed:", errorData || result.statusText);
-      toast("Family member not deleted. Something went wrong, please try again.");
+    if (newMember) {
+      // ⭐ FIXED: Use functional setState for reliability
+      setFamilyMembers(prevMembers => [...prevMembers, newMember]);
+      
+      toast("New family member created");
+      setIsDialogOpen(false);
     }
   } catch (error) {
-    console.error("Unexpected error:", error);
-    toast("Something went wrong. Please try again.");
+    // ⭐ FIXED: Added error parameter for better debugging
+    console.error("Error creating family member:", error);
+    toast("Create new family member failed. Please try again.");
+  } finally {
+    setSubmitIsLoading(false);
   }
+};
+
+
+  async function handleDeactivateFamilyMember(memberId: string) {
+    try {
+      if (!memberId) return;
+
+      const result = await deactivateFamilymember(memberId);
+
+        if(result){
+          toast("Family member deleted successfully");
+       
+          setFamilyMembers((prev) =>
+            prev.map((member) =>
+              member.public_id === memberId
+                ? { ...member, is_active: false }
+                : member
+            )
+          );
+        
+        }
+      
+    
+      
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast("Family member not deleted. Something went wrong, please try again.");
+    }finally{
+
+    }
+}
+
+async function handleReactivateFamilyMember(memberId: string) {
+    try {
+      if (!memberId) return;
+
+      const result = await reactivateFamilymember(memberId);
+
+        if(result){
+          toast("Family member deleted successfully");
+       
+            setFamilyMembers((prev) =>
+            prev.map((member) =>
+              member.public_id === memberId
+                ? { ...member, is_active: true }
+                : member
+            )
+          );
+        
+        }
+      
+    
+      
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast("Family member not deleted. Something went wrong, please try again.");
+    }finally{
+
+    }
 }
   
 
@@ -253,8 +278,14 @@ export default function MemberSettingsPage() {
 
       {/* Family Members List */}
       <div className="space-y-6">
-        {familyMembers && familyMembers.map((member) => (
-          <div key={member.id} className="p-4 rounded-lg hover:bg-muted/50 transition-colors">
+        {!membersLoading &&  familyMembers && familyMembers.map((member) => (
+        
+          <div key={member.public_id}   className={cn(
+        "p-4 rounded-lg transition-colors",
+        member.is_active
+          ? "hover:bg-muted/50 text-gray-900"
+          : "bg-muted/30 opacity-60 text-gray-400"
+      )}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -273,27 +304,55 @@ export default function MemberSettingsPage() {
                 <Badge variant={member.role === 'Admin' ? 'default' : 'secondary'}>
                   {member.role}
                 </Badge>
+
+                { !member.is_active &&<Badge variant={'default'}>
+                  deactivated
+                </Badge>}
                 
-                <DropdownMenu>
+               { member.role  != 'admin' && member.is_active && <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleDeleteFamilyMember} className="flex items-center gap-2 text-destructive">
-                      <Trash2 className="h-4 w-4" />
-                      Remove Member
+                    <DropdownMenuItem onClick={() => handleDeactivateFamilyMember(member.public_id)} className="flex items-center gap-2 text-destructive">
+                      <Minus className="h-4 w-4" />
+                      Deactivate Member
                     </DropdownMenuItem>
+                    {/* <DropdownMenuItem onClick={() => handleDeleteFamilyMember(member.public_id)} className="flex items-center gap-2 text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Member
+                    </DropdownMenuItem> */}
                   </DropdownMenuContent>
-                </DropdownMenu>
+                  
+                </DropdownMenu>}
+
+                { member.role  != 'admin' && !member.is_active && <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleReactivateFamilyMember(member.public_id)} className="flex items-center gap-2 text-success">
+                      <Plus className="h-4 w-4" />
+                      Activate Member
+                    </DropdownMenuItem>
+                    {/* <DropdownMenuItem onClick={() => handleDeleteFamilyMember(member.public_id)} className="flex items-center gap-2 text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Member
+                    </DropdownMenuItem> */}
+                  </DropdownMenuContent>
+                  
+                </DropdownMenu>}
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {familyMembers?.length === 0 && (
+      {!membersLoading && familyMembers?.length === 0 && (
         <div className="text-center py-12">
           <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">No family members yet</h3>

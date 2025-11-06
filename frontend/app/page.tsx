@@ -3,15 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
+import { format} from 'date-fns';
 
 
 export default async function LandingPage() {
 
    const session = await auth0.getSession();
- 
+    const today = format(new Date(), 'yyyy-MM-dd');
 
    if(session) {
-   redirect('/dashboard');
+   redirect(`/dashboard?d=${today}`);
    }
 
   //  console.log('this is the session', session);
@@ -29,7 +30,7 @@ export default async function LandingPage() {
           <a href="/auth/login" className="hover:text-indigo-600 transition-colors">
             Login
           </a>
-          <a href="signup" className="hover:text-indigo-600 transition-colors">
+          <a href="/signup" className="hover:text-indigo-600 transition-colors">
             Sign Up
           </a>
            

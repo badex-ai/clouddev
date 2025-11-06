@@ -11,10 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { signupSchema, type SignupFormData } from "@/lib/validations/auth"
 import { toast } from "sonner"
 import {getConfig} from "../../../lib/config"
+import {createNewUser }from "../../../lib/actions/userActions"
 
 export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
-   const {apiUrl} = getConfig()
   
   const {
     register,
@@ -31,22 +31,21 @@ export default function SignupPage() {
     try {
       // Handle signup logic here
       // console.log("Signup data:", data)
-      response = await fetch(`http://${apiUrl}/api/v1/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-    
+      response = await createNewUser(data)
+      console.log(response,"tis is te response")
       // Add your registration logic
+
+      window.location.href = "/verify"; 
+       toast("Signup successful! Please verify your email.")
     } catch (error) {
     console.error("Signup error:", error)
     toast("Signup failed. Please try again.")
     } finally {
       setIsLoading(false)
-      toast("Signup successful! Please verify your email.")
-      if (response && response.status === 200) {
-        window.location.href = "/verify"; 
-      }
+     
+      
+      
+      
     }
 }
 

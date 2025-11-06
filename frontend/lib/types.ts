@@ -20,7 +20,7 @@ interface Family {
 
 
 interface FamilyMember{
-   id: string; name: string; role: string,family_id: number, is_active: boolean, username: string,email: string }
+   public_id: string; name: string; role: string,family_id: string, is_active: boolean, username: string,email: string }
 
 interface DraggableTaskProps {
   task: Task;
@@ -73,7 +73,7 @@ interface UserProfile {
 interface CreateNewFamilyMember {
   name: string;
   email: string;
-  family_id: number; // Optional, if the family ID is not provided
+  family_id: string; // Optional, if the family ID is not provided
   family_name: string; // Optional, if the family name is not provided
 }
 

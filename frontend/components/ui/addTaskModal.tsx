@@ -104,6 +104,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       
       const result =  await response.json()
 
+      console.log(response,"tis is te response")
+
       if(result){
         setIsLoading(false)
         form.reset();

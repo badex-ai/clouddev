@@ -1,5 +1,6 @@
 'use server' 
 import {CreateNewFamilyMember} from '@/lib/types';
+import {type SignupFormData } from "@/lib/validations/auth"
 import {getConfig} from "../config"
 
 
@@ -8,11 +9,6 @@ const {apiUrl, nextUrl} = getConfig()
 
 export async function getUserData(user: any) {
 
-
-  console.log(apiUrl, 'tis is te api url')
-  
-
-  console.log(nextUrl, 'tis is te nextUrl url')
 
       
     // Fetch user data
@@ -54,7 +50,7 @@ export async function createNewFamilyMember(userInfo: CreateNewFamilyMember){
     return userResponse.json()
 }
 
-export async function getFamilymembers(familyId: number){
+export async function getFamilymembers(familyId: string){
   const userResponse = await fetch(`${apiUrl}/api/v1/families/${familyId}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
@@ -64,11 +60,41 @@ export async function getFamilymembers(familyId: number){
     return userResponse.json()
 }
 
-export async function deleteFamilymember(userId: string){
+export async function deactivateFamilymember(userId: string){
   const result= await fetch(`${apiUrl}/api/v1/users/${userId}/deactivate`, {
-      method: 'DELETE',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      cache: "no-store",
     }) 
-    return result
+    return result.json()
+}
+
+export async function reactivateFamilymember(userId: string){
+  const result= await fetch(`${apiUrl}/api/v1/users/${userId}/activate`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+    }) 
+    return result.json()
+}
+
+// export async function deleteFamilymember(userId: string){
+//   const result= await fetch(`${apiUrl}/api/v1/users/${userId}`, {
+//       method: 'DELETE',
+//       headers: { 'Content-Type': 'application/json' },
+//     }) 
+//     return result.json()
+// }
+
+
+export async function createNewUser(data:SignupFormData ){
+  console.log(apiUrl, 'apiurl')
+  console.log('sendin te new user profile', data)
+
+ const result = await fetch(`${apiUrl}/api/v1/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+ return result.json()
+
 }

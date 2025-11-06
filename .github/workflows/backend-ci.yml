@@ -1,0 +1,36 @@
+# name: backend CI/CD
+
+# on:
+#     push:
+#         branches: [main, staging, dev]
+#         paths:
+#             - "backend/**"
+#             - ".github/workflows/backend-ci.yml"
+
+#     pull_request:
+#         branches: [main]
+#         paths:
+#             - "backend/**"
+
+# env:
+#     IMAGE_NAME: badex360/kaban-backend:latest
+
+# jobs:
+#     test:
+#         runs-on: ubuntu-latest
+
+#         steps:
+#             - name: checkout code
+#               uses: actions/checkout@v4
+
+#             - name: create test env file
+#               run: |
+#                   cat > backend/env.test << EOF
+#                   DATABASE_URL=postgresql://test:test@postgres:5432/testdb
+#                   AUTH0_DOMAIN=test.auth0.com
+#                   AUTH0_API_AUDIENCE=test
+#                   EOF
+
+#             - name: test code
+#               cmd : npm run test
+

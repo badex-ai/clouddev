@@ -28,7 +28,7 @@ auth0_client_id = config["auth0_client_id"]
 auth0_m2m_client_id = config["auth0_m2m_client_id"]
 auth0_m2m_client_secret = config["auth0_m2m_client_secret"]  # SECRET
 
-db = SessionLocal()
+# db = SessionLocal()
 
 async def create_task(req: TaskCreate,db) -> TaskResponse:
     print('this is the request',req)

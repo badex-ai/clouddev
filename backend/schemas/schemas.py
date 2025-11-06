@@ -63,7 +63,7 @@ class FamilyMemberResponse(BaseModel):
     
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: str 
+    id: int
     name: str
     email: EmailStr
     family_id: str
@@ -197,5 +197,5 @@ class TaskRequest(BaseModel):
 class CreateMemberRequest(BaseModel):
     name: str
     email: EmailStr
-    family_id: int
+    family_id: str
     family_name: str

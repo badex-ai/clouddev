@@ -13,11 +13,13 @@ from schemas.schemas import (
 import secrets
 import string
 from config.env import get_config
+from utils import utils
 
-# Add this to see the actual SQL queries
 import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+import traceback
+from utils.utils import send_email, get_management_api_token 
 
 load_dotenv()
 
@@ -31,26 +33,14 @@ auth0_m2m_client_secret = config["auth0_m2m_client_secret"]  # SECRET
 
 
 
-async def get_management_api_token():
-    auth0_token_url = f"https://{auth0_domain}/oauth/token"
-    
-    payload = {
-        "client_id": auth0_client_id,       
-        "client_secret": auth0_m2m_client_secret,
-        "audience": f"https://{auth0_domain}/api/v2/",
-        "grant_type": "client_credentials"
-    }
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.post(auth0_token_url, json=payload)
-        return response.json()["access_token"]
 
 
 
-async def send_password_reset_with_auth0(user_id):
+
+async def send_password_reset_with_auth0(user_id,m2m_token):
     """Let Auth0 send password reset email using their templates"""
     
-    m2m_token = await get_management_api_token()
+    # m2m_token = await get_management_api_token()
     ticket_url = f"https://{auth0_domain}/api/v2/tickets/password-change"
     
     payload = {
@@ -71,8 +61,7 @@ async def send_password_reset_with_auth0(user_id):
 
 
             
-            # Auth0 automatically sends the password reset email
-            # No need to send it yourself
+        
             print("Password reset email sent by Auth0")
             print(response.json())
 
@@ -83,128 +72,174 @@ async def send_password_reset_with_auth0(user_id):
         print(f"Error creating password reset ticket: {e.response.text}")
         raise
 
-# async def create_password_setup_ticket(user_id, email, name):
-#     """Create password change ticket for new user setup"""
-#     m2m_token = await get_management_api_token()
-#     ticket_url = f"https://{auth0_domain}/api/v2/tickets/password-change"
+
+
+family_member_welcome_email = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; }}
+    </style>
+</head>
+<body>
+    <h1>Welcome to Kaban App, {name}! 👋</h1>
+    <p>You've been added to a family on <strong>Kaban App</strong> by {admin_name}.</p>
+    <p><strong>Next Steps:</strong></p>
+    <p><strong>Set Your Password:</strong></p>
+    <p>Click the button below to set your password and activate your account:</p>
     
-#     payload = {
-#         "user_id": user_id,
-#         "result_url": f"{os.getenv('FRONTEND_URL')}/welcome?setup=complete",
-#         "ttl_sec": 604800,  # 7 days
-#         "mark_email_as_verified": True,  # Verify email when password is set
-#         "includeEmailInRedirect": False
-#     }
+    <p>
+        <a href="{password_reset_url}" style="background-color: #4F46E5; color: #FFFFFF; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0;">Set My Password</a>
+    </p>
     
-#     headers = {
-#         "Authorization": f"Bearer {m2m_token}",
-#         "Content-Type": "application/json"
-#     }
+    <p>Or copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; color: #4F46E5;">{password_reset_url}</p>
     
+    <p><strong>This link will expire in 7 days.</strong></p>
+    <hr>
+    <p style="color: #666; font-size: 12px;">
+        If you didn't expect this invitation, please contact {admin_name}.
+    </p>
+</body>
+</html>
+"""
+
+
+
+# async def create_family_member(req: UserCreate, db: Session):
+
+#     print('it reach here sha:', req)
 #     try:
-#         async with httpx.AsyncClient(timeout=30.0) as client:
-#             response = await client.post(ticket_url, json=payload, headers=headers)
-#             response.raise_for_status()
+
+#          # Check if user already exists
+#         existing_user = db.query(User).filter(
+#             (User.email == req.email)
+#         ).first()
+        
+#         if existing_user:
+#             print('user already exists')
+#             raise HTTPException(
+#                 status_code=400, 
+#                 detail="User with this email or username already exists"
+#             )
+
+#         def generate_random_password(length=16):
+#                 alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+#                 return ''.join(secrets.choice(alphabet) for i in range(length))
+    
+#         temporary_password = generate_random_password()
+#         m2m_token = await get_management_api_token()
+    
+#         # Create user via Management API
+#         management_api_url = f"https://{auth0_domain}/api/v2/users"
+        
+#         payload = {
+#             "email": req.email,
+#             "name": req.name,
+#             "family_name": req.family_name,
+#             "connection": "Username-Password-Authentication",
+#             "password": temporary_password,  
+#             "email_verified": False,  
+#             "verify_email": False, 
+#             "app_metadata": {
+#                 "created_by_admin": True,
+#                 "setup_required": True
+#             }
+#         }
+        
+#         headers = {
+#             "Authorization": f"Bearer {m2m_token}",
+#             "Content-Type": "application/json"
+#         }
+
+      
+
+#         try:
+
+#             async with httpx.AsyncClient(timeout=30.0) as client:
+#                 response = await client.post(management_api_url, json=payload, headers=headers)
+#                 response.raise_for_status()
+                
+#                 user_data = response.json()
+
+#                 try:
+#                     welcome_email = family_member_welcome_email.format(
+#                         name=req.name,
+#                         admin_name="Admin"  # Pass the admin's name who invited them
+#                     )
+#                     await send_email(req, welcome_email)
+#                     print(f"Welcome email sent to {req.email}")
+#                 except Exception as e:
+#                     print(f"Failed to send welcome email: {e}")
+
+#                 await send_password_reset_with_auth0(user_data['user_id'])   
             
-#             ticket_data = response.json()
-            
-#             # Send welcome email with setup link
-#             await send_setup_email(email, name, ticket_data['ticket'])
-            
-#             return ticket_data
-            
-#     except httpx.HTTPStatusError as e:
-#         print(f"Error creating password setup ticket: {e.response.text}")
+#         except httpx.HTTPStatusError as e:
+#             raise HTTPException(
+#                 status_code=e.response.status_code, 
+#                 detail=f"Error creating user in Auth0: {e.response.text}"
+#             )
+
+        
+#         # Create new user instance
+#         new_user = User(
+#             username=req.name,
+#             email=req.email,
+#             name= f"{req.name} {req.family_name}",
+#             role=UserRole.member,
+#             family_id=req.family_id, 
+
+        
+#         )
+
+        
+#         # Add to database
+#         db.add(new_user)
+#         db.commit()
+#         db.refresh(new_user)  
+#         return UserResponse.model_validate(new_user)
+
+
+#     except HTTPException as e:
+#         logging.error(f"HTTPException: {e.detail}")
 #         raise
 
+#     except IntegrityError:
+#         db.rollback()
+#         raise HTTPException(
+#             status_code=400, 
+#             detail="User with this email or username already exists"
+#         )
+#     except Exception as e:
+#         print("Error creating user:", str(e))
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
 
-
-# async def send_setup_email(email, name, setup_url):
-#     """Send account setup email to new family member"""
+async def create_family_member(req: UserCreate, db: Session) :
+    print('Creating family member:', req)
     
-#     # Replace this with your actual email service
-#     # Examples: SendGrid, AWS SES, Mailgun, etc.
+    # Variables to track what needs cleanup
+    auth0_user_id = None
+    db_user_created = False
     
-#     email_subject = "Complete Your Family Account Setup"
-#     email_body = f"""
-#     Hi {name},
-    
-#     Welcome to our family platform! An account has been created for you by your family admin.
-    
-#     To complete your account setup:
-#     1. Click this link: {setup_url}
-#     2. Create your password
-#     3. Your email will be automatically verified
-    
-#     This link expires in 7 days. If you need a new link, please contact your family admin.
-    
-#     Best regards,
-#     The Family Platform Team
-#     """
-    
-#     # Example implementations:
-    
-#     # Option 1: Print for testing
-#     print(f"TO: {email}")
-#     print(f"SUBJECT: {email_subject}")
-#     print(f"BODY: {email_body}")
-    
-#     # Option 2: SendGrid example
-#     # import sendgrid
-#     # from sendgrid.helpers.mail import Mail
-#     # 
-#     # sg = sendgrid.SendGridAPIClient(api_key=os.getenv('SENDGRID_API_KEY'))
-#     # message = Mail(
-#     #     from_email='noreply@yourfamilyapp.com',
-#     #     to_emails=email,
-#     #     subject=email_subject,
-#     #     plain_text_content=email_body
-#     # )
-#     # response = sg.send(message)
-    
-#     # Option 3: AWS SES example
-#     # import boto3
-#     # 
-#     # ses = boto3.client('ses', region_name='us-east-1')
-#     # ses.send_email(
-#     #     Source='noreply@yourfamilyapp.com',
-#     #     Destination={'ToAddresses': [email]},
-#     #     Message={
-#     #         'Subject': {'Data': email_subject},
-#     #         'Body': {'Text': {'Data': email_body}}
-#     #     }
-#     # )
-    
-#     return True
-
-
-# UserResponse
-
-async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
-
-    print('it reach here sha:', req)
     try:
-
-         # Check if user already exists
-        existing_user = db.query(User).filter(
-            (User.email == req.email)
-        ).first()
+        # ====== STEP 1: Validation ======
+        existing_user = db.query(User).filter(User.email == req.email).first()
         
         if existing_user:
-            print('user already exists')
             raise HTTPException(
                 status_code=400, 
-                detail="User with this email or username already exists"
+                detail="User with this email already exists"
             )
 
+        # ====== STEP 2: Create Auth0 User ======
         def generate_random_password(length=16):
-                alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
-                return ''.join(secrets.choice(alphabet) for i in range(length))
+            alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+            return ''.join(secrets.choice(alphabet) for i in range(length))
     
         temporary_password = generate_random_password()
         m2m_token = await get_management_api_token()
-    
-        # Create user via Management API
         management_api_url = f"https://{auth0_domain}/api/v2/users"
         
         payload = {
@@ -217,76 +252,147 @@ async def create_family_member(req: UserCreate, db: Session)-> UserResponse:
             "verify_email": False, 
             "app_metadata": {
                 "created_by_admin": True,
-                "setup_required": True
+                "setup_required": True,
+                "family_id": req.family_id  # ⭐ Store family_id in Auth0 for reference
             }
-            }
+        }
         
         headers = {
             "Authorization": f"Bearer {m2m_token}",
             "Content-Type": "application/json"
         }
 
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            try:
                 response = await client.post(management_api_url, json=payload, headers=headers)
                 response.raise_for_status()
-                
                 user_data = response.json()
+                auth0_user_id = user_data['user_id']
+                
+                print(f"✅ Auth0 user created: {auth0_user_id}")
+                
+            except httpx.HTTPStatusError as e:
+                error_detail = e.response.text if e.response.text else str(e)
+                print(f"❌ Auth0 user creation failed: {error_detail}")
+                raise HTTPException(
+                    status_code=e.response.status_code, 
+                    detail=f"Failed to create user in Auth0: {error_detail}"
+                )
 
-                await send_password_reset_with_auth0(user_data['user_id'])
-
+        # ====== STEP 3: Send Password Reset Email (CRITICAL) ======
+        try:
+            password_reset_response = await send_password_reset_with_auth0(auth0_user_id,m2m_token)
+            print(f"✅ Password reset ticket created: {password_reset_response}")
+            ticket_url = password_reset_response.get('ticket')
             
-            
-        except httpx.HTTPStatusError as e:
+        except Exception as e:
+            print(f"❌ Password reset email failed: {e}")
+            # ⭐ CRITICAL: If password reset fails, delete Auth0 user
+            await rollback_auth0_user(auth0_user_id, m2m_token)
             raise HTTPException(
-                status_code=e.response.status_code, 
-                detail=f"Error creating user in Auth0: {e.response.text}"
+                status_code=500,
+                detail="Failed to send password setup email. User creation cancelled."
             )
 
-  
-        
-        # Create new user instance
-        new_user = User(
-            username=req.name,
-            email=req.email,
-            name= f"{req.name} {req.family_name}",
-            role=UserRole.member,
-            family_id=req.family_id, 
+        # ====== STEP 4: Send Welcome Email (Optional, non-blocking) ======
+        try:
+            welcome_email = family_member_welcome_email.format(
+                name=req.name,
+                admin_name="Admin",
+                password_reset_url=ticket_url 
+            )
+            await send_email(req, welcome_email)
+            print(f"✅ Welcome email sent to {req.email}")
+        except Exception as e:
+            # ⚠️ Welcome email is optional - log but don't fail
+            print(f"⚠️ Welcome email failed (non-critical): {e}")
 
-            # Assuming family_id is provided in the request
-            # is_active, created_at, updated_at will use defaults
-        )
+        # ====== STEP 5: Create Database User (ONLY after Auth0 + Email success) ======
+        try:
+            new_user = User(
+                username=req.name,
+                email=req.email,
+                name=f"{req.name}",
+                role=UserRole.member,
+                family_id=req.family_id,
+            )
+            
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+            db_user_created = True
+            
+            print(f"✅ Database user created: {new_user.public_id}")
+            return UserResponse.model_validate(new_user)
+            
+        except IntegrityError as e:
+            db.rollback()
 
-        
-        # Add to database
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)  # Refresh to get the ID and timestamps
-        # Convert to Pydantic model and return
-        return UserResponse.model_validate(new_user)
+            # ⭐ Extract the full error details
+            error_message = str(e.orig) if hasattr(e, 'orig') else str(e)
+            error_statement = str(e.statement) if hasattr(e, 'statement') else "No statement"
+            error_params = str(e.params) if hasattr(e, 'params') else "No params"
+            
+            # ⭐ Log everything for debugging
+            print(f"🔴 ===== IntegrityError Details =====")
+            print(f"🔴 Original error: {error_message}")
+            print(f"🔴 SQL statement: {error_statement}")
+            print(f"🔴 Parameters: {error_params}")
+            print(f"🔴 Full exception: {repr(e)}")
+            print(f"🔴 User data attempted:")
+            print(f"    - username: {req.name}")
+            print(f"    - email: {req.email}")
+            print(f"    - family_id: {req.family_id}")
+            print(f"🔴 =====================================")
+            # ⭐ Database failed - rollback Auth0 user
+            await rollback_auth0_user(auth0_user_id, m2m_token)
+            raise HTTPException(
+                status_code=400, 
+                detail="Database constraint violation. User creation rolled back."
+            )
 
-    except HTTPException as e:
-        logging.error(f"HTTPException: {e.detail}")
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
         raise
-
-    except IntegrityError:
+        
+    except Exception as e:
+        print(f"❌ Unexpected error: {str(e)}")
+        
+        # ⭐ Cleanup: Rollback Auth0 if database user wasn't created
+        if auth0_user_id and not db_user_created:
+            try:
+                await rollback_auth0_user(auth0_user_id, m2m_token)
+            except Exception as cleanup_error:
+                print(f"⚠️ Failed to cleanup Auth0 user: {cleanup_error}")
+        
         db.rollback()
         raise HTTPException(
-            status_code=400, 
-            detail="User with this email or username already exists"
+            status_code=500, 
+            detail=f"Error creating user: {str(e)}"
         )
-    except Exception as e:
-        print("Error creating user:", str(e))
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error creating user: {str(e)}")
-    
 
-# -> UserResponse
+
+async def rollback_auth0_user(user_id: str, m2m_token: str):
+    """Delete Auth0 user if database creation fails"""
+    delete_url = f"https://{auth0_domain}/api/v2/users/{user_id}"
+    headers = {"Authorization": f"Bearer {m2m_token}"}
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            response = await client.delete(delete_url, headers=headers)
+            response.raise_for_status()
+            print(f"✅ Rolled back Auth0 user: {user_id}")
+        except Exception as e:
+            print(f"⚠️ Failed to rollback Auth0 user {user_id}: {e}")
+            # Log this for manual cleanup
+           
+
 async def get_user(req:UserRequest, db: Session):
-   
+    print(req.user_email, 'this is the user sent',)
     
     try:
        # First, get the user
+        # print('this is the family member', family_members)
         user = db.query(User).filter(User.email == req.user_email).first()
 
         if user:
@@ -330,22 +436,107 @@ async def get_user(req:UserRequest, db: Session):
         return response_data
 
         
+    # except Exception as e:
+    #      raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
     except Exception as e:
-         raise HTTPException(status_code=500, detail=f"Error getting user: {str(e)}")
+        print("🔴 FULL ERROR TRACEBACK:")
+        traceback.print_exc()  # prints the full traceback to console
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error getting user: {str(e)}"
+        )
     
 
    
-def delete_user(user_id: int, db: Session) :
+def deactivate_user(user_id: str, db: Session) -> int:
+    """
+    Soft delete a user
+    """
+
     try:
-        print('e reach here',user_id) 
-        result = db.query(User).filter(User.public_id == user_id).update({"is_active": False})
+        print('e reach here', user_id) 
+        result = db.query(User).filter(
+            User.public_id == user_id
+        ).update({"is_active": False})
+        
         db.commit()
-        return result
+        
+        # result is an integer (row count)
+        if result == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+        
+        return result  # Returns 1 if successful, 0 if no rows matched
+        
     except SQLAlchemyError as e:
         db.rollback()
-        raise HTTPException(status_code=500,
-    detail={"error": str(e)} )
-    
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+
+# def delete_user(user_id: str, db: Session) -> int:
+#     """
+#     Soft delete a user
+#     """
+
+#     try:
+#         print('e reach here', user_id) 
+#         result = db.query(User).filter(
+#             User.public_id == user_id
+#         ).update({"is_active": False})
+        
+#         db.commit()
+        
+#         # result is an integer (row count)
+#         if result == 0:
+#             raise HTTPException(
+#                 status_code=404,
+#                 detail="User not found"
+#             )
+        
+#         return result  # Returns 1 if successful, 0 if no rows matched
+        
+#     except SQLAlchemyError as e:
+#         db.rollback()
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"Database error: {str(e)}"
+#         )
+
+
+
+def reactivate_user(user_id: str, db: Session) -> int:
+    """
+    Soft delete a user
+    """
+
+    try:
+        print('e reach here', user_id) 
+        result = db.query(User).filter(
+            User.public_id == user_id
+        ).update({"is_active": True})
+        
+        db.commit()
+        
+        # result is an integer (row count)
+        if result == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+        
+        return result  # Returns 1 if successful, 0 if no rows matched
+        
+    except SQLAlchemyError as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
 
 
 
