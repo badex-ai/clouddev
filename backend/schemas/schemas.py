@@ -1,24 +1,32 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from typing import Optional, List,Literal,Dict
-from pydantic import BaseModel, ConfigDict, EmailStr,computed_field,field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr,computed_field,field_validator, Field
 from enum import Enum
 
 # User schemas
-class UserBase(BaseModel):
-    username: str
-    email: EmailStr
-    full_name: Optional[str] = None
-    is_active: bool = True
-
 
 class UserRole(str, Enum):
     admin = "admin"
     member = "member"
 
+
 class TaskStatus(str, Enum):
         initialised= "initialised"
         in_progress = "in-progress"
         completed = "completed"
+        
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+    is_active: bool = True
+    role: UserRole
+    public_id: str
+    name: str
+
+
+
+
+
 
 
 
@@ -46,10 +54,11 @@ class FamilyResponse(BaseModel):
     name: str
 
 
-# class FamilyUsers(BaseModel):
-#     model_config = ConfigDict(from_attributes=True)
-#     id: int  # Added the missing id field
-#     username: str
+class FamilyMembers(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int  # Added the missing id field
+    name: str
+    # users: List[]
 class FamilyUsers(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -61,21 +70,59 @@ class FamilyMemberResponse(BaseModel):
     id: int
     name: str
     
+
+
+class FamilyMemberBasic(BaseModel):
+    """Basic information about a family member"""
+    id: str = Field(..., description="Public ID of the user")
+    name: str = Field(..., description="Full name of the family member")
+    username: str = Field(..., description="Username of the family member")
+    role: str = Field(..., description="Role of the family member within the family")  
+class FamilyDetails(BaseModel):
+    """Family information with members"""
+    id: str = Field(..., description="Public ID of the family")
+    name: str = Field(..., description="Family name")
+    members: List[FamilyMemberBasic] = Field(
+        default_factory=list,
+        description="List of family members"
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "id": "fam_xyz789",
+                "name": "The Doe Family",
+                "members": [
+                    {
+                        "id": "usr_abc123",
+                        "name": "John Doe",
+                        "username": "johndoe",
+                        "role": "admin"
+                    }
+                ]
+            }
+        }
+    )
+
+class AuthenticatedUserProfile(BaseModel):
+    """Very explicit about what this represents"""
+    id: str
+    username: str
+    email: str
+    name: str
+    family: FamilyDetails
+    
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    id: int
+    public_id: int
     name: str
     email: EmailStr
     family_id: str
     role: UserRole
 
-class GetMeResponse(UserBase):
-    model_config = ConfigDict(from_attributes=True)
-    
-    id: int
-    created_at: datetime
-    updated_at: datetime
-    family: FamilyResponse
+# class 
+
 
     # @computed_field
     # @property
@@ -179,6 +226,13 @@ class SignupRequest(BaseModel):
     password: str
     name: str
     family_name: str
+
+class SignupResponse(BaseModel):
+    message: str = Field(..., example="User created successfully. Please check your email to verify your account.")
+    user_id: str = Field(..., example="usr_abc123def456")
+    email: str = Field(..., example="user@example.com")
+    created_at: str = datetime.now(timezone.utc).isoformat()
+    requires_verification: bool = Field(default=True)
 
 class EmailVerificationRequest(BaseModel):
     user_id: str

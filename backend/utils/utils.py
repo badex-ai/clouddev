@@ -2,6 +2,7 @@ import httpx
 from fastapi import HTTPException, Depends
 from config.env import get_config
 from functools import lru_cache
+from async_lru import alru_cache
 
 
 
@@ -13,7 +14,7 @@ auth0_client_id = config["auth0_client_id"]
 auth0_m2m_client_id = config["auth0_m2m_client_id"]
 auth0_m2m_client_secret = config["auth0_m2m_client_secret"]
 brevo_api_key = config.get("brevo_api_key") 
-brevo_api_key = config.get("brevo_api_key") 
+
 
 async def send_email(req, html_content):
     """Send custom email using Brevo API"""
@@ -71,7 +72,7 @@ async def send_email(req, html_content):
         
 
 
-@lru_cache()
+@alru_cache(maxsize=1)
 async def get_management_api_token():
     auth0_token_url = f"https://{auth0_domain}/oauth/token"
     
