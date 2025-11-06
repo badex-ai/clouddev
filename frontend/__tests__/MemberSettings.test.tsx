@@ -14,15 +14,13 @@ jest.mock('@/lib/actions/userActions', () => ({
   getFamilymembers: jest.fn(),
 }))
 
+jest.mock('sonner');
+
 // Mock the useAuthUser hook
 jest.mock('@/contexts/userContext', () => ({
   useAuthUser: jest.fn(),
 }))
 
-jest.mock('sonner', () => ({
-  toast: jest.fn(),
-  Toaster: () => null,
-}));
 
 
 

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { Task, TaskStatus } from '@/lib/types'
 import '@testing-library/jest-dom'
 import { useAuthUser } from '@/contexts/userContext'
+import { utcToLocal } from '@/lib/utils';
 
 // Mock the useAuthUser hook
 jest.mock('@/contexts/userContext', () => ({
@@ -138,11 +139,17 @@ describe('TaskComponent', () => {
     expect(screen.getByText('Checklist')).toBeInTheDocument()
     
     // Check individual items
-    mockTask.checklist?.forEach(item => {
-      expect(screen.getByText(item.title)).toBeInTheDocument()
-      const checkbox = screen.getByRole('checkbox', { name: item.title })
-      expect(checkbox).toBeInTheDocument()
-      expect(checkbox).toHaveProperty('checked', item.completed)
+     mockTask.checklist?.forEach(item => {
+    expect(screen.getByText(item.title)).toBeInTheDocument()
+    const checkbox = screen.getByRole('checkbox', { name: item.title })
+    expect(checkbox).toBeInTheDocument()
+    
+    // Use toBeChecked() or not.toBeChecked() instead of toHaveProperty
+    if (item.completed) {
+      expect(checkbox).toBeChecked()
+    } else {
+      expect(checkbox).not.toBeChecked()
+    }
     })
   })
 
@@ -157,7 +164,7 @@ describe('TaskComponent', () => {
       />
     )
 
-    const formattedDate = new Date(mockTask.due_date).toLocaleString()
+    const formattedDate =  utcToLocal(mockTask.due_date)
     expect(screen.getByTitle(/due date/i)).toHaveTextContent(formattedDate)
   })
 })
