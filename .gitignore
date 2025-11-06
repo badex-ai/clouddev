@@ -7,7 +7,7 @@ values-secrets.yaml
 **/.terraform/*
 *.tfstate
 *.tfstate.*
-*.tfvars           # ⚠️ Exclude all tfvars files
+*.tfvars         
 *.tfvars.json
 **/.terraform.lock.hcl
 crash.log
