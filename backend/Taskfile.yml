@@ -1,4 +1,3 @@
-# https://taskfile.dev/
 version: '3'
 
 tasks:
@@ -53,12 +52,37 @@ tasks:
   test:
     desc: Run all tests
     cmds:
-      - pytest
+      - pytest tests/ -v
 
   test:coverage:
     desc: Run tests with coverage report
     cmds:
-      - pytest --cov=app --cov-report=html --cov-report=term
+      - pytest --cov=. --cov-report=html --cov-report=term tests/
+
+  test:perf:
+    desc: Run performance tests only
+    cmds:
+      - pytest -v -m benchmark tests/
+
+  test:users:
+    desc: Run user-related tests only
+    cmds:
+      - pytest tests/test_users -v
+
+  test:tasks:
+    desc: Run task-related tests only
+    cmds:
+      - pytest tests/test_tasks -v
+
+  test:auth:
+    desc: Run authentication-related tests only
+    cmds:
+      - pytest tests/test_auth -v
+
+  test:family:
+    desc: Run family-related tests only
+    cmds:
+      - pytest tests/test_family -v
 
   # Database migrations (if using Alembic)
   db:migrate:

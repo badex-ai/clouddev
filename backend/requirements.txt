@@ -18,3 +18,12 @@ pytest
 pytest-asyncio
 ruff
 async-lru
+
+# Test dependencies
+pytest-mock
+pytest-cov
+pytest-env
+pytest-benchmark
+aioresponses
+faker
+freezegun
