@@ -28,10 +28,12 @@ if config.config_file_name is not None:
 # This tells Alembic about your models
 target_metadata = Base.metadata
 
+
 # Function to get database URL from your existing configuration
 def get_database_url():
     """Get database URL from your existing DatabaseConfig"""
     return DatabaseConfig.get_database_url()
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -68,7 +70,7 @@ def run_migrations_online() -> None:
     # Get the configuration section and override the database URL
     configuration = config.get_section(config.config_ini_section, {})
     configuration["sqlalchemy.url"] = get_database_url()
-    
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
@@ -76,10 +78,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, 
-            target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
