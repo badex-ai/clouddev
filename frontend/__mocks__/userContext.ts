@@ -1,4 +1,4 @@
-import { useAuthUser } from '@/contexts/userContext'
+import { useAuthUser } from '@/contexts/userContext';
 
 export const mockFamilyMember = {
   public_id: '123',
@@ -8,7 +8,7 @@ export const mockFamilyMember = {
   is_active: true,
   family_id: 'fam123',
   username: 'johndoe',
-}
+};
 
 export const mockUserData = {
   family: {
@@ -16,10 +16,10 @@ export const mockUserData = {
     name: 'Test Family',
     members: [mockFamilyMember],
   },
-}
+};
 
 const mock = {
-  useAuthUser: jest.fn()
-}
+  useAuthUser: jest.fn(),
+};
 
-export default mock
+export default mock;
