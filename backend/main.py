@@ -11,19 +11,21 @@ from contextlib import asynccontextmanager
 from config.db import Base, engine
 from utils.error_handler import global_exception_handler
 import structlog
+from utils.error_handler import AppError
 
 # Configure structlog
 structlog.configure(
     processors=[
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.stdlib.add_log_level,
-        structlog.processors.JSONRenderer()
+        structlog.processors.JSONRenderer(),
     ],
 )
 
 logger = structlog.get_logger()
 
 load_dotenv()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,17 +35,22 @@ async def lifespan(app: FastAPI):
         logger.info("database_startup", message="Database tables created successfully")
     except Exception as e:
         logger.error("database_startup_error", error=str(e))
-    
+
     yield
-    
+
     # Shutdown: cleanup if needed
     logger.info("shutdown", message="Application shutting down...")
 
+
 app = FastAPI(lifespan=lifespan)
 
+# Register exception handlers - MUST be before middleware!
+
+
+app.add_exception_handler(AppError, global_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
-test_connection()  
+test_connection()
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,13 +60,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
+
 @app.get("/api/v1/")
 def read_root():
     return {"message": "Welcome to the FastAPI application!"}
+
 
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(user_router, prefix="/api/v1/users", tags=["users"])

@@ -1,4 +1,3 @@
-
 from enum import Enum
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
@@ -21,8 +20,9 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer() if os.getenv("ENVIRONMENT") == "production"
-        else structlog.dev.ConsoleRenderer(colors=True)
+        structlog.processors.JSONRenderer()
+        if os.getenv("ENVIRONMENT") == "production"
+        else structlog.dev.ConsoleRenderer(colors=True),
     ],
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
     context_class=dict,
@@ -35,10 +35,11 @@ logger = structlog.get_logger()
 
 class ErrorCode(str, Enum):
     """Error codes matching frontend ErrorCode enum"""
+
     # Network Errors
     NETWORK_ERROR = "NETWORK_ERROR"
     REQUEST_TIMEOUT = "REQUEST_TIMEOUT"
-    
+
     # API Errors
     BAD_REQUEST = "BAD_REQUEST"
     UNAUTHORIZED = "UNAUTHORIZED"
@@ -47,11 +48,11 @@ class ErrorCode(str, Enum):
     CONFLICT = "CONFLICT"
     VALIDATION_ERROR = "VALIDATION_ERROR"
     RATE_LIMIT = "RATE_LIMIT"
-    
+
     # Server Errors
     INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
     SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
-    
+
     # Client Errors
     UNKNOWN_ERROR = "UNKNOWN_ERROR"
 
@@ -61,26 +62,25 @@ class ErrorMetadata:
     Metadata for error tracking and debugging
     Matches frontend ErrorMetadata interface
     """
-    
+
     def __init__(
         self,
         request_id: Optional[str] = None,
         user_id: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ):
         self.timestamp = datetime.now(timezone.utc).isoformat()
         self.request_id = request_id
         self.user_id = user_id
         self.context = context or {}
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "timestamp": self.timestamp,
             **({"requestId": self.request_id} if self.request_id else {}),
             **({"userId": self.user_id} if self.user_id else {}),
-            **({"context": self.context} if self.context else {})
+            **({"context": self.context} if self.context else {}),
         }
-
 
 
 class AppError(Exception):
@@ -89,10 +89,10 @@ class AppError(Exception):
     1. user_message: Shown to end users (customer-facing) - NEVER technical
     2. technical_message: For customer support/logs - What actually happened
     3. stack_trace + details: For developers debugging - Full context
-    
+
     Matches frontend AppError class structure
     """
-    
+
     def __init__(
         self,
         code: ErrorCode,
@@ -101,7 +101,7 @@ class AppError(Exception):
         user_message: str,
         is_operational: bool = True,
         details: Optional[Dict[str, Any]] = None,
-        metadata: Optional[ErrorMetadata] = None
+        metadata: Optional[ErrorMetadata] = None,
     ):
         self.code = code
         self.status_code = status_code
@@ -111,9 +111,9 @@ class AppError(Exception):
         self.details = details or {}
         self.metadata = metadata or ErrorMetadata()
         self.stack_trace = traceback.format_exc()
-        
+
         super().__init__(self.technical_message)
-    
+
     def to_json_for_client(self) -> Dict[str, Any]:
         """
         Minimal response for client - ONLY user-friendly message
@@ -123,9 +123,9 @@ class AppError(Exception):
             "code": self.code.value,
             "message": self.user_message,  # User-friendly ONLY
             "timestamp": self.metadata.timestamp,
-            **({"details": self.details} if self.details else {})
+            **({"details": self.details} if self.details else {}),
         }
-    
+
     def to_json_for_logging(self) -> Dict[str, Any]:
         """
         Full error details for logging/monitoring (CloudWatch/X-Ray)
@@ -140,9 +140,8 @@ class AppError(Exception):
             "details": self.details,
             "metadata": self.metadata.to_dict(),
             "stack_trace": self.stack_trace if not self.is_operational else None,
-            "environment": os.getenv("ENVIRONMENT", "development")
+            "environment": os.getenv("ENVIRONMENT", "development"),
         }
-
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -152,38 +151,37 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     """
     # If it's already an AppError, use it directly
     if isinstance(exc, AppError):
-        logger.error(
-            "application_error",
-            **exc.to_json_for_logging()
-        )
+        logger.error("application_error", **exc.to_json_for_logging())
         return JSONResponse(
-            status_code=exc.status_code,
-            content=exc.to_json_for_client()
+            status_code=exc.status_code, content=exc.to_json_for_client()
         )
-    
+
     # Handle FastAPI HTTPException
     if isinstance(exc, HTTPException):
         app_error = AppError(
-            code=ErrorCode.BAD_REQUEST if exc.status_code < 500 else ErrorCode.INTERNAL_SERVER_ERROR,
+            code=ErrorCode.BAD_REQUEST
+            if exc.status_code < 500
+            else ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=exc.status_code,
             technical_message=str(exc.detail),
-            user_message=exc.detail if exc.status_code < 500 else "An error occurred processing your request",
+            user_message=exc.detail
+            if exc.status_code < 500
+            else "An error occurred processing your request",
             is_operational=True,
             metadata=ErrorMetadata(
                 request_id=request.headers.get("X-Request-ID"),
-                context={"path": request.url.path, "method": request.method}
-            )
+                context={"path": request.url.path, "method": request.method},
+            ),
         )
         logger.error("http_exception", **app_error.to_json_for_logging())
         return JSONResponse(
-            status_code=app_error.status_code,
-            content=app_error.to_json_for_client()
+            status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
-    
+
     # Handle SQLAlchemy IntegrityError
     if isinstance(exc, IntegrityError):
-        error_message = str(exc.orig) if hasattr(exc, 'orig') else str(exc)
-        
+        error_message = str(exc.orig) if hasattr(exc, "orig") else str(exc)
+
         if "unique constraint" in error_message.lower():
             user_msg = "A record with this information already exists"
             tech_msg = f"Unique constraint violation: {error_message}"
@@ -193,7 +191,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         else:
             user_msg = "Database constraint violation"
             tech_msg = f"Database integrity error: {error_message}"
-        
+
         app_error = AppError(
             code=ErrorCode.CONFLICT,
             status_code=status.HTTP_409_CONFLICT,
@@ -202,15 +200,14 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             is_operational=True,
             metadata=ErrorMetadata(
                 request_id=request.headers.get("X-Request-ID"),
-                context={"path": request.url.path}
-            )
+                context={"path": request.url.path},
+            ),
         )
         logger.error("integrity_error", **app_error.to_json_for_logging())
         return JSONResponse(
-            status_code=app_error.status_code,
-            content=app_error.to_json_for_client()
+            status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
-    
+
     # Handle SQLAlchemy errors
     if isinstance(exc, SQLAlchemyError):
         app_error = AppError(
@@ -221,45 +218,45 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             is_operational=True,
             metadata=ErrorMetadata(
                 request_id=request.headers.get("X-Request-ID"),
-                context={"path": request.url.path}
-            )
+                context={"path": request.url.path},
+            ),
         )
         logger.error("sqlalchemy_error", **app_error.to_json_for_logging())
         return JSONResponse(
-            status_code=app_error.status_code,
-            content=app_error.to_json_for_client()
+            status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
-    
+
     # Handle Auth0/HTTP errors
     if isinstance(exc, httpx.HTTPStatusError):
         try:
             error_data = exc.response.json()
             error_message = (
-                error_data.get('description') or 
-                error_data.get('error_description') or 
-                error_data.get('message') or 
-                'Authentication service error'
+                error_data.get("description")
+                or error_data.get("error_description")
+                or error_data.get("message")
+                or "Authentication service error"
             )
         except:
-            error_message = exc.response.text or 'Unknown authentication error'
-        
+            error_message = exc.response.text or "Unknown authentication error"
+
         app_error = AppError(
-            code=ErrorCode.UNAUTHORIZED if exc.response.status_code == 401 else ErrorCode.BAD_REQUEST,
+            code=ErrorCode.UNAUTHORIZED
+            if exc.response.status_code == 401
+            else ErrorCode.BAD_REQUEST,
             status_code=exc.response.status_code,
             technical_message=f"Auth0 error: {error_message}",
             user_message="Authentication failed. Please try again.",
             is_operational=True,
             metadata=ErrorMetadata(
                 request_id=request.headers.get("X-Request-ID"),
-                context={"auth0_status": exc.response.status_code}
-            )
+                context={"auth0_status": exc.response.status_code},
+            ),
         )
         logger.error("auth0_error", **app_error.to_json_for_logging())
         return JSONResponse(
-            status_code=app_error.status_code,
-            content=app_error.to_json_for_client()
+            status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
-    
+
     # Handle network errors
     if isinstance(exc, httpx.RequestError):
         app_error = AppError(
@@ -270,15 +267,14 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             is_operational=True,
             metadata=ErrorMetadata(
                 request_id=request.headers.get("X-Request-ID"),
-                context={"error_type": type(exc).__name__}
-            )
+                context={"error_type": type(exc).__name__},
+            ),
         )
         logger.error("network_error", **app_error.to_json_for_logging())
         return JSONResponse(
-            status_code=app_error.status_code,
-            content=app_error.to_json_for_client()
+            status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
-    
+
     # Handle all other unexpected errors
     app_error = AppError(
         code=ErrorCode.INTERNAL_SERVER_ERROR,
@@ -288,14 +284,10 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         is_operational=False,
         metadata=ErrorMetadata(
             request_id=request.headers.get("X-Request-ID"),
-            context={"path": request.url.path, "error_type": type(exc).__name__}
-        )
+            context={"path": request.url.path, "error_type": type(exc).__name__},
+        ),
     )
     logger.error("unexpected_error", **app_error.to_json_for_logging())
     return JSONResponse(
-        status_code=app_error.status_code,
-        content=app_error.to_json_for_client()
+        status_code=app_error.status_code, content=app_error.to_json_for_client()
     )
-
-
-
