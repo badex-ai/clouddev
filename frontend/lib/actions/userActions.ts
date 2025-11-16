@@ -2,11 +2,9 @@
 import { CreateNewFamilyMember } from '@/lib/types';
 import { type SignupFormData } from '@/lib/validations/auth';
 import { getConfig } from '../config';
-import { ApiException , NetworkError} from '../utils';
+import { ApiException, NetworkError } from '../utils';
 
 const { apiUrl, nextUrl } = getConfig();
-
-
 
 export async function getUserData(user: any) {
   try {
@@ -40,9 +38,7 @@ export async function getUserData(user: any) {
     }
 
     // Handle network errors (fetch failures)
-    throw new Error(
-      NetworkError
-    );
+    throw new Error(NetworkError);
   }
 }
 
@@ -60,7 +56,7 @@ export async function createNewFamilyMember(userInfo: CreateNewFamilyMember) {
     if (!response.ok) {
       const errorMessage =
         responseData.message || responseData.detail || 'Failed to create family member';
-     
+
       const error = new ApiException('Family member Creation Error', errorMessage);
 
       throw error;
@@ -73,9 +69,7 @@ export async function createNewFamilyMember(userInfo: CreateNewFamilyMember) {
     }
 
     // Handle network errors (fetch failures)
-    throw new Error(
-     NetworkError
-    );
+    throw new Error(NetworkError);
   }
 }
 
@@ -88,11 +82,10 @@ export async function getFamilymembers(familyId: string) {
 
     const responseData = await response.json();
 
-     if (!response.ok) {
-    
+    if (!response.ok) {
       const errorMessage =
         responseData.message || responseData.detail || 'Failed to fetch family member';
-     
+
       const error = new ApiException('Family fetch Error', errorMessage);
 
       throw error;
@@ -100,14 +93,12 @@ export async function getFamilymembers(familyId: string) {
 
     return responseData;
   } catch (error) {
-     if (error instanceof ApiException) {
+    if (error instanceof ApiException) {
       throw error;
     }
 
     // Handle network errors (fetch failures)
-    throw new Error(
-     NetworkError
-    );
+    throw new Error(NetworkError);
   }
 }
 
@@ -122,26 +113,23 @@ export async function deactivateFamilymember(userId: string) {
 
     const responseData = await response.json();
 
-     if (!response.ok) {
-    
+    if (!response.ok) {
       const errorMessage =
         responseData.message || responseData.detail || 'Failed to deactivate family member';
-     
+
       const error = new ApiException('Family member deactivation Error', errorMessage);
 
       throw error;
     }
 
-    return responseData
+    return responseData;
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
     }
 
     // Handle network errors (fetch failures)
-    throw new Error(
-     NetworkError
-    );;
+    throw new Error(NetworkError);
   }
 }
 
@@ -155,25 +143,20 @@ export async function reactivateFamilymember(userId: string) {
     const responseData = await response.json();
 
     if (!response.ok) {
-    
       const errorMessage =
         responseData.message || responseData.detail || 'Failed to deactivate family member';
-     
+
       const error = new ApiException('Family member deactivation Error', errorMessage);
 
       throw error;
     }
-
-   
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
     }
 
     // Handle network errors (fetch failures)
-    throw new Error(
-     NetworkError
-    );
+    throw new Error(NetworkError);
   }
 }
 
@@ -197,23 +180,19 @@ export async function createNewUser(data: SignupFormData, idempotencyKey: string
 
     const responseData = await response.json();
 
-
     if (!response.ok) {
-    
       const errorMessage =
         responseData.message || responseData.detail || 'Failed to create new user';
-     
+
       const error = new ApiException('Signup Error', errorMessage);
 
       throw error;
     }
   } catch (error) {
-     if (error instanceof ApiException) {
+    if (error instanceof ApiException) {
       throw error;
     }
 
-    throw new Error(
-     NetworkError
-    );
+    throw new Error(NetworkError);
   }
 }

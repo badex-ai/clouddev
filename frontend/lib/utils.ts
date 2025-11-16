@@ -30,6 +30,5 @@ export class ApiException extends Error {
   }
 }
 
-export const NetworkError = 'We’re having trouble connecting to the server. Please check your internet connection or try again later.';
-
-
+export const NetworkError =
+  'We’re having trouble connecting to the server. Please check your internet connection or try again later.';

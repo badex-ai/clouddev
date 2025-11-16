@@ -15,7 +15,7 @@ import { addCheckListItem, deleteCheckListItem } from '@/lib/actions/taskActions
 import { ChecklistItemForm, ChecklistSchema } from '@/lib/validations/task';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Label } from '@/components/ui/label'
+import { Label } from '@/components/ui/label';
 
 interface DraggableTaskProps {
   task: Task;
@@ -134,7 +134,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
               </Badge>
             )}
             {task.due_date && (
-              <Badge variant="outline"  title="Due date"className="text-xs">
+              <Badge variant="outline" title="Due date" className="text-xs">
                 <Calendar className="w-3 h-3 mr-1" />
                 {`${utcToLocal(task.due_date)}`}
               </Badge>
@@ -200,19 +200,16 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
                 {task.checklist.map((item) => (
                   <div key={item.id} className="flex items-center mb-1">
                     <Checkbox
-                       id={`checklist-${item.id}`}  
+                      id={`checklist-${item.id}`}
                       name={`checklist.${item.id}`}
                       checked={checkedItems.includes(item.id.toString())}
                       onCheckedChange={(checked: boolean) =>
                         handleCheck(item.id.toString(), checked)
                       }
                     />
-                    <Label 
-          htmlFor={`checklist-${item.id}`}
-          className="ml-2 text-sm text-gray-700"
-        >
-          {item.title}
-        </Label>
+                    <Label htmlFor={`checklist-${item.id}`} className="ml-2 text-sm text-gray-700">
+                      {item.title}
+                    </Label>
                     <Button
                       type="button"
                       variant="ghost"

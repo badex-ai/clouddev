@@ -68,15 +68,16 @@ const KanbanTable: React.FC<KanbanTableProps> = ({
     } else {
       // toast(' you cant move the task to this status');
       toast('Task move failed', {
-              description: 'You cant move the task to this status after movin to in proress, you sould dedicate time to complete te task ',
-              action: {
-                label: 'Close',
-                onClick: () => {
-                  toast.dismiss();
-                },
-              },
-              duration: 4000,
-            });
+        description:
+          'You cant move the task to this status after movin to in proress, you sould dedicate time to complete te task ',
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000,
+      });
     }
     setDraggingTask(null);
     setDragOverColumn(null);

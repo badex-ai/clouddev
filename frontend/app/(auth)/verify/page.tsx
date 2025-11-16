@@ -19,42 +19,38 @@ function VerifyEmailPage() {
   async function handleResendVerificationEmail(id: string) {
     setisLoading(true);
 
-    try{
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/auth/emailVerification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: id }),
+      });
 
-         const response = await fetch(`${apiUrl}/api/v1/auth/emailVerification`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: id }),
-    });
-
-     toast('Email Verification Sent', {
-          description: 'Email verification email as been sent again.',
-         action: {
-            label: 'Close',
-            onClick: () => {
-              toast.dismiss();
-            },
+      toast('Email Verification Sent', {
+        description: 'Email verification email as been sent again.',
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
         },
-          duration: 4000,
-        });
-     
-    }catch(error){
-
-     const message = error instanceof Error ? error.message : String(error);
+        duration: 4000,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       toast('Error sendin email verfication', {
-       description: message,
-       action: {
-         label: 'Close',
-         onClick: () => {
-           toast.dismiss();
-         },
-       },
-       duration: 4000,
-     });
-    }finally{
-       setisLoading(false);
+        description: message,
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000,
+      });
+    } finally {
+      setisLoading(false);
     }
- 
   }
 
   return (

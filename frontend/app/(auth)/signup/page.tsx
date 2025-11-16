@@ -35,7 +35,6 @@ export default function SignupPage() {
     setIsLoading(true);
     // console.log(data, 'SINPU BUTTON CLICKED');
 
-   
     try {
       const idempotencyKey = `signup-${data.email}-${uuidv4()}`;
 
@@ -45,31 +44,31 @@ export default function SignupPage() {
 
       window.location.href = '/verify';
       // toast('Signup successful! Please verify your email.');
-     
-  toast('Signup successful!', {
-    description: 'Please ceck your email and verify ' ,
-    action: {
-      label: "Close",
-      onClick: () => {
-        toast.dismiss();
-      },
-    },
-    duration: 4000, // in ms (default is 4000)
-  });
-} catch (error) {
-  // console.error('Signup error:', error);
-  const message = error instanceof Error ? error.message : String(error);
-  toast('Signup failed', {
-    description: message,
-    action: {
-      label: "Close",
-      onClick: () => {
-        toast.dismiss();
-      },
-    },
-    duration: 4000, // in ms (default is 4000)
-  });
-} finally {
+
+      toast('Signup successful!', {
+        description: 'Please ceck your email and verify ',
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000, // in ms (default is 4000)
+      });
+    } catch (error) {
+      // console.error('Signup error:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      toast('Signup failed', {
+        description: message,
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000, // in ms (default is 4000)
+      });
+    } finally {
       setIsLoading(false);
     }
   };

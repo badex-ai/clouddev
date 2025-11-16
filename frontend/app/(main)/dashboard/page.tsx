@@ -146,16 +146,16 @@ function Dashboard() {
       );
 
       toast('Task deleted', {
-                description: 'Task as been deleted successfully',
-                action: {
-                  label: "Close",
-                  onClick: () => {
-                    toast.dismiss();
-                  },
-                },
-                duration: 4000,
-              });
-    } catch(error) {
+        description: 'Task as been deleted successfully',
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000,
+      });
+    } catch (error) {
       toast('Task', {
         description: 'Task not deleted. Something went wrong when trying to delete the task.',
         action: {
@@ -218,9 +218,9 @@ function Dashboard() {
       setIsDialogOpen(false);
 
       toast('Task creation successful!', {
-        description: 'Your new task as been created ' ,
+        description: 'Your new task as been created ',
         action: {
-          label: "Close",
+          label: 'Close',
           onClick: () => {
             toast.dismiss();
           },
@@ -232,20 +232,19 @@ function Dashboard() {
       // console.log(createdTask, 'bake beans');
 
       setTasks((tasks) => [...tasks, createdTask]);
-     
-    } catch(error) {
+    } catch (error) {
       // toast('Something went wrong while creating the task');
       const message = error instanceof Error ? error.message : String(error);
-            toast('Task creation error', {
-             description: message,
-             action: {
-               label: 'Close',
-               onClick: () => {
-                 toast.dismiss();
-               },
-             },
-             duration: 4000,
-           });
+      toast('Task creation error', {
+        description: message,
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000,
+      });
     } finally {
       setSubmitIsLoading(false);
     }

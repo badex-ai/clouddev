@@ -35,8 +35,7 @@ import {
   reactivateFamilymember,
 } from '@/lib/actions/userActions';
 import { cn } from '@/lib/utils';
-import * as changeCase from "change-case";
-
+import * as changeCase from 'change-case';
 
 export default function MemberSettingsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -110,31 +109,30 @@ export default function MemberSettingsPage() {
         toast('Family Member Created', {
           description: 'A new family member was added successfully.',
           action: {
-            label: "Close",
+            label: 'Close',
             onClick: () => {
               toast.dismiss();
             },
           },
           duration: 4000,
         });
-        
+
         setIsDialogOpen(false);
       }
     } catch (error) {
       // console.log(error, 'tis is te error ');
-     
-      const message = error instanceof Error ? error.message : String(error); 
+
+      const message = error instanceof Error ? error.message : String(error);
       toast('Reactivation failed', {
-       description: message,
-       action: {
-         label: 'Close',
-         onClick: () => {
+        description: message,
+        action: {
+          label: 'Close',
+          onClick: () => {
             toast.dismiss();
           },
         },
-       duration: 4000,
-     });
-      
+        duration: 4000,
+      });
     } finally {
       setSubmitIsLoading(false);
     }
@@ -154,41 +152,38 @@ export default function MemberSettingsPage() {
       console.log(result, 'result for deactivating family member');
 
       // Check for success property instead of truthy result
-      
-        toast('Family member created', {
-                description: 'Your ave successfully created a new family member' ,
-                action: {
-                  label: "Close",
-                  onClick: () => {
-                    toast.dismiss();
-                  },
-                },
-                duration: 4000, // in ms (default is 4000)
-              });
-        
 
-        setFamilyMembers((prev) =>
-          prev.map((member) =>
-            member.public_id === memberId ? { ...member, is_active: false } : member
-          )
-        );
-      
+      toast('Family member created', {
+        description: 'Your ave successfully created a new family member',
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
+          },
+        },
+        duration: 4000, // in ms (default is 4000)
+      });
+
+      setFamilyMembers((prev) =>
+        prev.map((member) =>
+          member.public_id === memberId ? { ...member, is_active: false } : member
+        )
+      );
     } catch (error) {
       console.error('Error deactivating family member:', error);
       // toast(error.message || 'Failed to deactivate family member. Please try again.');
 
       const message = error instanceof Error ? error.message : String(error);
-        toast('Deactivation failed', {
-          description: message,
-          action: {
-            label: "Close",
-            onClick: () => {
-              toast.dismiss();
-            },
+      toast('Deactivation failed', {
+        description: message,
+        action: {
+          label: 'Close',
+          onClick: () => {
+            toast.dismiss();
           },
-          duration: 4000, // in ms (default is 4000)
-        });
-
+        },
+        duration: 4000, // in ms (default is 4000)
+      });
     }
   }
 
@@ -203,7 +198,7 @@ export default function MemberSettingsPage() {
       toast('Family Member Reactivated', {
         description: 'The family member was reactivated successfully.',
         action: {
-          label: "Close",
+          label: 'Close',
           onClick: () => {
             toast.dismiss();
           },
@@ -363,7 +358,7 @@ export default function MemberSettingsPage() {
                   {member.role != 'admin' && !member.is_active && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" aria-label="Open menu" >
+                        <Button variant="ghost" size="sm" aria-label="Open menu">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
