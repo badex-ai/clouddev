@@ -57,6 +57,19 @@ COPY . .
 
 RUN python -m compileall .
 
+FROM deps AS celery-worker
+
+COPY . .
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+# 🔥 Celery worker with autoscaling
+CMD ["celery", "-A", "config.celery.celery_app", "worker", \
+    "--loglevel=info", \
+    "--concurrency=4", \
+    "--max-tasks-per-child=1000"]
+
 
 FROM base AS devk8s
 

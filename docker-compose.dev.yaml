@@ -21,13 +21,93 @@ services:
       AUTH0_API_AUDIENCE: ${AUTH0_API_AUDIENCE}
       AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
       AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      # 🔥 Redis (local Docker - not ElastiCache)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_PASSWORD: ""
+      REDIS_USE_SSL: "false"
+      # 🔥 Celery Broker (same Redis, different DB)
+      CELERY_BROKER_HOST: redis
+      CELERY_BROKER_PORT: 6379
+      CELERY_BROKER_DB: 1
+      CELERY_BROKER_PASSWORD: ""
+      CELERY_BROKER_USE_SSL: "false"
+      # 🔥 Celery Result Backend
+      CELERY_RESULT_HOST: redis
+      CELERY_RESULT_PORT: 6379
+      CELERY_RESULT_DB: 2
+      CELERY_RESULT_PASSWORD: ""
+      CELERY_RESULT_USE_SSL: "false"
     volumes:
       - ./logs:/app/logs
       - ./backend:/app
       - /app/__pycache__  # Exclude pycache from host
+    depends_on:
+      - postgres
+      - redis
     # Development-specific settings
     tty: true
     stdin_open: true
+
+
+  # 🔥 Celery Worker (separate container)
+  celery-worker:
+    build:
+      context: ./backend
+      target: celery-worker
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      # Database
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Auth0
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
+      AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      # 🔥 Redis (local)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_PASSWORD: ""
+      REDIS_USE_SSL: "false"
+      # 🔥 Celery
+      CELERY_BROKER_HOST: redis
+      CELERY_BROKER_PORT: 6379
+      CELERY_BROKER_DB: 1
+      CELERY_BROKER_PASSWORD: ""
+      CELERY_BROKER_USE_SSL: "false"
+      CELERY_RESULT_HOST: redis
+      CELERY_RESULT_PORT: 6379
+      CELERY_RESULT_DB: 2
+      CELERY_RESULT_PASSWORD: ""
+      CELERY_RESULT_USE_SSL: "false"
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    depends_on:
+      - redis
+      - postgres
+
+  # 🔥 Redis (LOCAL ONLY - not in K8s, use ElastiCache there)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
     
   frontend:
     build:
