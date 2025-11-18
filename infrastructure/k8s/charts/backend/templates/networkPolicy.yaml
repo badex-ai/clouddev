@@ -88,3 +88,35 @@ spec:
         {{- end }}
     {{- end }}
 {{- end }}
+{{- if .Values.networkPolicy.egress.allowRedis }}
+    # 🔥 Redis/ElastiCache access
+    - to:
+      {{- if .Values.networkPolicy.egress.redis.useIPBlock }}
+        # For ElastiCache (AWS) - use IP block
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.egress.redis.cidr }}
+      {{- else }}
+        # For local Redis (if running in K8s) - use pod selector
+        - podSelector:
+            matchLabels:
+{{ toYaml .Values.networkPolicy.egress.redis.podSelector | indent 14 }}
+      {{- end }}
+      ports:
+        - protocol: TCP
+          port: 6379
+    {{- end }}
+
+    {{- if .Values.networkPolicy.egress.allowExternal }}
+    # 🔥 Allow external HTTPS (Auth0, Brevo)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 169.254.169.254/32  # Block AWS metadata service
+      ports:
+        {{- range .Values.networkPolicy.egress.externalPorts }}
+        - protocol: TCP
+          port: {{ . }}
+        {{- end }}
+    {{- end }}
+{{- end }}

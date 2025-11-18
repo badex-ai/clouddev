@@ -74,3 +74,40 @@ backend:
         DB_NAME: "clouddev"
         DB_USER: "ali"
         ENVIRONMENT: "devk8s"
+        # 🔥 NEW: Redis config (points to Docker Compose Redis)
+        REDIS_HOST: "host.docker.internal"
+        REDIS_PORT: "6379"
+        REDIS_DB: "0"
+        REDIS_USE_SSL: "false"
+        # 🔥 NEW: Celery broker
+        CELERY_BROKER_HOST: "host.docker.internal"
+        CELERY_BROKER_PORT: "6379"
+        CELERY_BROKER_DB: "1"
+        CELERY_BROKER_USE_SSL: "false"
+        # 🔥 NEW: Celery result backend
+        CELERY_RESULT_HOST: "host.docker.internal"
+        CELERY_RESULT_PORT: "6379"
+        CELERY_RESULT_DB: "2"
+        CELERY_RESULT_USE_SSL: "false"
+
+  celeryWorker:
+    replicaCount: 1
+
+  # 🔥 NEW: Network policy for Redis access
+  networkPolicy:
+    egress:
+      allowDatabase: true
+      database:
+        useIPBlock: false
+        podSelector:
+          app.kubernetes.io/name: postgresql
+        port: 5432
+      # 🔥 NEW: Allow Redis access
+      allowRedis: true
+      redis:
+        useIPBlock: false
+      # 🔥 NEW: Allow external (Auth0, Brevo)
+      allowExternal: true
+      externalPorts:
+        - 443
+        - 80

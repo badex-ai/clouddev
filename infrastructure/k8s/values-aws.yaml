@@ -54,3 +54,56 @@ frontend:
     port: 80
     targetPort: 3000
 
+backend:
+  configMap:
+    data:
+      AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
+      AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
+      AUTH0_API_AUDIENCE: "https://api.myapp.com"
+      AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
+      DB_HOST: "my-rds-endpoint.us-east-1.rds.amazonaws.com"
+      DB_PORT: "5432"
+      DB_NAME: "clouddev"
+      DB_USER: "admin"
+      ENVIRONMENT: "production"
+      # 🔥 NEW: ElastiCache endpoint (from Terraform output)
+      REDIS_HOST: "my-elasticache.abc123.use1.cache.amazonaws.com"
+      REDIS_PORT: "6379"
+      REDIS_DB: "0"
+      REDIS_USE_SSL: "true"
+      # 🔥 NEW: Celery broker (same ElastiCache)
+      CELERY_BROKER_HOST: "my-elasticache.abc123.use1.cache.amazonaws.com"
+      CELERY_BROKER_PORT: "6379"
+      CELERY_BROKER_DB: "1"
+      CELERY_BROKER_USE_SSL: "true"
+      # 🔥 NEW: Celery result backend
+      CELERY_RESULT_HOST: "my-elasticache.abc123.use1.cache.amazonaws.com"
+      CELERY_RESULT_PORT: "6379"
+      CELERY_RESULT_DB: "2"
+      CELERY_RESULT_USE_SSL: "true"
+  
+  # 🔥 NEW: Scale workers for production
+  celeryWorker:
+    replicaCount: 2
+  
+  # 🔥 NEW: Network policy for ElastiCache
+  networkPolicy:
+    egress:
+      allowDatabase: true
+      database:
+        useIPBlock: true
+        cidr: "10.0.0.0/16"  # Your VPC CIDR
+        port: 5432
+      # 🔥 NEW: Allow ElastiCache access
+      # 🔥 NEW: ElastiCache access
+      allowRedis: true
+      redis:
+        useIPBlock: true
+        cidr: "10.0.0.0/16"  # Same VPC as EKS
+      
+      # 🔥 NEW: Allow external (Auth0, Brevo)
+      allowExternal: true
+      externalPorts:
+        - 443
+        - 80
+

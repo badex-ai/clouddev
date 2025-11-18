@@ -105,6 +105,12 @@ volumes:
             path: AUTH0_M2M_CLIENT_SECRET
           - key: DB_PASSWORD
             path: DB_PASSWORD
+          - key: REDIS_PASSWORD
+            path: REDIS_PASSWORD
+          - key: CELERY_BROKER_PASSWORD
+            path: CELERY_BROKER_PASSWORD
+          - key: CELERY_RESULT_PASSWORD
+            path: CELERY_RESULT_PASSWORD
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
@@ -152,3 +158,12 @@ vpc:
 # Security configuration
 securityGroupId: "" 
 
+celeryWorker:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
