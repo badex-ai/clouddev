@@ -123,7 +123,7 @@ export default function MemberSettingsPage() {
       // console.log(error, 'tis is te error ');
 
       const message = error instanceof Error ? error.message : String(error);
-      toast('Reactivation failed', {
+      toast('Family member creation Error', {
         description: message,
         action: {
           label: 'Close',
@@ -137,55 +137,50 @@ export default function MemberSettingsPage() {
       setSubmitIsLoading(false);
     }
   };
-
-  async function handleDeactivateFamilyMember(memberId: string) {
-    // console.log(memberId, 'this is the member id');
-
-    try {
-      if (!memberId) {
-        console.log('No memberId provided');
-        return;
-      }
-
-      console.log('About to call deactivateFamilymember');
-      const result = await deactivateFamilymember(memberId);
-      console.log(result, 'result for deactivating family member');
-
-      // Check for success property instead of truthy result
-
-      toast('Family member created', {
-        description: 'Your ave successfully created a new family member',
-        action: {
-          label: 'Close',
-          onClick: () => {
-            toast.dismiss();
-          },
-        },
-        duration: 4000, // in ms (default is 4000)
-      });
-
-      setFamilyMembers((prev) =>
-        prev.map((member) =>
-          member.public_id === memberId ? { ...member, is_active: false } : member
-        )
-      );
-    } catch (error) {
-      console.error('Error deactivating family member:', error);
-      // toast(error.message || 'Failed to deactivate family member. Please try again.');
-
-      const message = error instanceof Error ? error.message : String(error);
-      toast('Deactivation failed', {
-        description: message,
-        action: {
-          label: 'Close',
-          onClick: () => {
-            toast.dismiss();
-          },
-        },
-        duration: 4000, // in ms (default is 4000)
-      });
+ async function handleDeactivateFamilyMember(memberId: string) {
+  try {
+    if (!memberId) {
+      console.log('No memberId provided');
+      return;
     }
+
+    console.log('About to call deactivateFamilymember');
+    await deactivateFamilymember(memberId); // No result to capture
+    console.log('Successfully deactivated family member');
+
+    // Success - update UI
+    toast('Family member deactivated', {
+      description: 'You have successfully deactivated the family member',
+      action: {
+        label: 'Close',
+        onClick: () => {
+          toast.dismiss();
+        },
+      },
+      duration: 4000,
+    });
+
+    setFamilyMembers((prev) =>
+      prev.map((member) =>
+        member.public_id === memberId ? { ...member, is_active: false } : member
+      )
+    );
+  } catch (error) {
+    console.error('Error deactivating family member:', error);
+
+    const message = error instanceof Error ? error.message : String(error);
+    toast('Deactivation failed', {
+      description: message,
+      action: {
+        label: 'Close',
+        onClick: () => {
+          toast.dismiss();
+        },
+      },
+      duration: 4000,
+    });
   }
+}
 
   async function handleReactivateFamilyMember(memberId: string) {
     console.log(memberId, 'this is the member id');
