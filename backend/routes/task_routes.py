@@ -28,23 +28,23 @@ async def create_task_route(
 
 
 @router.delete(
-    "/{task_id}/checklist/{checklist_id}", status_code=status.HTTP_204_NO_CONTENT
+    "/{task_id}/checklist/{checklist_id}",response_model=TaskResponse,status_code=status.HTTP_200_OK
 )
 async def delete_checklist_item_route(
     task_id: str, checklist_id: str, db: Session = Depends(get_db)
-) -> None:
+) -> TaskResponse:
     logger.info(f"Deleting checklist item: {checklist_id} from task: {task_id}")
     return await delete_checklist_item(task_id, checklist_id, db)
 
 
 @router.post(
     "/{task_id}/checklist",
-    response_model=ChecklistItem,
+    response_model=TaskResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def add_checklist_item_route(
     task_id: str, req: ChecklistItem = Body(...), db: Session = Depends(get_db)
-) -> ChecklistItem:
+) -> TaskResponse:
     logger.info(f"Adding checklist item to task: {task_id}")
     return await add_checklist_item(task_id, req, db)
 
