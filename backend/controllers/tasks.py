@@ -1,5 +1,5 @@
 from config.celery import celery_app
-from utils.utils import send_email
+from utils.utils import send_email, send_email_sync
 from utils.email_templates import FAMILY_MEMBER_WELCOME_EMAIL, VERIFICATION_EMAIL
 import httpx
 from structlog import get_logger
@@ -17,7 +17,8 @@ def send_welcome_email_task(
         )
 
         email_req = type("obj", (object,), {"email": email})()
-        send_email(email_req, formatted_email)
+        # send_email(email_req, formatted_email)
+        send_email_sync(email_req, formatted_email) 
 
         logger.info("welcome_email_sent", email=email)
         return {"status": "success", "email": email}

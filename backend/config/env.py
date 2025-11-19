@@ -72,6 +72,7 @@ def get_config() -> dict:
     celery_result_port = int(os.getenv("CELERY_RESULT_PORT", "6379"))
     celery_result_db = int(os.getenv("CELERY_RESULT_DB", "2"))
     celery_result_use_ssl = os.getenv("CELERY_RESULT_USE_SSL", "false").lower() == "true"
+    sender_email =os.getenv("BREVO_SENDER_EMAIL")
 
     # Build URLs using non-sensitive config + sensitive passwords
     redis_url = build_url(redis_host, redis_port, redis_db, redis_password, redis_use_ssl)
@@ -110,6 +111,7 @@ def get_config() -> dict:
         "redis_url": redis_url,
         "celery_broker_url": celery_broker_url,
         "celery_result_backend": celery_result_backend,
+        "sender_email": sender_email
 
         
     }

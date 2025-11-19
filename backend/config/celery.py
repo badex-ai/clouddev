@@ -7,7 +7,7 @@ load_dotenv()
 config = get_config()
 
 celery_app = Celery(
-    "tasks",
+    "kabancelery",
     broker=config["celery_broker_url"],
     backend=config["celery_result_backend"],
 )
@@ -19,3 +19,4 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+celery_app.autodiscover_tasks(['controllers'])

@@ -335,6 +335,7 @@ async def create_family_member(
                 details={"email": req.email, "auth0_user_id": auth0_user_id}
             )
 
+        logger.info("I am about to send te email")
         # Send welcome email (async, non-blocking)
         send_welcome_email_task.delay(
             email=req.email,

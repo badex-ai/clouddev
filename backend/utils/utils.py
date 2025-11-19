@@ -13,6 +13,7 @@ auth0_client_id = config["auth0_client_id"]
 auth0_m2m_client_id = config["auth0_m2m_client_id"]
 auth0_m2m_client_secret = config["auth0_m2m_client_secret"]
 brevo_api_key = config.get("brevo_api_key")
+brevo_sender_email=config["sender_email"]
 
 
 async def send_email(req, html_content):
@@ -31,7 +32,7 @@ async def send_email(req, html_content):
     }
 
     payload = {
-        "sender": {"name": "Kaban App", "email": "king.ibadmad@gmail.com"},
+        "sender": {"name": "Kaban App", "email": brevo_sender_email},
         "to": [{"email": req.email, "name": req.name}],
         "subject": "Verify your email address",
         "htmlContent": html_content,  # ⭐ Changed: removed curly braces
@@ -59,6 +60,27 @@ async def send_email(req, html_content):
                 status_code=500, detail="Failed to send verification email"
             )
 
+
+def send_email_sync(email_req, body: str):
+    """Synchronous version for Celery tasks"""
+    
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": config["brevo_api_key"],
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "sender": {"email": brevo_sender_email, "name": "Kaban App"},
+        "to": [{"email": email_req.email}],
+        "subject": "Welcome to Kaban",
+        "htmlContent": body
+    }
+   
+    with httpx.Client(timeout=30.0) as client:
+        response = client.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        return response.json()
 
 @alru_cache(maxsize=1)
 async def get_management_api_token():
