@@ -78,18 +78,26 @@ export async function deleteTask(taskId: string) {
       },
     });
 
-    const responseData = await response.json();
-    // console.log(responseData, 'error from response')
+   
+     if (!response.ok) {
+      // For non-204 error responses, try to parse error details
+      let errorMessage = 'Failed to deactivate family member';
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.detail || errorMessage;
+      } catch {
+        // If parsing fails, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
 
-    if (!response.ok) {
-      const errorMessage = responseData.message || responseData.detail || 'Failed to delete task';
-
-      const error = new ApiException('Task Error', errorMessage);
-
+      const error = new ApiException('Task Deletion Error', errorMessage);
       throw error;
     }
 
-    return responseData;
+    
+
+    return ;
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
@@ -100,7 +108,7 @@ export async function deleteTask(taskId: string) {
   }
 }
 
-export async function addCheckListItem(taskId: string, checkListItem: ChecklistItem) {
+export async function addCheckListItem(taskId: string, checkListItem: Omit<ChecklistItem, 'id'>) {
   try {
     const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist`, {
       method: 'POST',

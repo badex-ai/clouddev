@@ -111,22 +111,30 @@ export async function deactivateFamilymember(userId: string) {
       headers: { 'Content-Type': 'application/json' },
     });
 
-    const responseData = await response.json();
+   
 
     if (!response.ok) {
-      const errorMessage =
-        responseData.message || responseData.detail || 'Failed to deactivate family member';
+      // For non-204 error responses, try to parse error details
+      let errorMessage = 'Failed to deactivate family member';
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.detail || errorMessage;
+      } catch {
+        // If parsing fails, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
 
       const error = new ApiException('Family member deactivation Error', errorMessage);
-
       throw error;
     }
 
-    return responseData;
+    return 
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
     }
+    console.log(error)
 
     // Handle network errors (fetch failures)
     throw new Error(NetworkError);
@@ -140,16 +148,25 @@ export async function reactivateFamilymember(userId: string) {
       headers: { 'Content-Type': 'application/json' },
     });
 
-    const responseData = await response.json();
+   
 
-    if (!response.ok) {
-      const errorMessage =
-        responseData.message || responseData.detail || 'Failed to deactivate family member';
+     if (!response.ok) {
+      // For non-204 error responses, try to parse error details
+      let errorMessage = 'Failed to deactivate family member';
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.detail || errorMessage;
+      } catch {
+        // If parsing fails, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
 
-      const error = new ApiException('Family member deactivation Error', errorMessage);
-
+      const error = new ApiException('Family member reactivation Error', errorMessage);
       throw error;
     }
+
+    return 
   } catch (error) {
     if (error instanceof ApiException) {
       throw error;
