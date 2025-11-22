@@ -32,10 +32,12 @@ def build_url(host: str, port: int, db: int, password: str = "", use_ssl: bool =
     return f"{protocol}://{host}:{port}/{db}"
 
 
-@lru_cache()
 def get_config() -> dict:
     """Get configuration based on environment"""
     environment = os.getenv("ENVIRONMENT")
+    
+    # Log environment for debugging
+    print(f"[CONFIG] Loading configuration for environment: {environment}")
 
     # If NOT localdev, read secrets from /etc/secrets/
     if environment != "dev":
@@ -57,22 +59,23 @@ def get_config() -> dict:
         redis_password = os.getenv("REDIS_PASSWORD", "")
         celery_broker_password = os.getenv("CELERY_BROKER_PASSWORD", "")
         celery_result_password = os.getenv("CELERY_RESULT_PASSWORD", "")
-     # Non-sensitive configuration - always from environment variables
-    redis_host = os.getenv("REDIS_HOST", "localhost")
-    redis_port = int(os.getenv("REDIS_PORT", "6379"))
-    redis_db = int(os.getenv("REDIS_DB", "0"))
+    # Non-sensitive configuration - always from environment variables
+    # STRICT: Use os.environ to fail fast if missing
+    redis_host = os.environ["REDIS_HOST"]
+    redis_port = int(os.environ["REDIS_PORT"])
+    redis_db = int(os.environ["REDIS_DB"])
     redis_use_ssl = os.getenv("REDIS_USE_SSL", "false").lower() == "true"
     
-    celery_broker_host = os.getenv("CELERY_BROKER_HOST", "localhost")
-    celery_broker_port = int(os.getenv("CELERY_BROKER_PORT", "6379"))
-    celery_broker_db = int(os.getenv("CELERY_BROKER_DB", "1"))
+    celery_broker_host = os.environ["CELERY_BROKER_HOST"]
+    celery_broker_port = int(os.environ["CELERY_BROKER_PORT"])
+    celery_broker_db = int(os.environ["CELERY_BROKER_DB"])
     celery_broker_use_ssl = os.getenv("CELERY_BROKER_USE_SSL", "false").lower() == "true"
     
-    celery_result_host = os.getenv("CELERY_RESULT_HOST", "localhost")
-    celery_result_port = int(os.getenv("CELERY_RESULT_PORT", "6379"))
-    celery_result_db = int(os.getenv("CELERY_RESULT_DB", "2"))
+    celery_result_host = os.environ["CELERY_RESULT_HOST"]
+    celery_result_port = int(os.environ["CELERY_RESULT_PORT"])
+    celery_result_db = int(os.environ["CELERY_RESULT_DB"])
     celery_result_use_ssl = os.getenv("CELERY_RESULT_USE_SSL", "false").lower() == "true"
-    sender_email =os.getenv("BREVO_SENDER_EMAIL")
+    sender_email = os.environ["BREVO_SENDER_EMAIL"]
 
     # Build URLs using non-sensitive config + sensitive passwords
     redis_url = build_url(redis_host, redis_port, redis_db, redis_password, redis_use_ssl)
@@ -84,6 +87,11 @@ def get_config() -> dict:
         celery_result_host, celery_result_port, celery_result_db, 
         celery_result_password, celery_result_use_ssl
     )
+
+    # Log configuration (without sensitive data)
+    print(f"[CONFIG] Redis URL: redis://{redis_host}:{redis_port}/{redis_db}")
+    print(f"[CONFIG] Celery Broker URL: redis://{celery_broker_host}:{celery_broker_port}/{celery_broker_db}")
+    print(f"[CONFIG] Celery Result Backend: redis://{celery_result_host}:{celery_result_port}/{celery_result_db}")
 
     
 
