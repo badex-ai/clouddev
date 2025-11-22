@@ -5,6 +5,7 @@ metadata:
   name: {{ include "backend.fullname" . }}-hpa
   labels:
     {{- include "backend.labels" . | nindent 4 }}
+  namespace: {{ .Values.global.namespace }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
