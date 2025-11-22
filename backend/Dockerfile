@@ -29,7 +29,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 
 #DEV
-FROM deps AS development
+FROM deps AS dev
 
 COPY . .
 RUN chown -R appuser:appgroup /app
