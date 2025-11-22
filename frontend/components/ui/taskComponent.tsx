@@ -9,7 +9,7 @@ import { utcToLocal } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthUser } from '@/contexts/userContext';
-import { Plus } from 'lucide-react';
+import { Spinner } from "@/components/ui/spinner"
 import { Input } from '@/components/ui/input';
 import { addCheckListItem, deleteCheckListItem } from '@/lib/actions/taskActions';
 import { ChecklistItemForm, ChecklistSchema } from '@/lib/validations/task';
@@ -46,7 +46,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors,isSubmitting },
     reset,
   } = useForm<ChecklistItemForm>({
     resolver: zodResolver(ChecklistSchema),
@@ -66,10 +66,10 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
     // console.log('checklist ietem deleted', taskId)
     try {
       const result = await deleteCheckListItem(taskId, itemId);
-      if (result.ok) {
-        const updatedTask = await result.json();
+      
+        const updatedTask =  result;
         onTaskUpdate(updatedTask);
-      }
+     
     } catch {
       // console.log()
     }
@@ -88,7 +88,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
       const result = await addCheckListItem(task.public_id, newCheckList);
       // Handle successful submission
 
-      const updatedTask = await result.json();
+      const updatedTask = result;
       reset(); // Reset the form after successful submission
       setOpenAddChecklistItem(false);
       onTaskUpdate(updatedTask);
@@ -174,18 +174,29 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
                     </g>
                   </svg>
                 </div>
-                <Plus className="h-4 w-4 text-gray-600 " />
+                
               </Button>
               {openAddChecklistItem && (
                 <div className="z-4 w-[14rem] bg-gray py-1 px-2 absolute top-[0] left-[40]">
                   <form onSubmit={handleSubmit(onSubmitChecklist)}>
-                    <Input
+                    <div className='relative'>
+                       <Input
                       {...register('subtask')}
                       onKeyDown={handleKeyPress}
                       className="h-7"
                       placeholder="add new check item"
                       autoFocus
                     />
+                    { 
+                     isSubmitting && 
+                       <div className=' absolute top-1.5 right-1.5'>
+                      <Spinner />
+                    </div>
+                    }
+                   
+                    
+                    </div>
+                   
                     {errors.subtask && (
                       <p className="text-red-500 text-xs mt-1">{errors.subtask.message}</p>
                     )}
