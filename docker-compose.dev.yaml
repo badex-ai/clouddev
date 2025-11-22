@@ -3,7 +3,7 @@
 services:
   backend:
     build:
-      target: development  # Override to use development stage
+      target: dev # Override to use development stage
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
@@ -22,24 +22,29 @@ services:
       AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
       AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
       BREVO_API_KEY: ${BREVO_API_KEY}
-      # 🔥 Redis (local Docker - not ElastiCache)
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      REDIS_PASSWORD: ""
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_USE_SSL: "false"
-      # 🔥 Celery Broker (same Redis, different DB)
-      CELERY_BROKER_HOST: redis
-      CELERY_BROKER_PORT: 6379
-      CELERY_BROKER_DB: 1
-      CELERY_BROKER_PASSWORD: ""
+
+      CELERY_BROKER_HOST: ${CELERY_BROKER_HOST}
+      CELERY_BROKER_PORT: ${CELERY_BROKER_PORT}
+      CELERY_BROKER_DB: ${CELERY_BROKER_DB}
+      CELERY_BROKER_PASSWORD: ${CELERY_BROKER_PASSWORD}
       CELERY_BROKER_USE_SSL: "false"
-      # 🔥 Celery Result Backend
-      CELERY_RESULT_HOST: redis
-      CELERY_RESULT_PORT: 6379
-      CELERY_RESULT_DB: 2
-      CELERY_RESULT_PASSWORD: ""
+     
+
+      # Celery Result Backend
+      CELERY_RESULT_HOST: ${CELERY_RESULT_HOST}
+      CELERY_RESULT_PORT: ${CELERY_RESULT_PORT}
+      CELERY_RESULT_DB: ${CELERY_RESULT_DB}
+      CELERY_RESULT_PASSWORD: ${CELERY_RESULT_PASSWORD}
       CELERY_RESULT_USE_SSL: "false"
+   
+ 
+     
     volumes:
       - ./logs:/app/logs
       - ./backend:/app
@@ -59,6 +64,7 @@ services:
       target: celery-worker
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
+      DOCKER_CONTAINER: "true" 
       # Database
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -70,23 +76,31 @@ services:
       AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
       AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
       BREVO_API_KEY: ${BREVO_API_KEY}
+      # Redis
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+
       # 🔥 Redis (local)
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      REDIS_PASSWORD: ""
+    
       REDIS_USE_SSL: "false"
-      # 🔥 Celery
-      CELERY_BROKER_HOST: redis
-      CELERY_BROKER_PORT: 6379
-      CELERY_BROKER_DB: 1
-      CELERY_BROKER_PASSWORD: ""
+
+      CELERY_BROKER_HOST: ${CELERY_BROKER_HOST}
+      CELERY_BROKER_PORT: ${CELERY_BROKER_PORT}
+      CELERY_BROKER_DB: ${CELERY_BROKER_DB}
+      CELERY_BROKER_PASSWORD: ${CELERY_BROKER_PASSWORD}
       CELERY_BROKER_USE_SSL: "false"
-      CELERY_RESULT_HOST: redis
-      CELERY_RESULT_PORT: 6379
-      CELERY_RESULT_DB: 2
-      CELERY_RESULT_PASSWORD: ""
+
+   
+
+      CELERY_RESULT_HOST: ${CELERY_RESULT_HOST}
+      CELERY_RESULT_PORT: ${CELERY_RESULT_PORT}
+      CELERY_RESULT_DB: ${CELERY_RESULT_DB}
+      CELERY_RESULT_PASSWORD: ${CELERY_RESULT_PASSWORD}
       CELERY_RESULT_USE_SSL: "false"
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     volumes:
       - ./backend:/app
       - /app/__pycache__
@@ -111,7 +125,7 @@ services:
     
   frontend:
     build:
-      target: development  # Override to use development stage  
+      target: dev # Override to use development stage  
     command: npm run dev
     environment:
       NODE_ENV: development
@@ -130,6 +144,7 @@ services:
       # App config
       APP_BASE_URL: ${APP_BASE_URL}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      BACKEND_URL: ${BACKEND_URL}
     volumes:
       # Enable hot reloading by mounting source code
       - ./frontend:/app
@@ -142,3 +157,6 @@ services:
   postgres:
       ports:
         - "5433:5432" 
+  
+volumes:
+  redis_data:

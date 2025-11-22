@@ -19,6 +19,18 @@ services:
       retries: 5
       start_period: 30s
   
+  redis:
+    image: redis:7-alpine
+    container_name: kaban_redis-container
+    restart: unless-stopped
+    networks:
+      - kaban_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  
   backend: 
     image: badex360/kaban-backend:latest
     build: 
@@ -44,6 +56,22 @@ services:
       timeout: 30s
       retries: 3
       start_period: 40s
+  
+  celery-worker:
+    image: badex360/kaban-celery:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: celery-worker
+    container_name: kaban_celery-container
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - kaban_network
 
   frontend: 
     image: badex360/kaban-frontend:latest
@@ -71,6 +99,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   kaban_network: 
