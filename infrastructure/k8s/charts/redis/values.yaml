@@ -1,0 +1,44 @@
+# Default values for redis subchart
+enabled: true
+
+# Image configuration
+image:
+  repository: redis
+  tag: 7-alpine
+  pullPolicy: IfNotPresent
+
+# Resource limits
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# Redis configuration
+config:
+  maxmemory: "256mb"
+  maxmemoryPolicy: "allkeys-lru"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 6379
+
+
+
+# Health checks
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3

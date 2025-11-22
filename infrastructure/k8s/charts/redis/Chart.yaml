@@ -1,0 +1,6 @@
+apiVersion: v2
+name: redis
+description: Redis cache and message broker for local development
+type: application
+version: 0.1.0
+appVersion: "7.0"
