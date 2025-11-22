@@ -1,10 +1,13 @@
+global:
+  namespace: kaban 
+
 ingress:
   enabled: true
   className: nginx  # nginx for local
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
   hosts:
-    - host: frontend.local    # fake local domain for frontend
+    - host: kaban.local    # fake local domain for frontend
       paths:
         - path: /
           pathType: Prefix
@@ -13,7 +16,7 @@ ingress:
               name: kaban-frontend-service
               port:
                 number: 80
-    - host: backend.local     # fake local domain for backend
+    - host: api.kaban.local      # fake local domain for backend
       paths:
         - path: /
           pathType: Prefix
@@ -24,7 +27,6 @@ ingress:
                 number: 80
 
 
-namespace: local-dev
 
 networkPolicy:
   egress:
@@ -75,17 +77,17 @@ backend:
         DB_USER: "ali"
         ENVIRONMENT: "devk8s"
         # 🔥 NEW: Redis config (points to Docker Compose Redis)
-        REDIS_HOST: "host.docker.internal"
+        REDIS_HOST: "kaban-redis"
         REDIS_PORT: "6379"
         REDIS_DB: "0"
         REDIS_USE_SSL: "false"
         # 🔥 NEW: Celery broker
-        CELERY_BROKER_HOST: "host.docker.internal"
+        CELERY_BROKER_HOST: "kaban-redis"
         CELERY_BROKER_PORT: "6379"
         CELERY_BROKER_DB: "1"
         CELERY_BROKER_USE_SSL: "false"
         # 🔥 NEW: Celery result backend
-        CELERY_RESULT_HOST: "host.docker.internal"
+        CELERY_RESULT_HOST: "kaban-redis"
         CELERY_RESULT_PORT: "6379"
         CELERY_RESULT_DB: "2"
         CELERY_RESULT_USE_SSL: "false"
@@ -106,8 +108,15 @@ backend:
       allowRedis: true
       redis:
         useIPBlock: false
+        podSelector:
+          app.kubernetes.io/name: redis
+        port: 6379
       # 🔥 NEW: Allow external (Auth0, Brevo)
       allowExternal: true
       externalPorts:
         - 443
         - 80
+
+
+  redis:
+    enabled: true  # Deploy Redis in local-dev
