@@ -182,42 +182,59 @@ tasks:
       - curl -f http://localhost:8000/health || echo "❌ Backend unhealthy"
     silent: true
 
-  health-frontend:
+  health-frontendk8s:
     desc: "Check frontend health"
     cmds:
-      - curl -f http://localhost:3000/ || echo "❌ Frontend unhealthy"
+      # 🔥 CHANGED: Updated domain names
+      - curl -f http://kaban.local/ || echo "❌ Frontend unhealthy"
     silent: true
 
   health-backendk8s:
     desc: "Check backend health"
     cmds:
-      - curl -f http://backend.local/health || echo "❌ Backend unhealthy"
+      # 🔥 CHANGED: Updated domain names
+      - curl -f http://api.kaban.local/health || echo "❌ Backend unhealthy"
     silent: true
 
-  health-frontendk8s:
-    desc: "Check frontend health"
-    cmds:
-      - curl -f http://frontend.local/ || echo "❌ Frontend unhealthy"
-    silent: true
+  
   
   helm-install-devk8s:
     desc: "Install Kanban Helm chart with local configurations"
     dir: ./infrastructure/k8s
     cmds:
-      - helm install kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml
+      - helm install kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml --namespace kaban --create-namespace
   
   helm-upgrade-devk8s:
     desc: "Upgrade Kanban Helm chart"
     dir: ./infrastructure/k8s
     cmds:
-      - helm upgrade kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml
+      - helm upgrade kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml --namespace kaban
   
   helm-uninstall-devk8s:
     desc: "Uninstall Kanban Helm chart"
     cmds:
-      - helm uninstall kaban
+      - helm uninstall kaban --namespace kaban
   
+  helm-lint:
+    desc: "Lint Helm chart"
+    dir: ./infrastructure/k8s
+    cmds:
+      - helm lint .
 
+  helm-dry-run-devk8s:
+    desc: "Dry run Helm installation (server-side validation)"
+    dir: ./infrastructure/k8s
+    cmds:
+      - helm install kaban . -f values.yaml -f values-local.yaml -f values-secrets.yaml --namespace kaban --create-namespace --dry-run=server --debug
+
+  
+  setup-k8s-local:
+    desc: "Complete K8s local setup (validate + install + configure hosts)"
+    cmds:
+      - task: helm-lint
+      - task: helm-dry-run-devk8s
+      - ./infrastructure/scripts/setup-local-k8s.sh  # Your bash script
+  
   # ======================
   # HELP
   # ======================
