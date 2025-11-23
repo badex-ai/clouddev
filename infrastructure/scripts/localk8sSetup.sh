@@ -16,7 +16,7 @@ echo -e "${BLUE}=== Starting Local K8s Setup ===${NC}\n"
 # ========== CLEANUP FUNCTION ==========
 cleanup() {
   echo -e "${YELLOW}Rolling back: Uninstalling Helm release 'kaban'...${NC}"
-  helm uninstall kaban || true
+  hhelm uninstall kaban --namespace kaban || true 
   echo -e "${RED}Rollback complete. Exiting setup.${NC}"
 }
 trap 'cleanup' ERR  # Trigger rollback if any command fails
@@ -29,19 +29,21 @@ cd ./infrastructure/k8s
 helm install kaban . \
   -f values.yaml \
   -f values-local.yaml \
-  -f values-secrets.yaml
+  -f values-secrets.yaml \
+  --namespace kaban \
+  --create-namespace
 
 echo -e "${GREEN}✓ Helm chart installed successfully${NC}\n"
 
 # Wait for Kubernetes services to come up
-echo -e "${YELLOW}Waiting for services to be ready (10s)...${NC}"
-sleep 10
+echo -e "${YELLOW}Waiting for services to be ready (15s)...${NC}"  # 🔥 Changed from 10s to 15s
+sleep 15 
 
 # STEP 2: Retrieve Service Cluster IPs
 echo -e "${GREEN}Step 2: Getting service IPs...${NC}"
 cd ../..  # Return to root
 
-kubectl get service -n local-dev
+kubectl get service -n kaban 
 
 FRONTEND_IP=$(kubectl get service -n local-dev -o jsonpath='{.items[?(@.metadata.name=="kaban-frontend-service")].spec.clusterIP}')
 BACKEND_IP=$(kubectl get service -n local-dev -o jsonpath='{.items[?(@.metadata.name=="kaban-backend-service")].spec.clusterIP}')
@@ -59,8 +61,8 @@ echo -e "${BLUE}Backend IP:${NC} $BACKEND_IP\n"
 # STEP 3: Safely update /etc/hosts atomically
 echo -e "${GREEN}Step 3: Updating /etc/hosts...${NC}"
 
-HOSTS_ENTRY_FRONTEND="$FRONTEND_IP\tfrontend.local"
-HOSTS_ENTRY_BACKEND="$BACKEND_IP\tbackend.local"
+HOSTS_ENTRY_FRONTEND="$FRONTEND_IP\tkaban.local"  # 🔥 Changed from frontend.local to kaban.local
+HOSTS_ENTRY_BACKEND="$BACKEND_IP\tapi.kaban.local" 
 
 echo -e "${YELLOW}Preparing atomic /etc/hosts update...${NC}"
 
@@ -74,14 +76,14 @@ sudo cp /etc/hosts "$TEMP_HOSTS"
 sudo chown $USER:$USER "$TEMP_HOSTS"
 
 # Remove any previous frontend.local or backend.local entries
-sed -i '/frontend\.local\|backend\.local/d' "$TEMP_HOSTS"
+sed -i '/kaban\.local\|api\.kaban\.local/d' "$TEMP_HOSTS" 
 
 # Insert entries BEFORE the IPv6 comment section
 # This places them after localhost entries but before IPv6 section
 sed -i "/^# The following lines are desirable for IPv6/i $HOSTS_ENTRY_FRONTEND\n$HOSTS_ENTRY_BACKEND" "$TEMP_HOSTS"
 
 # Verify temp file contains both new entries
-if ! grep -q "frontend.local" "$TEMP_HOSTS" || ! grep -q "backend.local" "$TEMP_HOSTS"; then
+if ! grep -q "kaban.local" "$TEMP_HOSTS" || ! grep -q "api.kaban.local" "$TEMP_HOSTS"; then  # 🔥 Changed domain names
   echo -e "${RED}Error: Verification failed — entries missing from temp hosts file${NC}"
   rm -f "$TEMP_HOSTS"  # Clean up temp file
   exit 1
@@ -94,15 +96,14 @@ sudo mv "$TEMP_HOSTS" /etc/hosts
 # Verify changes took effect
 echo -e "${GREEN}✓ /etc/hosts updated successfully${NC}\n"
 echo -e "${BLUE}Current /etc/hosts entries:${NC}"
-grep -E "frontend.local|backend.local" /etc/hosts || {
+grep -E "kaban.local|api.kaban.local" /etc/hosts || {  # 🔥 Changed domain names
   echo -e "${RED}Error: Entries not found after replacement${NC}"
   exit 1
 }
-
 # =================== SUCCESS ===================
 trap - ERR  # Disable rollback trap since everything succeeded
 echo -e "\n${GREEN}=== Setup Complete! ===${NC}"
-echo -e "${BLUE}Frontend:${NC} http://frontend.local"
-echo -e "${BLUE}Backend:${NC} http://backend.local\n"
-echo -e "${YELLOW}Check pods with: kubectl get pods -n local-dev${NC}"
+echo -e "${BLUE}Frontend:${NC} http://kaban.local"  # 🔥 Changed domain
+echo -e "${BLUE}Backend:${NC} http://api.kaban.local\n"  # 🔥 Changed domain
+echo -e "${YELLOW}Check pods with: kubectl get pods -n kaban${NC}" 
 # =================================================
