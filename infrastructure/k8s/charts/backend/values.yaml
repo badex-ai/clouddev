@@ -84,39 +84,38 @@ affinity: {}
 
 configMap:
   enabled: true
+  data: {}
 
 
 # 🔒 Secrets (sensitive data)
 secrets:
     enabled: true
 
-
-
 volumes:
-    - name: backend-secrets-volume
-      secret:
-        # secretName: kaban-backend-secrets
-        defaultMode: 0440
-        optional: false
-        items:
-          - key: AUTH0_CLIENT_SECRET
-            path: AUTH0_CLIENT_SECRET
-          - key: AUTH0_M2M_CLIENT_SECRET
-            path: AUTH0_M2M_CLIENT_SECRET
-          - key: DB_PASSWORD
-            path: DB_PASSWORD
-          - key: REDIS_PASSWORD
-            path: REDIS_PASSWORD
-          - key: CELERY_BROKER_PASSWORD
-            path: CELERY_BROKER_PASSWORD
-          - key: CELERY_RESULT_PASSWORD
-            path: CELERY_RESULT_PASSWORD
+  - name: backend-secrets-volume
+    secret:
+      optional: false
+      items:
+        - key: AUTH0_CLIENT_SECRET
+          path: AUTH0_CLIENT_SECRET
+        - key: AUTH0_M2M_CLIENT_SECRET
+          path: AUTH0_M2M_CLIENT_SECRET
+        - key: DB_PASSWORD
+          path: DB_PASSWORD
+        - key: REDIS_PASSWORD
+          path: REDIS_PASSWORD
+        - key: CELERY_BROKER_PASSWORD
+          path: CELERY_BROKER_PASSWORD
+        - key: CELERY_RESULT_PASSWORD
+          path: CELERY_RESULT_PASSWORD
+        - key: BREVO_API_KEY
+          path: BREVO_API_KEY
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
-    - name: backend-secrets-volume
-      mountPath: /etc/secrets
-      readOnly: true
+  - name: backend-secrets-volume
+    mountPath: /etc/secrets
+    readOnly: true
 
 
 # NetworkPolicy configuration

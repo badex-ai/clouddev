@@ -67,14 +67,14 @@ spec:
                   key: {{ $key }}
             {{- end }}
 
-          {{- with .Values.volumeMounts }}
+          {{- if .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
           {{- end }}
 
-      {{- with .Values.volumes }}
+      {{- if .Values.volumes }}
       volumes:
-        {{- range . }}
+        {{- range .Values.volumes }}
         - name: {{ .name }}
           secret:
             secretName: {{ include "backend.fullname" $ }}-secrets
