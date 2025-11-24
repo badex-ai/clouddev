@@ -1,4 +1,3 @@
-
 FROM python:3.11-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -34,7 +33,7 @@ FROM deps AS dev
 COPY . .
 RUN chown -R appuser:appgroup /app
 
-USER appuser
+USER 1001  
 
 ENV DEBUG=true \
     LOG_LEVEL=debug
@@ -62,7 +61,7 @@ FROM deps AS celery-worker
 COPY . .
 RUN chown -R appuser:appgroup /app
 
-USER appuser
+USER 1001  
 
 # 🔥 Celery worker with autoscaling
 CMD ["celery", "-A", "config.celery.celery_app", "worker", \
@@ -71,20 +70,13 @@ CMD ["celery", "-A", "config.celery.celery_app", "worker", \
     "--max-tasks-per-child=1000"]
 
 
-FROM base AS devk8s
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
+FROM deps AS devk8s
 
 COPY --from=builder /app .
 
-
 RUN chown -R appuser:appgroup /app
 
-USER appuser
-
+USER 1001 
 
 ENV ENVIRONMENT=devk8s \
     DEBUG=true \
@@ -94,24 +86,20 @@ EXPOSE 8000
 
 # Health check (stricter for production)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
-    CMD curl -f http://backend.local/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Production command (using gunicorn for better performance)
 CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", \
     "--error-logfile", "-", \
     "--log-level", "info"]
 
-FROM base AS staging
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+FROM deps AS staging
 
 COPY --from=builder /app .
 
 RUN chown -R appuser:appgroup /app
 
-USER appuser
+USER 1001  
 
 ENV ENVIRONMENT=staging \
     DEBUG=false \
@@ -131,7 +119,7 @@ CMD ["gunicorn", "main:app", \
     "--log-level", "info"]
 
 
-FROM base AS production
+FROM deps AS production
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
@@ -143,7 +131,7 @@ COPY --from=builder /app .
 
 RUN chown -R appuser:appgroup /app
 
-USER appuser
+USER 1001  
 
 
 ENV ENVIRONMENT=production \
