@@ -16,7 +16,7 @@ echo -e "${BLUE}=== Starting Local K8s Setup ===${NC}\n"
 # ========== CLEANUP FUNCTION ==========
 cleanup() {
   echo -e "${YELLOW}Rolling back: Uninstalling Helm release 'kaban'...${NC}"
-  hhelm uninstall kaban --namespace kaban || true 
+  helm uninstall kaban --namespace kaban || true 
   echo -e "${RED}Rollback complete. Exiting setup.${NC}"
 }
 trap 'cleanup' ERR  # Trigger rollback if any command fails
@@ -45,13 +45,13 @@ cd ../..  # Return to root
 
 kubectl get service -n kaban 
 
-FRONTEND_IP=$(kubectl get service -n local-dev -o jsonpath='{.items[?(@.metadata.name=="kaban-frontend-service")].spec.clusterIP}')
-BACKEND_IP=$(kubectl get service -n local-dev -o jsonpath='{.items[?(@.metadata.name=="kaban-backend-service")].spec.clusterIP}')
+FRONTEND_IP=$(kubectl get service -n kaban -o jsonpath='{.items[?(@.metadata.name=="kaban-frontend-service")].spec.clusterIP}')
+BACKEND_IP=$(kubectl get service -n kaban -o jsonpath='{.items[?(@.metadata.name=="kaban-backend-service")].spec.clusterIP}')
 
 if [ -z "$FRONTEND_IP" ] || [ -z "$BACKEND_IP" ]; then
   echo -e "${RED}Error: Could not retrieve service ClusterIPs${NC}"
   echo -e "${YELLOW}Available services:${NC}"
-  kubectl get service -n local-dev -o custom-columns=NAME:.metadata.name,CLUSTER-IP:.spec.clusterIP
+  kubectl get service -n kaban -o custom-columns=NAME:.metadata.name,CLUSTER-IP:.spec.clusterIP
   exit 1
 fi
 

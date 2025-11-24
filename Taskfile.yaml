@@ -233,7 +233,7 @@ tasks:
     cmds:
       - task: helm-lint
       - task: helm-dry-run-devk8s
-      - ./infrastructure/scripts/setup-local-k8s.sh  # Your bash script
+      - ./infrastructure/scripts/localk8sSetup.sh  # Your bash script
   
   # ======================
   # HELP
