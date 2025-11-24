@@ -23,3 +23,4 @@ firsttfplan       # Your specific plan file
 
 # Test files
 test.txt
+backend/verify_celery_config.py
