@@ -28,22 +28,12 @@ ingress:
 
 
 
-networkPolicy:
-  egress:
-    # Database access
-    allowDatabase: true
-    database:
-      useIPBlock: false
-      podSelector:
-        app.kubernetes.io/name: postgresql
-      port: 5432
-
-
 database:
   host: "192.168.0.110"  # Your local PostgreSQL host
   port: 5432
   name: "clouddev"
   user: "ali"
+  local: true
 
 
 frontend:
@@ -54,69 +44,72 @@ frontend:
   
   configMap:
     data:
-      AUTH0_BASE_URL: "http://frontend.local"
+      AUTH0_BASE_URL: "http://kaban.local"
       AUTH0_ISSUER_BASE_URL: "dev-b58ldaey.us.auth0.com"
       AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
       AUTH0_SCOPE: "openid profile email"
       AUTH0_AUDIENCE: "https://dev-b58ldaey.us.auth0.com/userinfo"
-      APP_BASE_URL: "http://frontend.local"
+      APP_BASE_URL: "http://kaban.local"
       AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
-      NEXT_PUBLIC_API_URL: "http://backend.local"
+      NEXT_PUBLIC_API_URL: "http://api.kaban.local"
       ENVIRONMENT: "devk8s"
       BACKEND_URL: "http://kaban-backend-service"
+
+
 backend: 
   configMap: 
       data:
         AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
         AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
-        AUTH0_API_AUDIENCE: "http://frontend.local"
+        AUTH0_API_AUDIENCE: "http://kaban.local"
         AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
-        DB_HOST: "postgres-service" #"192.168.0.110"   or RDS endpoint
+        DB_HOST:  "192.168.0.110"   # RDS endpoint
         DB_PORT: "5432"
         DB_NAME: "clouddev"
         DB_USER: "ali"
         ENVIRONMENT: "devk8s"
         # 🔥 NEW: Redis config (points to Docker Compose Redis)
-        REDIS_HOST: "kaban-redis"
+        REDIS_HOST: "192.168.0.110"
         REDIS_PORT: "6379"
         REDIS_DB: "0"
         REDIS_USE_SSL: "false"
         # 🔥 NEW: Celery broker
-        CELERY_BROKER_HOST: "kaban-redis"
+        CELERY_BROKER_HOST: "192.168.0.110"
         CELERY_BROKER_PORT: "6379"
         CELERY_BROKER_DB: "1"
         CELERY_BROKER_USE_SSL: "false"
         # 🔥 NEW: Celery result backend
-        CELERY_RESULT_HOST: "kaban-redis"
+        CELERY_RESULT_HOST: "192.168.0.110"
         CELERY_RESULT_PORT: "6379"
         CELERY_RESULT_DB: "2"
         CELERY_RESULT_USE_SSL: "false"
 
   celeryWorker:
     replicaCount: 1
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
 
   # 🔥 NEW: Network policy for Redis access
   networkPolicy:
+    ingress:
+      ingressControllerNamespace:
+        kubernetes.io/metadata.name: ingress
     egress:
       allowDatabase: true
       database:
-        useIPBlock: false
-        podSelector:
-          app.kubernetes.io/name: postgresql
+        useIPBlock: true
+        cidr: "192.168.0.110/32"
         port: 5432
-      # 🔥 NEW: Allow Redis access
       allowRedis: true
       redis:
-        useIPBlock: false
-        podSelector:
-          app.kubernetes.io/name: redis
-        port: 6379
-      # 🔥 NEW: Allow external (Auth0, Brevo)
-      allowExternal: true
-      externalPorts:
-        - 443
-        - 80
+        useIPBlock: true              # TRUE for external
+        cidr: "192.168.0.110/32"     
 
 
   redis:
-    enabled: true  # Deploy Redis in local-dev
+    enabled: false  # Deploy Redis in local-dev
