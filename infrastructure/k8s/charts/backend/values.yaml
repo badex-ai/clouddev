@@ -128,28 +128,35 @@ networkPolicy:
     allowFromIngressController: true
     ingressControllerNamespace:
       kubernetes.io/metadata.name: ingress
-  
+
   egress:
     dnsSelector:
       k8s-app: kube-dns
-    dnsNamespaceSelector:
-      kubernetes.io/metadata.name: kube-system
     
-    # DATABASE CONFIGURATION - ADD THIS!
-    allowDatabase: true
+    allowDatabase: false
     database:
-      useIPBlock: true  # Because DB is outside cluster
-      cidr: "192.168.0.110/32"  # Your host IP
+      useIPBlock: false
+      cidr: ""
+      podSelector: {}
       port: 5432
     
-    allowADOT: false
+    allowRedis: false
+    redis:
+      useIPBlock: false
+      cidr: ""
+      podSelector: {}
+      port: 6379
     
-    # Allow external HTTPS for Auth0
+    allowADOT: false
+    adot:
+      podSelector: {}
+      ports: []
+    
     allowExternal: true
     externalPorts:
       - 443
       - 80
-
+  
 
 vpc:
   cidr: "10.0.0.0/16" 
@@ -166,3 +173,6 @@ celeryWorker:
     limits:
       memory: "512Mi"
       cpu: "500m"
+
+redis:
+    enabled: true  

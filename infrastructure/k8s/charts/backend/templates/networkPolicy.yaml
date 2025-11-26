@@ -27,36 +27,35 @@ spec:
     {{- end }}
 
     {{- if .Values.networkPolicy.ingress.allowFromIngressController }}
-    # Allow from Ingress Controller (nginx or ALB controller)
+    # Allow from Ingress Controller
     - from:
         - namespaceSelector:
             matchLabels:
-    {{ toYaml .Values.networkPolicy.ingress.ingressControllerNamespace | indent 12 }}
+              {{- toYaml .Values.networkPolicy.ingress.ingressControllerNamespace | nindent 14 }}
       ports:
         - protocol: TCP
           port: {{ .Values.container.port }}
     {{- end }}
 
   egress:
-    {{- if .Values.networkPolicy.egress.dnsSelector }}
+    # 1. DNS - CRITICAL for service discovery
     - to:
         - namespaceSelector:
             matchLabels:
-              {{- toYaml .Values.networkPolicy.egress.dnsNamespaceSelector | nindent 10 }}
+              kubernetes.io/metadata.name: kube-system
           podSelector:
             matchLabels:
-              {{- toYaml .Values.networkPolicy.egress.dnsSelector | nindent 10 }}
+              k8s-app: kube-dns
       ports:
         - protocol: UDP
           port: 53
         - protocol: TCP
           port: 53
-    {{- end }}
 
     {{- if .Values.networkPolicy.egress.allowDatabase }}
-    # 2. Database (PostgreSQL pod or RDS)
+    # 2. Database (PostgreSQL)
     {{- if .Values.networkPolicy.egress.database.useIPBlock }}
-    # For RDS (AWS) - use IP block
+    # For external DB (host machine or RDS)
     - to:
         - ipBlock:
             cidr: {{ .Values.networkPolicy.egress.database.cidr }}
@@ -64,54 +63,59 @@ spec:
         - protocol: TCP
           port: {{ .Values.networkPolicy.egress.database.port }}
     {{- else }}
-    # For local PostgreSQL pod - use pod selector
+    # For in-cluster PostgreSQL
     - to:
         - podSelector:
             matchLabels:
-{{ toYaml .Values.networkPolicy.egress.database.podSelector | indent 14 }}
+              {{- toYaml .Values.networkPolicy.egress.database.podSelector | nindent 14 }}
       ports:
         - protocol: TCP
           port: {{ .Values.networkPolicy.egress.database.port }}
     {{- end }}
     {{- end }}
 
-    {{- if .Values.networkPolicy.egress.allowADOT }}
-    # 3. ADOT Collector (if exists)
+    {{- if .Values.networkPolicy.egress.allowRedis }}
+    # 3. Redis/ElastiCache
+    {{- if .Values.networkPolicy.egress.redis.useIPBlock }}
+    # For ElastiCache (AWS)
+    - to:
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.egress.redis.cidr }}
+      ports:
+        - protocol: TCP
+          port: 6379
+    {{- else }}
+    # For in-cluster Redis
     - to:
         - podSelector:
             matchLabels:
-{{ toYaml .Values.networkPolicy.egress.adot.podSelector | indent 14 }}
+              {{- toYaml .Values.networkPolicy.egress.redis.podSelector | nindent 14 }}
+      ports:
+        - protocol: TCP
+          port: 6379
+    {{- end }}
+    {{- end }}
+
+    {{- if .Values.networkPolicy.egress.allowADOT }}
+    # 4. ADOT Collector
+    - to:
+        - podSelector:
+            matchLabels:
+              {{- toYaml .Values.networkPolicy.egress.adot.podSelector | nindent 14 }}
       ports:
         {{- range .Values.networkPolicy.egress.adot.ports }}
         - protocol: TCP
           port: {{ . }}
         {{- end }}
-{{- end }}
-{{- if .Values.networkPolicy.egress.allowRedis }}
-    # 🔥 Redis/ElastiCache access
-    - to:
-      {{- if .Values.networkPolicy.egress.redis.useIPBlock }}
-        # For ElastiCache (AWS) - use IP block
-        - ipBlock:
-            cidr: {{ .Values.networkPolicy.egress.redis.cidr }}
-      {{- else }}
-        # For local Redis (if running in K8s) - use pod selector
-        - podSelector:
-            matchLabels:
-{{ toYaml .Values.networkPolicy.egress.redis.podSelector | indent 14 }}
-      {{- end }}
-      ports:
-        - protocol: TCP
-          port: 6379
     {{- end }}
 
     {{- if .Values.networkPolicy.egress.allowExternal }}
-    # 🔥 Allow external HTTPS (Auth0, Brevo)
+    # 5. External HTTPS (Auth0, Brevo)
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
             except:
-              - 169.254.169.254/32  # Block AWS metadata service
+              - 169.254.169.254/32
       ports:
         {{- range .Values.networkPolicy.egress.externalPorts }}
         - protocol: TCP
