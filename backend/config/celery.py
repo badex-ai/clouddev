@@ -8,24 +8,11 @@ from .env import get_config
 
 load_dotenv()
 
-
-# Check if .env file exists
-# env_file_path = os.path.join(os.getcwd(), '.env')
-
-# print(f"[CELERY] .env file exists: {os.path.exists(env_file_path)}")
-
-
-print("[CELERY] Running locally - loaded .env file")
-
-print("[CELERY] Running in Docker - using environment variables")
 print(os.getenv("CELERY_BROKER_URL"), "tis it te broker url ")
 print(os.getenv("CELERY_RESULT_BACKEND"), "tis it te result backend")
 
 
-# Import config after load_dotenv
-# from .env import get_config
 
-# Get configuration (fails fast if env vars missing)
 print("[CELERY] Initializing Celery configuration...")
 try:
     config = get_config()
@@ -41,15 +28,9 @@ result_backend = config.get("celery_result_backend")
 
 
 if not result_backend or result_backend == "":
-    print("[CELERY] CRITICAL ERROR: result_backend is None or empty!")
     sys.exit(1)
 
-print(f"[CELERY] Final broker URL: {broker_url}")
-print(f"[CELERY] Final result backend: {result_backend}")
 
-# Log the broker URL being used (for debugging)
-print(f"[CELERY] Using broker: {config['celery_broker_url']}")
-print(f"[CELERY] Using result backend: {config['celery_result_backend']}")
 
 # Initialize Celery with explicit URLs
 celery_app = Celery(
