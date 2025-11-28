@@ -9,12 +9,6 @@ image:
 
 
 
-namespace: "local-dev"
-
-
-
-
-
 configMap:
   enabled: true
   
@@ -22,14 +16,9 @@ configMap:
 # Secrets (sensitive data)
 secrets:
     enabled: true
-#     mountPath: /etc/secrets  # Where secrets will be mounted
-#     data:
-#       AUTH0_SECRET: "REPLACE_ME"
-#       AUTH0_CLIENT_SECRET: "REPLACE_ME"
-
 
   
-  # VolumeMount configuration
+# VolumeMount configuration
 volumeMounts:
 
 service:
@@ -47,7 +36,26 @@ resources:
 
 networkPolicy: 
   enabled: true
+  ingress:
+    allowFromIngressController: false  # Default to false
+    ingressControllerNamespace:
+      kubernetes.io/metadata.name: kube-system  # Default namespace
 
+  egress:
+    allowDNS: true  # Always needed
+    
+    allowBackend: true  # Default to false
+    backend:
+      appLabel: backend
+      ports: []  # Empty by default
+    
+    allowADOT: true  # Default to false
+    adot:
+      appLabel: adot-collector
+      ports: []
+    
+    allowExternal: true  # Default to false
+    externalPorts: []
 
 livenessProbe:
   httpGet:

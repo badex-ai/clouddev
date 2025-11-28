@@ -24,7 +24,7 @@ ingress:
             service:
               name: kaban-backend-service
               port:
-                number: 80
+                number: 8000
 
 
 
@@ -53,10 +53,46 @@ frontend:
       AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
       NEXT_PUBLIC_API_URL: "http://api.kaban.local"
       ENVIRONMENT: "devk8s"
-      BACKEND_URL: "http://kaban-backend-service"
+      BACKEND_URL: "http://kaban-backend-service:8000"
+
+
+  networkPolicy:
+    enabled: true
+    ingress:
+      # Allow traffic from Ingress Controller (nginx)
+      allowFromIngressController: true
+      ingressControllerNamespace:
+        kubernetes.io/metadata.name: ingress  # or kube-system, check your ingress namespace
+    
+    egress:
+      # Allow DNS resolution
+      allowDNS: true
+      
+      # Allow backend communication
+      allowBackend: true
+      backend:
+        appLabel: backend
+        ports: [80, 8000]
+      
+      # Allow ADOT Collector (if you're using observability)
+      allowADOT: true
+      adot:
+        appLabel: adot-collector
+        ports:
+          - 4317
+          - 4318
+      
+      # Allow external HTTPS (for Auth0, etc)
+      allowExternal: true
+      externalPorts:
+        - 443   # HTTPS
+        - 80  
 
 
 backend: 
+  container:
+    port: 8000
+  
   configMap: 
       data:
         AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"

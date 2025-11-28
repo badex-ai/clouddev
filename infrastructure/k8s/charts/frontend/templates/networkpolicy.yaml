@@ -16,17 +16,20 @@ spec:
   
   # 🌐 WHO can send traffic TO frontend
   ingress:
-  # Allow from ALB/kube-system
+  {{- if .Values.networkPolicy.ingress.allowFromIngressController }}
+  # Allow from Ingress Controller
   - from:
     - namespaceSelector:
         matchLabels:
-          kubernetes.io/metadata.name: kube-system
+          {{- toYaml .Values.networkPolicy.ingress.ingressControllerNamespace | nindent 10 }}
     ports:
     - protocol: TCP
       port: {{ .Values.container.port }}
+  {{- end }}
 
   # 🌐 WHERE frontend can send traffic TO
   egress:
+  {{- if .Values.networkPolicy.egress.allowDNS }}
   # 1. DNS
   - to:
       - namespaceSelector:
@@ -40,36 +43,45 @@ spec:
         port: 53
       - protocol: TCP
         port: 53
+  {{- end }}
 
+  {{- if .Values.networkPolicy.egress.allowBackend }}
   # 2. Backend service
   - to:
     - podSelector:
         matchLabels:
-          app: backend
+          app: {{ .Values.networkPolicy.egress.backend.appLabel }}
     ports:
+    {{- range .Values.networkPolicy.egress.backend.ports }}
     - protocol: TCP
-      port: 8000
+      port: {{ . }}
+    {{- end }}
+  {{- end }}
 
+  {{- if .Values.networkPolicy.egress.allowADOT }}
   # 3. ADOT Collector
   - to:
     - podSelector:
         matchLabels:
-          app: adot-collector
+          app: {{ .Values.networkPolicy.egress.adot.appLabel }}
     ports:
+    {{- range .Values.networkPolicy.egress.adot.ports }}
     - protocol: TCP
-      port: 4317
-    - protocol: TCP
-      port: 4318
+      port: {{ . }}
+    {{- end }}
+  {{- end }}
 
-  # 4. Internet access (HTTP/HTTPS)
+  {{- if .Values.networkPolicy.egress.allowExternal }}
+  # 4. External access (HTTP/HTTPS)
   - to:
     - ipBlock:
         cidr: 0.0.0.0/0
         except:
-        - 169.254.169.254/32  # Block AWS metadata
+        - 169.254.169.254/32
     ports:
+    {{- range .Values.networkPolicy.egress.externalPorts }}
     - protocol: TCP
-      port: 443
-    - protocol: TCP
-      port: 80
+      port: {{ . }}
+    {{- end }}
+  {{- end }}
 {{- end }}

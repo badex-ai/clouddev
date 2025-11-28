@@ -37,7 +37,7 @@ spec:
               service:
                 name: {{ .backend.service.name }}
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ .backend.service.port.number }} 
           {{- end }}
     {{- end }}
 {{- end }}
