@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.global.namespace }}
   labels:
     {{- include "backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ .Values.component }} 
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -12,6 +13,7 @@ spec:
   selector:
     matchLabels:
       {{- include "backend.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ .Values.component }} 
   template:
     metadata:
       labels:
@@ -19,6 +21,7 @@ spec:
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+        app.kubernetes.io/component: {{ .Values.component }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}

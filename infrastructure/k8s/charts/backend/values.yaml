@@ -18,6 +18,7 @@ namespace: "local-dev"
 # This is for setting Kubernetes Annotations to a Pod.
 podAnnotations: {}
 podLabels: {}
+component: api
 
 podSecurityContext: {}
   # fsGroup: 2000
