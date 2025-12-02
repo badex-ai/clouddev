@@ -1,6 +1,10 @@
 global:
   namespace: kaban 
 
+
+externalSecrets:
+  enabled: false  
+
 ingress:
   enabled: true
   className: nginx  # nginx for local
@@ -88,6 +92,10 @@ frontend:
         - 443   # HTTPS
         - 80  
 
+  externalSecrets:
+    enabled: false  # ← Uses secret.yaml with values-secrets.yaml
+  
+
 
 backend: 
   container:
@@ -121,6 +129,17 @@ backend:
         CELERY_RESULT_USE_SSL: "false"
         CELERY_BROKER_URL: redis://:foobared@192.168.0.110:6379/1
         CELERY_RESULT_BACKEND: redis://:foobared@192.168.0.110:6379/2
+  externalSecrets:
+    enabled: false  # ← Uses secret.yaml with values-secrets.yaml
+  
+  image:
+    repository: kaban-backend
+    tag: latest
+    pullPolicy: Never  # Use local image
+
+  config:
+    DATABASE_URL: "postgresql://postgres:foobared@host.docker.internal:5432/kaban"
+    REDIS_URL: "redis://:foobared@kaban-redis:6379/0"
 
   celeryWorker:
     replicaCount: 1

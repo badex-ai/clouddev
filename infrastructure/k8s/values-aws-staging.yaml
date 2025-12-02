@@ -35,6 +35,19 @@ frontend:
     type: loadBalancer
     port: 80
     targetPort: 3000
+  externalSecrets:
+    enabled: true
+    refreshInterval: "1h"
+    secretName: "kaban/staging/frontend"  # ← Matches Terraform secret name
+  
+  image:
+    repository: your-dockerhub-username/kaban-frontend
+    tag: latest
+    pullPolicy: Always
+
+  config:
+    AUTH0_ISSUER_BASE_URL: "https://your-tenant.auth0.com"
+
 
 backend:
   configMap:
@@ -90,6 +103,20 @@ backend:
         ports:
           - 4317
           - 4318
+  externalSecrets:
+    enabled: true
+    refreshInterval: "1h"
+    secretName: "kaban/staging/backend"  # ← Matches Terraform secret name
+  
+  image:
+    repository: your-dockerhub-username/kaban-backend
+    tag: latest
+    pullPolicy: Always
+
+  config:
+    # Non-sensitive config only - secrets come from External Secrets
+    AUTH0_DOMAIN: "your-tenant.auth0.com"
+    AUTH0_AUDIENCE: "your-api-audience"
 
 redis:
   # Storage
