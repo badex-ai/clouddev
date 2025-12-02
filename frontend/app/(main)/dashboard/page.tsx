@@ -3,7 +3,6 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { CreateTask, Task } from '@/lib/types';
 import KanbanTable from '@/components/ui/kanbanTable';
-import AddTaskModal from '@/components/ui/addTaskModal';
 import { useAuthUser } from '@/contexts/userContext';
 import { format, parseISO, formatISO, parse } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
