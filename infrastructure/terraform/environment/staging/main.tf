@@ -19,7 +19,7 @@ provider "aws" {
   default_tags {
     tags = {
       Project     = var.project_name
-      Environment = "dev"
+      Environment = "staging" # ← CHANGE from "dev" to "staging"
       ManagedBy   = "terraform"
     }
   }
@@ -28,27 +28,27 @@ provider "aws" {
 module "app_platform" {
   source = "../../modules/app-platform"
 
-  environment  = "dev"
+  environment  = "staging" # ← CHANGE from "dev" to "staging"
   project_name = var.project_name
   region       = var.region
 
-  # oidc_provider_arn = module.eks.oidc_provider_arn 
-
-  # Dev-specific configurations
+  # VPC Configuration
   vpc_cidr = "10.0.0.0/16"
 
-  # Smaller instance types for dev
-  node_group_instance_types = ["t3.micro"]
+  # EKS Configuration
+  cluster_version           = "1.31"       # ← ADD THIS LINE
+  node_group_instance_types = ["t3.small"] # ← CHANGE from t3.micro to t3.small
   node_group_desired_size   = 2
   node_group_min_size       = 1
-  node_group_max_size       = 3
+  node_group_max_size       = 2
 
-  # Smaller DB for dev
+  # RDS Configuration
   db_instance_class    = "db.t3.micro"
   db_allocated_storage = 20
 
+  # Tags
   tags = {
-    CostCenter = "development"
+    CostCenter = "staging" # ← CHANGE from "development" to "staging"
     Owner      = "dev-team"
   }
 }
