@@ -36,7 +36,7 @@ module "rds" {
   instance_class       = var.db_instance_class
 
   allocated_storage     = var.db_allocated_storage
-  max_allocated_storage = var.db_allocated_storage * 2
+  max_allocated_storage = var.db_allocated_storage
 
   db_name  = "${var.project_name}_${var.environment}"
   username = "postgres"

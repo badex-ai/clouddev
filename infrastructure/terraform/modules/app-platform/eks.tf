@@ -51,6 +51,8 @@ module "eks" {
       instance_types = var.node_group_instance_types
       capacity_type  = "ON_DEMAND"
 
+      disk_size = 20
+
       # Launch template configuration
       # create_launch_template = true
       # launch_template_name   = ""

@@ -93,7 +93,7 @@ output "aws_load_balancer_controller_role_arn" {
 # ✏️ ADDED: Monitoring and observability endpoints
 output "container_insights_enabled" {
   description = "Whether Container Insights is enabled"
-  value       = var.enable_container_insights
+  value       = var.enable_cloudwatch_insights
 }
 
 output "application_signals_enabled" {
@@ -231,4 +231,19 @@ output "backend_pod_security_group_id" {
 output "frontend_pod_security_group_id" {
   description = "Security group ID for frontend pods"
   value       = aws_security_group.frontend_pods.id
+}
+
+output "external_secrets_role_arn" {
+  description = "External Secrets Operator IAM role ARN"
+  value       = var.enable_external_secrets ? module.external_secrets_irsa.iam_role_arn : null
+}
+
+output "backend_secrets_arn" {
+  description = "Backend secrets ARN in Secrets Manager"
+  value       = aws_secretsmanager_secret.backend_secrets.arn
+}
+
+output "frontend_secrets_arn" {
+  description = "Frontend secrets ARN in Secrets Manager"
+  value       = aws_secretsmanager_secret.frontend_secrets.arn
 }

@@ -29,15 +29,15 @@ variable "vpc_cidr" {
 
 variable "cluster_version" {
   description = "Kubernetes version"
-  type        = number
-  default     = 1
+  type        = string
+  default     = "1.31"
 
 }
 
 variable "node_group_instance_types" {
   description = "Instance types for node group"
   type        = list(string)
-  default     = ["t3.micro"]
+  default     = ["t3.small"]
 
 }
 
@@ -57,7 +57,7 @@ variable "node_group_min_size" {
 variable "node_group_max_size" {
   description = "Maximum size for node group"
   type        = number
-  default     = 4
+  default     = 2
 }
 
 
@@ -86,7 +86,7 @@ variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
   default = {
-    "project" : "kabanclouddev"
+    "project" : "kabanapp"
   }
 
 }
@@ -97,11 +97,11 @@ variable "enable_application_signals" {
   default     = false
 }
 
-variable "enable_container_insights" {
-  description = "Whether to enable Container Insights"
-  type        = bool
-  default     = true
-}
+# variable "enable_container_insights" {
+#   description = "Whether to enable Container Insights"
+#   type        = bool
+#   default     = true
+# }
 
 variable "kms_deletion_window_days" {
   description = "KMS key deletion window in days"
@@ -133,9 +133,46 @@ variable "enable_cloudwatch_insights" {
   default     = true
 }
 
-# variable "oidc_provider_arn" {
-#   description = "EKS OIDC provider ARN"
-#   type        = string
-# }
+variable "enable_external_secrets" {
+  description = "Enable External Secrets Operator"
+  type        = bool
+  default     = true
+}
+
+# Application Secrets (sensitive)
+variable "auth0_client_secret" {
+  description = "Auth0 client secret"
+  type        = string
+  sensitive   = true
+  default     = "" # Will be provided via tfvars or environment
+}
+
+variable "auth0_m2m_client_secret" {
+  description = "Auth0 M2M client secret"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "auth0_secret" {
+  description = "Auth0 secret for frontend session encryption"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "redis_password" {
+  description = "Redis password"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "brevo_api_key" {
+  description = "Brevo API key for email sending"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
 

@@ -14,8 +14,8 @@ resource "aws_security_group" "backend_pods" {
 # Backend ingress from Frontend
 resource "aws_security_group_rule" "backend_from_frontend" {
   type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = 8000
+  to_port                  = 8000
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.frontend_pods.id
   security_group_id        = aws_security_group.backend_pods.id
@@ -26,8 +26,8 @@ resource "aws_security_group_rule" "backend_from_frontend" {
 # Uncomment if you have ALB security group
 # resource "aws_security_group_rule" "backend_from_alb" {
 #   type                     = "ingress"
-#   from_port                = 8080
-#   to_port                  = 8080
+#   from_port                = 8000
+#   to_port                  = 8000
 #   protocol                 = "tcp"
 #   source_security_group_id = aws_security_group.alb.id
 #   security_group_id        = aws_security_group.backend_pods.id
@@ -108,8 +108,8 @@ resource "aws_security_group" "frontend_pods" {
 # Frontend egress to backend
 resource "aws_security_group_rule" "frontend_to_backend" {
   type                     = "egress"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = 8000
+  to_port                  = 8000
   protocol                 = "tcp"
   source_security_group_id = aws_security_group.backend_pods.id
   security_group_id        = aws_security_group.frontend_pods.id
@@ -158,5 +158,37 @@ resource "aws_security_group_rule" "frontend_internet_http" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.frontend_pods.id
   description       = "Allow HTTP to internet"
+}
+
+resource "aws_security_group_rule" "frontend_dns_tcp" {
+  type              = "egress"
+  from_port         = 53
+  to_port           = 53
+  protocol          = "tcp"
+  cidr_blocks       = [module.vpc.vpc_cidr_block]
+  security_group_id = aws_security_group.frontend_pods.id
+  description       = "Allow DNS TCP"
+}
+
+# Backend HTTPS egress for AWS services (Secrets Manager, STS, CloudWatch)
+resource "aws_security_group_rule" "backend_to_aws_services" {
+  type              = "egress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.backend_pods.id
+  description       = "Allow HTTPS to AWS services"
+}
+
+# Backend to Redis
+resource "aws_security_group_rule" "backend_to_redis" {
+  type              = "egress"
+  from_port         = 6379
+  to_port           = 6379
+  protocol          = "tcp"
+  cidr_blocks       = [module.vpc.vpc_cidr_block]
+  security_group_id = aws_security_group.backend_pods.id
+  description       = "Allow backend to Redis"
 }
 
