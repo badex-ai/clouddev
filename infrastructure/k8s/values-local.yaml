@@ -112,17 +112,17 @@ backend:
         DB_NAME: "clouddev"
         DB_USER: "ali"
         ENVIRONMENT: "devk8s"
-        # 🔥 NEW: Redis config (points to Docker Compose Redis)
+        # Redis config (points to Docker Compose Redis)
         REDIS_HOST: "192.168.0.110"
         REDIS_PORT: "6379"
         REDIS_DB: "0"
         REDIS_USE_SSL: "false"
-        # 🔥 NEW: Celery broker
+        # Celery broker
         CELERY_BROKER_HOST: "192.168.0.110"
         CELERY_BROKER_PORT: "6379"
         CELERY_BROKER_DB: "1"
         CELERY_BROKER_USE_SSL: "false"
-        # 🔥 NEW: Celery result backend
+        # Celery result backend
         CELERY_RESULT_HOST: "192.168.0.110"
         CELERY_RESULT_PORT: "6379"
         CELERY_RESULT_DB: "2"
@@ -150,7 +150,7 @@ backend:
         memory: "512Mi"
         cpu: "500m"
 
-  # 🔥 NEW: Network policy for Redis access
+  # Network policy for Redis access
   networkPolicy:
     ingress:
       ingressControllerNamespace:

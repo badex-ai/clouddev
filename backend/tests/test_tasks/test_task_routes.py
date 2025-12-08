@@ -21,7 +21,7 @@ def test_create_task_success(client, mock_db_session, sample_task_data, mock_use
     assignee_id = sample_task_data["assignee_id"]
     family_id = sample_task_data["family_id"]
     
-    # 🔥 Create mock objects
+    # Create mock objects
     mock_creator = mock_user_factory(
         public_id=creator_id,
         family_id=family_id,
@@ -39,18 +39,18 @@ def test_create_task_success(client, mock_db_session, sample_task_data, mock_use
         users=[mock_creator, mock_assignee]
     )
     
-    # 🔥 Configure query mock
+    # Configure query mock
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value = query_mock
     
-    # 🔥 Multiple sequential calls
+    # Multiple sequential calls
     query_mock.first.side_effect = [
         mock_creator,
         mock_assignee,
         mock_family
     ]
     
-    # 🔥 Use future date from sample_task_data (already fixed in conftest)
+    # Use future date from sample_task_data (already fixed in conftest)
     future_due_date = sample_task_data["due_date"]
     
     # Act
@@ -141,7 +141,7 @@ def test_create_task_same_day_due_date(
     assignee_id = str(uuid.uuid4())
     family_id = str(uuid.uuid4())
     
-    # 🔥 Mock users so validation reaches status check
+    # Mock users so validation reaches status check
     mock_creator = mock_user_factory(public_id=creator_id, family_id=family_id)
     mock_assignee = mock_user_factory(public_id=assignee_id, family_id=family_id)
     mock_family = mock_family_factory(public_id=family_id)
@@ -150,7 +150,7 @@ def test_create_task_same_day_due_date(
     query_mock.filter.return_value = query_mock
     query_mock.first.side_effect = [mock_creator, mock_assignee, mock_family]
 
-    # 🔥 CRITICAL FIX: Use future date, not current time
+    # CRITICAL FIX: Use future date, not current time
     future_date = datetime.now(timezone.utc) + timedelta(hours=2)
     
     # Arrange
@@ -160,7 +160,7 @@ def test_create_task_same_day_due_date(
         "assignee_id": assignee_id,
         "family_id": family_id,
         "due_date": future_date.isoformat(), 
-        "status": "invalid_status"  # 🔥 This should fail Pydantic validation
+        "status": "invalid_status"  # This should fail Pydantic validation
     }
     
     # Act
@@ -273,14 +273,14 @@ def test_create_task_invalid_status(client, mock_db_session, mock_user_factory, 
     query_mock.filter.return_value = query_mock
     query_mock.first.side_effect = [mock_creator, mock_assignee, mock_family]
     
-    # 🔥 Test with EXTRA field that's not in schema (should be ignored by Pydantic)
+    # Test with EXTRA field that's not in schema (should be ignored by Pydantic)
     task_data = {
         "title": "Test task",
         "creator_id": creator_id,
         "assignee_id": assignee_id,
         "family_id": family_id,
         "due_date": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat(),
-        "status": "invalid_status"  # 🔥 Extra field - ignored by Pydantic
+        "status": "invalid_status"  # Extra field - ignored by Pydantic
     }
     
     # Act
@@ -291,7 +291,7 @@ def test_create_task_invalid_status(client, mock_db_session, mock_user_factory, 
         print(f"\n❌ Status: {response.status_code}")
         print(f"❌ Body: {response.json()}")
     
-    # 🔥 Assert: Task created successfully with default status 'initialised'
+    # Assert: Task created successfully with default status 'initialised'
     # The 'status' field in request is ignored since it's not in TaskCreate schema
     assert response.status_code == status.HTTP_201_CREATED
     data = response.json()

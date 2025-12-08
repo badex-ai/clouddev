@@ -185,15 +185,13 @@ tasks:
   health-frontendk8s:
     desc: "Check frontend health"
     cmds:
-      # 🔥 CHANGED: Updated domain names
-      - curl -f http://kaban.local/ || echo "❌ Frontend unhealthy"
+      - curl -f http://kaban.local/ || echo "Frontend unhealthy"
     silent: true
 
   health-backendk8s:
     desc: "Check backend health"
     cmds:
-      # 🔥 CHANGED: Updated domain names
-      - curl -f http://api.kaban.local/health || echo "❌ Backend unhealthy"
+      - curl -f http://api.kaban.local/health || echo "Backend unhealthy"
     silent: true
 
   

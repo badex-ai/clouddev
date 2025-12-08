@@ -63,7 +63,7 @@ RUN chown -R appuser:appgroup /app
 
 USER 1001  
 
-# 🔥 Celery worker with autoscaling
+# Celery worker with autoscaling
 CMD ["celery", "-A", "config.celery.celery_app", "worker", \
     "--loglevel=info", \
     "--concurrency=4", \

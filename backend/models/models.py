@@ -94,11 +94,11 @@ class Task(Base):
     @validates("checklist")
     def validate_checklist(self, key, checklist):
         if checklist is not None:
-            # 🔥 CHANGED: Now validating as a list instead of dict
+            # Now validating as a list instead of dict
             if not isinstance(checklist, list):
                 raise ValueError("Checklist must be a list")
 
-            # 🔥 CHANGED: Direct length check on checklist instead of items
+            # Direct length check on checklist instead of items
             if len(checklist) > 8:
                 raise ValueError("Checklist cannot have more than 8 items")
 

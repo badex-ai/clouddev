@@ -274,7 +274,7 @@ def client(mock_redis, mock_db_session):
          patch("controllers.user_controller.get_management_api_token") as mock_m2m_token, \
          patch("utils.utils.get_management_api_token") as mock_utils_token:
         
-        # 🔥 Mock get_management_api_token (used in multiple places)
+        # Mock get_management_api_token (used in multiple places)
         async def mock_get_token():
             return f"mock_m2m_token_{uuid.uuid4().hex[:16]}"
         
@@ -293,14 +293,14 @@ def client(mock_redis, mock_db_session):
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         
-        # 🔥 Mock create_auth0_user for user_controller - FIXED signature
+        # Mock create_auth0_user for user_controller - FIXED signature
         async def mock_create_auth0_user_member(email, name, family_name, family_id, m2m_token):
             return (
                 f"auth0|{uuid.uuid4().hex[:24]}",
                 m2m_token
             )
         
-        # 🔥 Mock create_password_reset_ticket - THIS WAS MISSING PROPER CONFIG
+        # Mock create_password_reset_ticket - THIS WAS MISSING PROPER CONFIG
         async def mock_create_reset_ticket(user_id, m2m_token):
             return f"https://example.com/reset?ticket={uuid.uuid4().hex}"
         
@@ -345,7 +345,7 @@ def sample_user_data():
 def sample_task_data():
 
     """Generate sample task data."""
-    # 🔥 CRITICAL FIX: Use future date to avoid validation error
+    # CRITICAL FIX: Use future date to avoid validation error
     future_date = datetime.now(timezone.utc)
     # Add 1 day to ensure it's in the future
     from datetime import timedelta

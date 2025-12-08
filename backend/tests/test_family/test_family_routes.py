@@ -308,7 +308,7 @@ def test_get_family_with_large_member_count(client, mock_db_session, sample_fami
         users=mock_users
     )
     
-    # 🔥 Configure query mock properly
+    # Configure query mock properly
     query_mock = mock_db_session.query.return_value
     query_mock.options.return_value = query_mock
     query_mock.filter.return_value = query_mock
@@ -335,7 +335,7 @@ def test_create_family_member_database_error(
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value = query_mock
     
-    # 🔥 Make first query raise database error
+    # Make first query raise database error
     query_mock.first.side_effect = SQLAlchemyError("Database connection failed")
     
     # Act
@@ -364,13 +364,13 @@ def test_family_retrieval_performance(benchmark, client, mock_db_session, benchm
     family_id = "test-family-id"
     family_db_id = 12345 
     
-    # 🔥 Create 100 mock users
+    # Create 100 mock users
     mock_users = [
         mock_user_factory(family_id=family_id)
         for _ in range(100)
     ]
     
-    # 🔥 Create mock family
+    # Create mock family
     mock_family = mock_family_factory(
         id=family_db_id, 
         public_id=family_id,
@@ -378,12 +378,12 @@ def test_family_retrieval_performance(benchmark, client, mock_db_session, benchm
         users=mock_users
     )
     
-    # 🔥 Configure query mock
+    # Configure query mock
     query_mock = mock_db_session.query.return_value
     query_mock.options.return_value = query_mock
     query_mock.filter.return_value = query_mock
     query_mock.first.return_value = mock_family
-    
+
     response = client.get(f"/api/v1/families/{family_id}")
     
     # Assert

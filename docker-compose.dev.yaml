@@ -57,7 +57,7 @@ services:
     stdin_open: true
 
 
-  # 🔥 Celery Worker (separate container)
+  # Celery Worker (separate container)
   celery-worker:
     build:
       context: ./backend
@@ -82,7 +82,7 @@ services:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: ${REDIS_DB}
 
-      # 🔥 Redis (local)
+      # Redis (local)
     
       REDIS_USE_SSL: "false"
 
@@ -108,7 +108,7 @@ services:
       - redis
       - postgres
 
-  # 🔥 Redis (LOCAL ONLY - not in K8s, use ElastiCache there)
+  # Redis (LOCAL ONLY - not in K8s, use ElastiCache there)
   redis:
     image: redis:7-alpine
     ports:

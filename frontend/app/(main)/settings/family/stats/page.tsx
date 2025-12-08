@@ -133,9 +133,9 @@ const currentUserData: UserData = {
   role: UserRole.ADMIN,
 };
 
-// 🔥 Fixed: Removed props - Next.js pages should fetch their own data
+// Removed props - Next.js pages should fetch their own data
 export default function StatsPage() {
-  // 🔥 Fixed: Use userData directly instead of props
+  // Use userData directly instead of props
   const userData = currentUserData;
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
@@ -273,7 +273,7 @@ export default function StatsPage() {
     return userRankings;
   }, [userData.role, adminSelectedYear, adminSelectedMonth]);
 
-  // 🔥 Fixed: Added proper typing for recharts label parameters
+  // Added proper typing for recharts label parameters
   const renderCustomizedLabel = ({
     cx,
     cy,
@@ -469,7 +469,7 @@ export default function StatsPage() {
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">{member.name}</CardTitle>
-                        {/* 🔥 Fixed: Uncommented and properly styled the color indicator */}
+                        {/* Color indicator */}
                         <div
                           className="h-3 w-3 rounded-full"
                           style={{ backgroundColor: member.color }}

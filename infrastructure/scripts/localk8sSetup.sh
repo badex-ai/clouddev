@@ -36,7 +36,7 @@ helm install kaban . \
 echo -e "${GREEN}✓ Helm chart installed successfully${NC}\n"
 
 # Wait for Kubernetes services to come up
-echo -e "${YELLOW}Waiting for services to be ready (15s)...${NC}"  # 🔥 Changed from 10s to 15s
+echo -e "${YELLOW}Waiting for services to be ready (15s)...${NC}"
 sleep 15 
 
 # STEP 2: Retrieve Service Cluster IPs
@@ -61,7 +61,7 @@ echo -e "${BLUE}Backend IP:${NC} $BACKEND_IP\n"
 # STEP 3: Safely update /etc/hosts atomically
 echo -e "${GREEN}Step 3: Updating /etc/hosts...${NC}"
 
-HOSTS_ENTRY_FRONTEND="$FRONTEND_IP\tkaban.local"  # 🔥 Changed from frontend.local to kaban.local
+HOSTS_ENTRY_FRONTEND="$FRONTEND_IP\tkaban.local"
 HOSTS_ENTRY_BACKEND="$BACKEND_IP\tapi.kaban.local" 
 
 echo -e "${YELLOW}Preparing atomic /etc/hosts update...${NC}"
@@ -83,7 +83,7 @@ sed -i '/kaban\.local\|api\.kaban\.local/d' "$TEMP_HOSTS"
 sed -i "/^# The following lines are desirable for IPv6/i $HOSTS_ENTRY_FRONTEND\n$HOSTS_ENTRY_BACKEND" "$TEMP_HOSTS"
 
 # Verify temp file contains both new entries
-if ! grep -q "kaban.local" "$TEMP_HOSTS" || ! grep -q "api.kaban.local" "$TEMP_HOSTS"; then  # 🔥 Changed domain names
+if ! grep -q "kaban.local" "$TEMP_HOSTS" || ! grep -q "api.kaban.local" "$TEMP_HOSTS"; then
   echo -e "${RED}Error: Verification failed — entries missing from temp hosts file${NC}"
   rm -f "$TEMP_HOSTS"  # Clean up temp file
   exit 1
@@ -96,14 +96,14 @@ sudo mv "$TEMP_HOSTS" /etc/hosts
 # Verify changes took effect
 echo -e "${GREEN}✓ /etc/hosts updated successfully${NC}\n"
 echo -e "${BLUE}Current /etc/hosts entries:${NC}"
-grep -E "kaban.local|api.kaban.local" /etc/hosts || {  # 🔥 Changed domain names
+grep -E "kaban.local|api.kaban.local" /etc/hosts || {
   echo -e "${RED}Error: Entries not found after replacement${NC}"
   exit 1
 }
 # =================== SUCCESS ===================
 trap - ERR  # Disable rollback trap since everything succeeded
 echo -e "\n${GREEN}=== Setup Complete! ===${NC}"
-echo -e "${BLUE}Frontend:${NC} http://kaban.local"  # 🔥 Changed domain
-echo -e "${BLUE}Backend:${NC} http://api.kaban.local\n"  # 🔥 Changed domain
+echo -e "${BLUE}Frontend:${NC} http://kaban.local"
+echo -e "${BLUE}Backend:${NC} http://api.kaban.local\n"
 echo -e "${YELLOW}Check pods with: kubectl get pods -n kaban${NC}" 
 # =================================================

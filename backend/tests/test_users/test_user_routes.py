@@ -22,7 +22,7 @@ def test_create_family_member_success(
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value = query_mock
     
-    # 🔥 User doesn't exist
+    # User doesn't exist
     query_mock.first.return_value = None
     
     # Act
@@ -61,7 +61,7 @@ def test_get_user_success(
         family_name=sample_user_data["family_name"],
         family_id=sample_user_data["family_id"],
         username=sample_user_data["username"],
-        role=UserRole.member,  # 🔥 Pass role directly
+        role=UserRole.member,
         is_active=sample_user_data["is_active"]
     )
     
@@ -71,7 +71,7 @@ def test_get_user_success(
         name=sample_family_data["name"]
     )
     
-    # 🔥 Configure query mock
+    # Configure query mock
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value = query_mock
     
@@ -114,7 +114,7 @@ def test_create_family_member_duplicate_email(
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value = query_mock
     
-    # 🔥 Return user object (not None) to indicate user exists
+    # Return user object (not None) to indicate user exists
     query_mock.first.return_value = existing_user
     
     # Act
@@ -133,7 +133,7 @@ def test_create_family_member_duplicate_email(
         print(f"\n❌ Status: {response.status_code}")
         print(f"❌ Body: {response.json()}")
     
-    # 🔥 Assert - Controller raises 409 CONFLICT
+    # Assert - Controller raises 409 CONFLICT
     assert response.status_code == status.HTTP_409_CONFLICT
 
 
@@ -158,10 +158,10 @@ def test_create_family_member_auth0_failure(
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value = query_mock
     
-    # 🔥 User doesn't exist
+    # User doesn't exist
     query_mock.first.return_value = None
-    
-    # 🔥 Mock Auth0 to fail
+
+    # Mock Auth0 to fail
     with patch("controllers.user_controller.create_auth0_user") as mock_auth0:
         async def auth0_failure(*args, **kwargs):
             raise AppError(
@@ -186,7 +186,7 @@ def test_create_family_member_auth0_failure(
             }
         )
     
-    # 🔥 Assert - Auth0 failure returns 503
+    # Assert - Auth0 failure returns 503
     assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
 
 
