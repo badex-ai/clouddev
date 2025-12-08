@@ -1,26 +1,26 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useUser } from '@auth0/nextjs-auth0';
-import { UserProfile, ExtendedUserProfile } from '@/lib/types';
+import { ExtendedUserProfile } from '@/lib/types';
 import { getUserData } from '@/lib/actions/userActions';
 import { toast } from 'sonner';
-
-const UserContext = createContext<UserDataContextType>({
-  isUserDataLoading: true,
-  userData: null,
-  authIsLoading: true,
-  userDataError: false,
-  // fetchUserData: () => {}
-});
 
 interface UserDataContextType {
   userData: ExtendedUserProfile | null;
   isUserDataLoading: boolean;
   userDataError: boolean;
   authIsLoading: boolean;
-  // fetchUserData: () => void;
+  refetchUserData: () => void;
 }
+
+const UserContext = createContext<UserDataContextType>({
+  isUserDataLoading: true,
+  userData: null,
+  authIsLoading: true,
+  userDataError: false,
+  refetchUserData: () => {},
+});
 
 export const AuthUserProvider = ({ children }: { children: React.ReactNode }) => {
   let { user, isLoading } = useUser();
@@ -36,26 +36,29 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, [user]);
 
-  const fetchUserData = async (user: any) => {
+  const fetchUserData = useCallback(async (authUser: typeof user) => {
+    if (!authUser?.email) return;
+
     try {
       setIsUserDataLoading(true);
-      const userDataResult = await getUserData(user);
-      // console.log('userDataResult', userDataResult);
+      setUserDataError(false);
+      const userDataResult = await getUserData(authUser);
       setUserData(userDataResult);
-      // console.log(userDataResult.data, 'userDataResult in context');
-    } catch (error: any) {
+    } catch (error) {
       setUserDataError(true);
-
-      setUserData(user);
-      toast.error('User Profile Error', { description: error.message });
-      // console.log(error.messae, 'this is the error from te fetch')
-      setIsUserDataLoading(false);
+      setUserData(authUser as ExtendedUserProfile);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      toast.error('User Profile Error', { description: errorMessage });
     } finally {
       setIsUserDataLoading(false);
     }
-  };
+  }, []);
 
-  user;
+  const refetchUserData = useCallback(() => {
+    if (user) {
+      fetchUserData(user);
+    }
+  }, [user, fetchUserData]);
 
   return (
     <UserContext.Provider
@@ -64,7 +67,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
         userData,
         authIsLoading,
         userDataError,
-        // fetchUserData
+        refetchUserData,
       }}
     >
       {children}

@@ -21,6 +21,30 @@ CMD ["npm", "run", "dev"]
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+RUN npm run build
+
+# Separate builder for staging with Sentry
+FROM base AS builder-staging
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_APP_ENV=staging
+RUN npm run build
+
+# Separate builder for production with Sentry
+FROM base AS builder-production
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_APP_ENV=production
 RUN npm run build
 
 FROM base AS devk8s
@@ -52,12 +76,12 @@ RUN apk add --no-cache curl
 RUN addgroup --system --gid 1001 appgroup && \
   adduser --system --uid 1001 appuser --ingroup appgroup
 
-COPY --from=builder /app/public ./public
+COPY --from=builder-staging /app/public ./public
 
 RUN mkdir .next && chown appuser:appgroup .next
 
-COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
-COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
+COPY --from=builder-staging --chown=appuser:appgroup /app/.next/standalone ./
+COPY --from=builder-staging --chown=appuser:appgroup /app/.next/static ./.next/static
 
 USER appuser
 EXPOSE 3000
@@ -75,12 +99,12 @@ RUN apk add --no-cache curl
 RUN addgroup --system --gid 1001 appgroup && \
   adduser --system --uid 1001 appuser --ingroup appgroup
 
-COPY --from=builder /app/public ./public
+COPY --from=builder-production /app/public ./public
 
 RUN mkdir .next && chown appuser:appgroup .next
 
-COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
-COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
+COPY --from=builder-production --chown=appuser:appgroup /app/.next/standalone ./
+COPY --from=builder-production --chown=appuser:appgroup /app/.next/static ./.next/static
 
 USER appuser
 EXPOSE 3000

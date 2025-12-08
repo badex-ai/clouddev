@@ -1,13 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { auth0 } from '@/lib/auth0';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-// import { useUser } from "@auth0/nextjs-auth0";
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect } from 'react';
 import { useAuthUser } from '@/contexts/userContext';
-import { UserProfile, ExtendedUserProfile } from '@/lib/types';
 import { Settings } from 'lucide-react';
 import { useUser } from '@auth0/nextjs-auth0';
 
@@ -17,22 +14,16 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   const router = useRouter();
-  // fetchUserData
-  const { userData, isUserDataLoading, authIsLoading, userDataError } = useAuthUser();
+  const { userData, isUserDataLoading, authIsLoading, userDataError, refetchUserData } =
+    useAuthUser();
 
-  let { user, isLoading } = useUser();
+  const { user } = useUser();
 
   useEffect(() => {
     if (!authIsLoading && !user?.sub) {
       router.push('/auth/login');
     }
-  }, [userData, authIsLoading]);
-
-  const refetchUserData = () => {
-    if (userData?.role) {
-      // fetchUserData();
-    }
-  };
+  }, [user, authIsLoading, router]);
 
   if (userDataError) {
     return (
