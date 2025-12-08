@@ -92,10 +92,11 @@ resource "aws_secretsmanager_secret_version" "backend_secrets" {
     AUTH0_CLIENT_SECRET     = var.auth0_client_secret
     AUTH0_M2M_CLIENT_SECRET = var.auth0_m2m_client_secret
     DB_PASSWORD             = random_password.db_password.result
-    REDIS_PASSWORD          = var.redis_password
-    CELERY_BROKER_PASSWORD  = var.redis_password # Same as Redis if using Redis
-    CELERY_RESULT_PASSWORD  = var.redis_password # Same as Redis if using Redis
-    BREVO_API_KEY           = var.brevo_api_key
+    # Use ElastiCache-generated auth token if enabled, otherwise use manual password
+    REDIS_PASSWORD         = var.enable_elasticache ? random_password.redis_auth_token[0].result : var.redis_password
+    CELERY_BROKER_PASSWORD = var.enable_elasticache ? random_password.redis_auth_token[0].result : var.redis_password
+    CELERY_RESULT_PASSWORD = var.enable_elasticache ? random_password.redis_auth_token[0].result : var.redis_password
+    BREVO_API_KEY          = var.brevo_api_key
   })
 }
 

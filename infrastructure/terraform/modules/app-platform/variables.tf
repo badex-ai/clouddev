@@ -175,4 +175,27 @@ variable "brevo_api_key" {
   default     = ""
 }
 
+# ElastiCache Configuration
+variable "enable_elasticache" {
+  description = "Enable ElastiCache Redis"
+  type        = bool
+  default     = true
+}
 
+variable "elasticache_node_type" {
+  description = "ElastiCache node type"
+  type        = string
+  default     = "cache.t3.micro"
+}
+
+variable "elasticache_engine_version" {
+  description = "Redis engine version"
+  type        = string
+  default     = "7.1"
+}
+
+variable "elasticache_transit_encryption" {
+  description = "Enable transit encryption (TLS) for ElastiCache"
+  type        = bool
+  default     = true
+}

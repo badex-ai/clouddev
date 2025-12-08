@@ -247,3 +247,24 @@ output "frontend_secrets_arn" {
   description = "Frontend secrets ARN in Secrets Manager"
   value       = aws_secretsmanager_secret.frontend_secrets.arn
 }
+
+# ElastiCache Outputs
+output "elasticache_endpoint" {
+  description = "ElastiCache Redis primary endpoint"
+  value       = var.enable_elasticache ? aws_elasticache_replication_group.redis[0].primary_endpoint_address : null
+}
+
+output "elasticache_port" {
+  description = "ElastiCache Redis port"
+  value       = var.enable_elasticache ? 6379 : null
+}
+
+output "elasticache_security_group_id" {
+  description = "ElastiCache security group ID"
+  value       = var.enable_elasticache ? aws_security_group.elasticache[0].id : null
+}
+
+output "redis_auth_token_secret_arn" {
+  description = "Redis AUTH token secret ARN"
+  value       = var.enable_elasticache ? aws_secretsmanager_secret.redis_auth_token[0].arn : null
+}
