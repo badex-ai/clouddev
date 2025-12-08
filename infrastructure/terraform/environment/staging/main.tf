@@ -19,7 +19,7 @@ provider "aws" {
   default_tags {
     tags = {
       Project     = var.project_name
-      Environment = "staging" # ← CHANGE from "dev" to "staging"
+      Environment = "staging" 
       ManagedBy   = "terraform"
     }
   }
@@ -28,7 +28,7 @@ provider "aws" {
 module "app_platform" {
   source = "../../modules/app-platform"
 
-  environment  = "staging" # ← CHANGE from "dev" to "staging"
+  environment  = "staging"
   project_name = var.project_name
   region       = var.region
 
