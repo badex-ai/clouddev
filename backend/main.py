@@ -12,6 +12,7 @@ from config.db import Base, engine
 from utils.error_handler import global_exception_handler
 import structlog
 from utils.error_handler import AppError
+from config.tracing import setup_tracing, get_tracer
 
 # Configure structlog
 structlog.configure(
@@ -43,6 +44,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+setup_tracing(app=app, service_name="kaban-backend")
+
+# Get tracer for manual spans
+tracer = get_tracer(__name__)
+
+
 
 # Register exception handlers - MUST be before middleware!
 
