@@ -4,10 +4,7 @@ Dockerfile
 node_modules
 npm-debug.log
 README.md
-.env
-.env.local
-.env.production.local
-.env.staging.local
+.env*
 .git
 .gitignore
 .next
