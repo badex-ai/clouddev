@@ -85,7 +85,6 @@ export default function MemberSettingsPage() {
 
   const onFormSubmit = async (data: CreateNewFamilyMemberFormType) => {
     setSubmitIsLoading(true);
-    console.log('data from the form', data);
 
     try {
       if (!userData?.family || !userData?.family?.id || !userData?.family?.name) {
@@ -140,13 +139,10 @@ export default function MemberSettingsPage() {
  async function handleDeactivateFamilyMember(memberId: string) {
   try {
     if (!memberId) {
-      console.log('No memberId provided');
       return;
     }
 
-    console.log('About to call deactivateFamilymember');
-    await deactivateFamilymember(memberId); // No result to capture
-    console.log('Successfully deactivated family member');
+    await deactivateFamilymember(memberId);
 
     // Success - update UI
     toast('Family member deactivated', {
@@ -183,8 +179,6 @@ export default function MemberSettingsPage() {
 }
 
   async function handleReactivateFamilyMember(memberId: string) {
-    console.log(memberId, 'this is the member id');
-
     try {
       if (!memberId) return;
 
@@ -333,8 +327,6 @@ export default function MemberSettingsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => {
-                            // e.preventDefault();
-                            console.log('clicked my boy');
                             handleDeactivateFamilyMember(member.public_id);
                           }}
                           className="flex items-center gap-2 text-destructive"

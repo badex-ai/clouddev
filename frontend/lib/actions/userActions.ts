@@ -103,8 +103,6 @@ export async function getFamilymembers(familyId: string) {
 }
 
 export async function deactivateFamilymember(userId: string) {
-  console.log('Deactivating family member:', userId);
-
   try {
     const response = await fetch(`${apiUrl}/api/v1/users/${userId}/deactivate`, {
       method: 'PATCH',
@@ -134,7 +132,6 @@ export async function deactivateFamilymember(userId: string) {
     if (error instanceof ApiException) {
       throw error;
     }
-    console.log(error)
 
     // Handle network errors (fetch failures)
     throw new Error(NetworkError);
@@ -186,8 +183,6 @@ export async function reactivateFamilymember(userId: string) {
 // }
 
 export async function createNewUser(data: SignupFormData, idempotencyKey: string) {
-  console.log(apiUrl, 'apiurl');
-  console.log('sendin te new user profile', data);
   try {
     const response = await fetch(`${apiUrl}/api/v1/auth/signup`, {
       method: 'POST',

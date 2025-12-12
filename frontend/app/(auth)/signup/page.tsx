@@ -38,9 +38,7 @@ export default function SignupPage() {
     try {
       const idempotencyKey = `signup-${data.email}-${uuidv4()}`;
 
-      const response = await createNewUser(data, idempotencyKey);
-      console.log(response, 'tis is te response');
-      // Add your registration logic
+      await createNewUser(data, idempotencyKey);
 
       window.location.href = '/verify';
       // toast('Signup successful! Please verify your email.');

@@ -101,8 +101,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
       family_id: userData?.family?.id,
     };
 
-    console.log('taskData', taskData);
-
     const response = await fetch(`${apiUrl}/api/v1/tasks/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -110,8 +108,6 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
     });
 
     const result = await response.json();
-
-    console.log(response, 'tis is te response');
 
     if (result) {
       setIsLoading(false);

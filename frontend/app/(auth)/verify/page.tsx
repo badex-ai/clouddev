@@ -12,7 +12,6 @@ const { apiUrl } = getConfig();
 
 function VerifyEmailPage() {
   let { user } = useUser();
-  console.log('User:', user);
   const [isLoading, setisLoading] = useState(false);
 
   function disableBtn() {}
