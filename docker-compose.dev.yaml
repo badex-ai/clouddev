@@ -1,13 +1,24 @@
 
-# docker-compose.dev.yml (Development overrides)
+# docker-compose.dev.yaml (Development overrides)
+# Usage: docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up
+
 services:
   backend:
     build:
-      target: dev # Override to use development stage
+      target: dev
+    image: badex360/kaban-backend:dev
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    networks:
+      - kaban_network
     environment:
+      DOCKER_CONTAINER: "true"
       ENVIRONMENT: ${ENVIRONMENT}
       DEBUG: "true"
+      # CORS
+      CORS_ALLOWED_ORIGINS: "http://localhost:3000"
        # Database
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
@@ -57,11 +68,13 @@ services:
     stdin_open: true
 
 
-  # Celery Worker (separate container)
   celery-worker:
     build:
       context: ./backend
       target: celery-worker
+    image: badex360/kaban-celery:dev
+    networks:
+      - kaban_network
     environment:
       ENVIRONMENT: ${ENVIRONMENT}
       DOCKER_CONTAINER: "true" 
@@ -76,6 +89,7 @@ services:
       AUTH0_M2M_CLIENT_ID: ${AUTH0_M2M_CLIENT_ID}
       AUTH0_M2M_CLIENT_SECRET: ${AUTH0_M2M_CLIENT_SECRET}
       BREVO_API_KEY: ${BREVO_API_KEY}
+      BREVO_SENDER_EMAIL: ${BREVO_SENDER_EMAIL}
       # Redis
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
@@ -99,8 +113,8 @@ services:
       CELERY_RESULT_DB: ${CELERY_RESULT_DB}
       CELERY_RESULT_PASSWORD: ${CELERY_RESULT_PASSWORD}
       CELERY_RESULT_USE_SSL: "false"
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+      # CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      # CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
     volumes:
       - ./backend:/app
       - /app/__pycache__
@@ -108,11 +122,12 @@ services:
       - redis
       - postgres
 
-  # Redis (LOCAL ONLY - not in K8s, use ElastiCache there)
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
+    networks:
+      - kaban_network
     volumes:
       - redis_data:/data
     healthcheck:
@@ -125,8 +140,11 @@ services:
     
   frontend:
     build:
-      target: dev # Override to use development stage  
+      target: dev
+    image: badex360/kaban-frontend:dev
     command: npm run dev
+    networks:
+      - kaban_network
     environment:
       NODE_ENV: development
       # Enable hot reloading
@@ -155,8 +173,17 @@ services:
     stdin_open: true
   
   postgres:
-      ports:
-        - "5433:5432" 
-  
+    ports:
+      - "5433:5432"
+    networks:
+      - kaban_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
   redis_data:
+  postgres_data:
+
+networks:
+  kaban_network:
+    driver: bridge

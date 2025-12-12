@@ -39,10 +39,6 @@ services:
       target: staging  # Default to production stage
     container_name: kaban_backend-container
     restart: unless-stopped
-     
-      # Environment
-      # NODE_ENV: production
-      # ENVIRONMENT: production
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -81,8 +77,6 @@ services:
       target: staging  # Default to production stage
     container_name: kaban_frontend-container
     restart: unless-stopped
-     
-      # NODE_ENV: production
     ports: 
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on: 
