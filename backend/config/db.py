@@ -46,12 +46,11 @@ class DatabaseConfig:
     @classmethod
     def get_database_url(cls):
         encoded_password = quote_plus(cls.DB_PASSWORD)
-        logger.info("password_encoded", encoded_password=encoded_password)
 
         return f"postgresql://{cls.DB_USER}:{encoded_password}@{cls.DB_HOST}:{cls.DB_PORT}/{cls.DB_NAME}"
 
 
-logger.info("database_url", url=DatabaseConfig.get_database_url())
+logger.info("database_connection", host=DatabaseConfig.DB_HOST, port=DatabaseConfig.DB_PORT, database=DatabaseConfig.DB_NAME)
 
 engine = create_engine(
     DatabaseConfig.get_database_url(),
