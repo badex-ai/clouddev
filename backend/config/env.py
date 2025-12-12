@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 import base64
 
 
-load_dotenv()
+# Only load .env file when running locally (not in Docker)
+if not os.getenv("DOCKER_CONTAINER"):
+    load_dotenv()
 
 
 def read_secret_file(file_path: str) -> str:

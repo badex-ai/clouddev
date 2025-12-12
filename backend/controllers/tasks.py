@@ -84,7 +84,7 @@ def send_verification_email_task(self, email: str, name: str):
     try:
         formatted_email = VERIFICATION_EMAIL.format(name=name)
         email_req = type("obj", (object,), {"email": email})()
-        send_email(email_req, formatted_email)
+        send_email_sync(email_req, formatted_email)
 
         logger.info("verification_email_sent", email=email)
         return {"status": "success", "email": email}
