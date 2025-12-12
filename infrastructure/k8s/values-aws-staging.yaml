@@ -58,6 +58,7 @@ frontend:
       NEXT_PUBLIC_API_URL: "https://api.staging.yourdomain.com"
       ENVIRONMENT: "staging"
       BACKEND_URL: "http://kaban-backend-service:8000"
+      NEXT_PUBLIC_SENTRY_DSN: "https://8dd285561bd6f4a49a10618251cffb4f@o1106601.ingest.us.sentry.io/4510500123574272"
 
   externalSecrets:
     enabled: true
@@ -101,6 +102,8 @@ backend:
 
   configMap:
     data:
+      # CORS - comma-separated list of allowed origins
+      CORS_ALLOWED_ORIGINS: "https://staging.yourdomain.com,https://yourdomain.com"
       AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
       AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
       AUTH0_API_AUDIENCE: "https://api.staging.yourdomain.com"

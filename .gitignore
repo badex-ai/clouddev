@@ -3,6 +3,7 @@ logs/
 myfile.log
 backup.sql
 values-secrets.yaml
+values-secrets-staging.yaml
 # Terraform
 **/.terraform/*
 *.tfstate
