@@ -154,8 +154,8 @@ jobs:
           helm upgrade --install kaban-frontend ./infrastructure/k8s/charts/frontend \
             --namespace kaban \
             --create-namespace \
-            -f ./infrastructure/k8s/values-aws-staging.yaml \
-            --set frontend.image.tag=${SHORT_SHA} \
+            -f ./infrastructure/k8s/values-aws-staging-frontend.yaml \
+            --set image.tag=${SHORT_SHA} \
             --wait \
             --timeout 5m
 
