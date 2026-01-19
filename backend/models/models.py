@@ -85,8 +85,6 @@ class Task(Base):
     family: Mapped["Family"] = relationship("Family", back_populates="tasks")
 
     __table_args__ = (
-        # Note: This constraint needs to be updated since we're comparing strings now
-        CheckConstraint("creator_id != assignee_id", name="creator_assignee_different"),
         CheckConstraint("due_date > created_at", name="due_date_after_creation"),
     )
 

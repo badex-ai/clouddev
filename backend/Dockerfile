@@ -61,7 +61,10 @@ FROM deps AS celery-worker
 COPY . .
 RUN chown -R appuser:appgroup /app
 
-USER 1001  
+USER 1001
+
+# Prevent loading .env file in container
+ENV DOCKER_CONTAINER=true
 
 # Celery worker with autoscaling
 CMD ["celery", "-A", "config.celery.celery_app", "worker", \
