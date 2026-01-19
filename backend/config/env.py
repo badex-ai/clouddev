@@ -27,11 +27,16 @@ def read_secret_file(file_path: str) -> str:
     return ""
 
 def build_url(host: str, port: int, db: int, password: str = "", use_ssl: bool = False) -> str:
-    """Build Redis URL from components"""
+    """Build Redis URL from components
+
+    For SSL connections (rediss://), we add ssl_cert_reqs=CERT_REQUIRED for secure connections.
+    AWS ElastiCache with TLS requires this parameter.
+    """
     protocol = "rediss" if use_ssl else "redis"
+    ssl_params = "?ssl_cert_reqs=CERT_REQUIRED" if use_ssl else ""
     if password:
-        return f"{protocol}://:{password}@{host}:{port}/{db}"
-    return f"{protocol}://{host}:{port}/{db}"
+        return f"{protocol}://:{password}@{host}:{port}/{db}{ssl_params}"
+    return f"{protocol}://{host}:{port}/{db}{ssl_params}"
 
 
 def get_config() -> dict:
