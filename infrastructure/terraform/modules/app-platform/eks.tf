@@ -27,7 +27,8 @@ module "eks" {
       most_recent = true
     }
     aws-ebs-csi-driver = {
-      most_recent = true
+      most_recent              = true
+      service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
     }
   }
 
@@ -49,7 +50,7 @@ module "eks" {
       desired_size = var.node_group_desired_size
 
       instance_types = var.node_group_instance_types
-      capacity_type  = "ON_DEMAND"
+      capacity_type  = var.node_group_capacity_type
 
       disk_size = 20
 
@@ -213,9 +214,55 @@ resource "aws_iam_role" "aws_load_balancer_controller" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_attach" {
+# AWS Load Balancer Controller IAM Policy
+# Using AWS managed policies for full coverage and automatic updates
+# ElasticLoadBalancingFullAccess: covers all elasticloadbalancing:* actions
+# AmazonEC2FullAccess: covers all ec2:* actions (needed for security groups, availability zones, etc.)
+#
+# Note: For production with stricter security requirements, consider using the official
+# IAM policy from: https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_elb" {
   role       = aws_iam_role.aws_load_balancer_controller.name
   policy_arn = "arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_ec2" {
+  role       = aws_iam_role.aws_load_balancer_controller.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+# Additional permissions not covered by the above managed policies
+resource "aws_iam_role_policy" "aws_load_balancer_controller_additional" {
+  name = "${var.project_name}-${var.environment}-alb-controller-additional"
+  role = aws_iam_role.aws_load_balancer_controller.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "acm:ListCertificates",
+          "acm:DescribeCertificate",
+          "iam:ListServerCertificates",
+          "iam:GetServerCertificate",
+          "waf-regional:GetWebACL",
+          "waf-regional:GetWebACLForResource",
+          "waf-regional:AssociateWebACL",
+          "waf-regional:DisassociateWebACL",
+          "wafv2:GetWebACL",
+          "wafv2:GetWebACLForResource",
+          "wafv2:AssociateWebACL",
+          "wafv2:DisassociateWebACL",
+          "shield:GetSubscriptionState",
+          "shield:DescribeProtection",
+          "shield:CreateProtection",
+          "shield:DeleteProtection"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 # Additional policy for EBS CSI Driver
@@ -311,4 +358,24 @@ data "aws_iam_policy_document" "ebs_csi_policy" {
       values   = ["*"]
     }
   }
+}
+
+# EBS CSI Driver IRSA Role
+# This is required for the EBS CSI driver addon to work properly
+# Reference: https://registry.terraform.io/modules/terraform-aws-modules/iam/aws/latest/submodules/iam-role-for-service-accounts-eks
+module "ebs_csi_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name             = "${module.eks.cluster_name}-ebs-csi-controller"
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
+
+  tags = var.tags
 }
