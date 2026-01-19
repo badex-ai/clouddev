@@ -101,11 +101,13 @@ resource "aws_cloudwatch_log_group" "fluent_bit" {
 }
 
 # CloudWatch namespace for Kubernetes
-resource "kubernetes_namespace" "amazon_cloudwatch" {
+resource "kubernetes_namespace_v1" "amazon_cloudwatch" {
   metadata {
     name = "amazon-cloudwatch"
     labels = {
       name = "amazon-cloudwatch"
     }
   }
+
+  depends_on = [module.eks]
 }

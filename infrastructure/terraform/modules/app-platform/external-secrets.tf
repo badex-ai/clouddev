@@ -59,7 +59,7 @@ resource "aws_iam_policy" "external_secrets" {
 }
 
 # Create namespace for External Secrets (optional - ArgoCD can also create it)
-resource "kubernetes_namespace" "external_secrets" {
+resource "kubernetes_namespace_v1" "external_secrets" {
   count = var.enable_external_secrets ? 1 : 0
 
   metadata {
@@ -68,6 +68,8 @@ resource "kubernetes_namespace" "external_secrets" {
       name = "external-secrets"
     }
   }
+
+  depends_on = [module.eks]
 }
 
 # ==========================================

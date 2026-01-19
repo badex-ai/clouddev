@@ -54,7 +54,7 @@ resource "aws_iam_policy" "xray_cloudwatch" {
 }
 
 # ADOT Collector ConfigMap for X-Ray
-resource "kubernetes_config_map" "adot_xray_config" {
+resource "kubernetes_config_map_v1" "adot_xray_config" {
   metadata {
     name      = "adot-xray-collector-config"
     namespace = "aws-otel-eks"
@@ -104,15 +104,17 @@ resource "kubernetes_config_map" "adot_xray_config" {
     })
   }
 
-  depends_on = [kubernetes_namespace.aws_otel_eks]
+  depends_on = [kubernetes_namespace_v1.aws_otel_eks]
 }
 
 # Create aws-otel-eks namespace
-resource "kubernetes_namespace" "aws_otel_eks" {
+resource "kubernetes_namespace_v1" "aws_otel_eks" {
   metadata {
     name = "aws-otel-eks"
     labels = {
       name = "aws-otel-eks"
     }
   }
+
+  depends_on = [module.eks]
 }
