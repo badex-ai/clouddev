@@ -1,16 +1,21 @@
-
 replicaCount: 1
 
+global:
+  namespace: "default"
 
 image:
   repository: badex360/kaban-frontend
   tag: latest
-  pullPolicy:  Always
+  pullPolicy: Always
 
-
+externalSecrets:
+  enabled: false
+  refreshInterval: "1h"
+  secretName: ""
 
 configMap:
   enabled: true
+  data: {}
   
 
 # Secrets (sensitive data)

@@ -28,8 +28,13 @@ spec:
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
         {{- end }}
+        {{- if .Values.celeryWorker.image }}
+        image: "{{ .Values.celeryWorker.image.repository }}:{{ .Values.celeryWorker.image.tag | default .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.celeryWorker.image.pullPolicy | default .Values.image.pullPolicy }}
+        {{- else }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- end }}
         command: 
           - celery
           - -A
