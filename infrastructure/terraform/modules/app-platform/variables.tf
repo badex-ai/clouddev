@@ -60,6 +60,11 @@ variable "node_group_max_size" {
   default     = 2
 }
 
+variable "node_group_capacity_type" {
+  description = "Capacity type for node group (ON_DEMAND or SPOT)"
+  type        = string
+  default     = "ON_DEMAND"
+}
 
 variable "db_instance_class" {
   description = "RDS instance class"
