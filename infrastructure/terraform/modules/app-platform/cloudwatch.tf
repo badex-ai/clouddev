@@ -10,7 +10,6 @@ module "cloudwatch_observability_irsa" {
       provider_arn = module.eks.oidc_provider_arn
       namespace_service_accounts = [
         "amazon-cloudwatch:cloudwatch-agent",
-        "amazon-cloudwatch:fluent-bit",
         "aws-otel-eks:aws-otel-collector"
       ]
     }
@@ -92,14 +91,6 @@ resource "aws_cloudwatch_log_group" "container_insights" {
   tags = var.tags
 }
 
-resource "aws_cloudwatch_log_group" "fluent_bit" {
-  name              = "/aws/containerinsights/${module.eks.cluster_name}/fluent-bit-cloudwatch"
-  retention_in_days = var.log_retention_days
-  kms_key_id        = aws_kms_key.eks_cluster.arn
-
-  tags = var.tags
-}
-
 # CloudWatch namespace for Kubernetes
 resource "kubernetes_namespace_v1" "amazon_cloudwatch" {
   metadata {
@@ -110,4 +101,80 @@ resource "kubernetes_namespace_v1" "amazon_cloudwatch" {
   }
 
   depends_on = [module.eks]
+}
+
+# ============================================================================
+# APPLICATION-SPECIFIC LOG GROUPS (Separate logs for each component)
+# ============================================================================
+
+# Backend API log group
+resource "aws_cloudwatch_log_group" "kaban_backend" {
+  name              = "/kaban/${var.environment}/backend"
+  retention_in_days = var.log_retention_days
+  kms_key_id        = aws_kms_key.eks_cluster.arn
+
+  tags = merge(var.tags, {
+    Application = "kaban-backend"
+    Component   = "api"
+  })
+}
+
+# Celery worker log group
+resource "aws_cloudwatch_log_group" "kaban_celery" {
+  name              = "/kaban/${var.environment}/celery"
+  retention_in_days = var.log_retention_days
+  kms_key_id        = aws_kms_key.eks_cluster.arn
+
+  tags = merge(var.tags, {
+    Application = "kaban-backend"
+    Component   = "celery-worker"
+  })
+}
+
+# Frontend log group
+resource "aws_cloudwatch_log_group" "kaban_frontend" {
+  name              = "/kaban/${var.environment}/frontend"
+  retention_in_days = var.log_retention_days
+  kms_key_id        = aws_kms_key.eks_cluster.arn
+
+  tags = merge(var.tags, {
+    Application = "kaban-frontend"
+    Component   = "web"
+  })
+}
+
+# Update CloudWatch observability policy to include new log groups
+resource "aws_iam_policy" "kaban_log_groups" {
+  name_prefix = "${module.eks.cluster_name}-kaban-logs-"
+  description = "Allow pods to write logs to Kaban application log groups"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = [
+          aws_cloudwatch_log_group.kaban_backend.arn,
+          aws_cloudwatch_log_group.kaban_celery.arn,
+          aws_cloudwatch_log_group.kaban_frontend.arn,
+          "${aws_cloudwatch_log_group.kaban_backend.arn}:*",
+          "${aws_cloudwatch_log_group.kaban_celery.arn}:*",
+          "${aws_cloudwatch_log_group.kaban_frontend.arn}:*"
+        ]
+      }
+    ]
+  })
+
+  tags = var.tags
+}
+
+# Attach the new policy to the CloudWatch observability role
+resource "aws_iam_role_policy_attachment" "kaban_logs" {
+  role       = module.cloudwatch_observability_irsa.iam_role_name
+  policy_arn = aws_iam_policy.kaban_log_groups.arn
 }

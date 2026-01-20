@@ -268,3 +268,26 @@ output "redis_auth_token_secret_arn" {
   description = "Redis AUTH token secret ARN"
   value       = var.enable_elasticache ? aws_secretsmanager_secret.redis_auth_token[0].arn : null
 }
+# ============================================================================
+# CLOUDWATCH LOG GROUPS (Application-specific logs)
+# ============================================================================
+
+output "backend_log_group_name" {
+  description = "CloudWatch log group for backend API"
+  value       = aws_cloudwatch_log_group.kaban_backend.name
+}
+
+output "celery_log_group_name" {
+  description = "CloudWatch log group for Celery workers"
+  value       = aws_cloudwatch_log_group.kaban_celery.name
+}
+
+output "frontend_log_group_name" {
+  description = "CloudWatch log group for frontend"
+  value       = aws_cloudwatch_log_group.kaban_frontend.name
+}
+
+output "kaban_logs_policy_arn" {
+  description = "IAM policy for Kaban application logs"
+  value       = aws_iam_policy.kaban_log_groups.arn
+}
