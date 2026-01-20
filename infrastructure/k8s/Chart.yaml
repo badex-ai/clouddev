@@ -21,3 +21,6 @@ dependencies:
     version: 0.1.0
     repository: "file://charts/redis"
     condition: redis.enabled
+  - name: adot-collector
+    version: 0.1.0
+    repository: "file://./charts/adot-collector"

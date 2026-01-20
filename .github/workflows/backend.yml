@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
+      - "backend/**"
+      - ".github/workflows/backend.yml"
   pull_request:
     branches: [main, dev]
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
+      - "backend/**"
+      - ".github/workflows/backend.yml"
 
 env:
   DOCKERHUB_REPO_BACKEND: badex360/kaban-backend
@@ -27,8 +27,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -82,8 +82,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         run: |
@@ -149,8 +149,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Generate image tags
         id: meta
@@ -211,7 +211,7 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
         with:
-          version: 'v3.13.0'
+          version: "v3.13.0"
 
       - name: Deploy with Helm
         run: |
@@ -220,8 +220,8 @@ jobs:
             --namespace kaban \
             --create-namespace \
             -f ./infrastructure/k8s/values-aws-staging.yaml \
-            --set image.tag=${SHORT_SHA} \
-            --set celeryWorker.image.tag=${SHORT_SHA} \
+            --set image.tag=latest \
+            --set celeryWorker.image.tag=latest \ 
             --set configMap.data.BREVO_SENDER_EMAIL=${{ vars.BREVO_SENDER_EMAIL }} \
             --wait \
             --timeout 5m
