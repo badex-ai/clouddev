@@ -1,0 +1,53 @@
+replicaCount: 1
+
+image:
+  repository: public.ecr.aws/aws-observability/aws-otel-collector
+  tag: v0.41.0
+  pullPolicy: IfNotPresent
+
+namespace: aws-otel-eks
+
+serviceAccount:
+  create: true
+  name: aws-otel-collector
+  # IAM role configured by Terraform - override in values-*.yaml
+  roleArn: ""
+  annotations:
+    eks.amazonaws.com/role-arn: ""
+
+service:
+  type: ClusterIP
+  port: 4317
+  targetPort: 4317
+
+# OpenTelemetry Collector configuration
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+  exporters:
+    awsxray:
+      region: us-west-2
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        exporters: [awsxray]
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
