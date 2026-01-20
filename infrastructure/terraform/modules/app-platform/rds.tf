@@ -1,12 +1,13 @@
 # Generate random password for RDS
 resource "random_password" "db_password" {
-  length  = 16
-  special = true
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?" # Exclude /, @, ", space (not allowed by RDS)
 }
 
 # Store password in AWS Secrets Manager
 resource "aws_secretsmanager_secret" "db_password" {
-  name        = "${var.project_name}-${var.environment}-db-password"
+  name        = "${var.project_name}/${var.environment}/db-password"
   description = "PostgreSQL password for ${var.project_name} ${var.environment}"
 
   tags = merge(var.tags, {
