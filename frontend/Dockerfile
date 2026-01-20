@@ -76,7 +76,6 @@ RUN apk add --no-cache curl
 RUN addgroup --system --gid 1001 appgroup && \
   adduser --system --uid 1001 appuser --ingroup appgroup
 
-COPY --chown=appuser:appgroup ./public ./public
 
 RUN mkdir .next && chown appuser:appgroup .next
 
