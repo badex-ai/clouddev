@@ -29,6 +29,27 @@ externalSecrets:
   enabled: true
 
 # ============================================
+# ADOT COLLECTOR CONFIGURATION
+# ============================================
+adot-collector:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: public.ecr.aws/aws-observability/aws-otel-collector
+    tag: v0.41.0
+  serviceAccount:
+    roleArn: "arn:aws:iam::122991883319:role/kaban-staging-xray-daemon"
+
+# ============================================
+# LOGGING CONFIGURATION
+# ============================================
+logging:
+  enabled: true
+  cloudwatch:
+    enabled: true
+    region: "us-west-2"
+
+# ============================================
 # INGRESS CONFIGURATION (shared)
 # ============================================
 ingress:
@@ -122,6 +143,9 @@ backend:
       CELERY_RESULT_USE_SSL: "true"
       # Email - Passed via GitHub Environment Variable in CI/CD
       BREVO_SENDER_EMAIL: "badamasi.link@gmail.com"
+      # Logging - Distinguish this component's logs
+      LOG_SOURCE: "backend"
+      CLOUDWATCH_LOG_GROUP: "/kaban/staging/backend"
 
   celeryWorker:
     replicaCount: 1
@@ -129,6 +153,11 @@ backend:
       repository: badex360/kaban-celery-worker
       tag: latest
       pullPolicy: Always
+    env:
+      - name: LOG_SOURCE
+        value: "celery"
+      - name: CLOUDWATCH_LOG_GROUP
+        value: "/kaban/staging/celery"
     resources:
       requests:
         memory: "256Mi"
@@ -222,6 +251,9 @@ frontend:
       NEXT_PUBLIC_API_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com/api"
       BACKEND_URL: "http://kaban-backend-service:8000"
       ENVIRONMENT: "staging"
+      # Logging - Distinguish this component's logs
+      LOG_SOURCE: "frontend"
+      CLOUDWATCH_LOG_GROUP: "/kaban/staging/frontend"
 
   networkPolicy:
     enabled: true
