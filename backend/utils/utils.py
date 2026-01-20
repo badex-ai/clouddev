@@ -12,13 +12,14 @@ auth0_domain = config["auth0_domain"]
 auth0_client_id = config["auth0_client_id"]
 auth0_m2m_client_id = config["auth0_m2m_client_id"]
 auth0_m2m_client_secret = config["auth0_m2m_client_secret"]
-brevo_api_key = config.get("brevo_api_key")
 brevo_sender_email=config["sender_email"]
 
 
 async def send_email(req, html_content):
     """Send custom email using Brevo API"""
-
+    
+    # Load fresh config to get updated API key
+    brevo_api_key = config.get("brevo_api_key")
     if not brevo_api_key:
         print("Warning: Brevo API key not configured")
         raise HTTPException(status_code=500, detail="Email service not configured")
@@ -62,16 +63,28 @@ async def send_email(req, html_content):
 
 
 def send_email_sync(email_req, body: str):
-    """Synchronous version for Celery tasks"""
+    """Synchronous version for Celery tasks
+    
+    CRITICAL: Load brevo_api_key fresh in each call instead of using module-level variable.
+    Reason: Celery worker subprocesses (prefork mode) inherit old module state from parent.
+    Reading from /etc/secrets/BREVO_API_KEY file ensures we get the current value.
+    """
+    
+    # Load config fresh (reads from /etc/secrets/BREVO_API_KEY file)
+    fresh_config = get_config()
+    brevo_api_key = fresh_config.get("brevo_api_key")
+    
+    if not brevo_api_key:
+        raise ValueError("BREVO_API_KEY not configured in secrets")
     
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
-        "api-key": config["brevo_api_key"],
+        "api-key": brevo_api_key,
         "Content-Type": "application/json"
     }
     
     payload = {
-        "sender": {"email": brevo_sender_email, "name": "Kaban App"},
+        "sender": {"email": fresh_config["sender_email"], "name": "Kaban App"},
         "to": [{"email": email_req.email}],
         "subject": "Welcome to Kaban",
         "htmlContent": body
