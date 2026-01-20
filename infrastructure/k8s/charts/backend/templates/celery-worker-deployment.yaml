@@ -51,6 +51,13 @@ spec:
                 name: {{ include "backend.fullname" $ }}-config
                 key: {{ $key }}
           {{- end }}
+          # Additional env vars for celery worker (from values.celeryWorker.env)
+          {{- if .Values.celeryWorker.env }}
+          {{- range .Values.celeryWorker.env }}
+          - name: {{ .name }}
+            value: {{ .value | quote }}
+          {{- end }}
+          {{- end }}
         
         # ✅ ADDED: Mount secrets as files (like Deployment A)
         {{- if .Values.volumeMounts }}
