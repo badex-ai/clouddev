@@ -180,8 +180,21 @@ jobs:
             --set celeryWorker.image.tag=staging-${{ github.sha }} \
             --set frontend.image.tag=staging-${{ github.sha }} \
             --wait \
-            --timeout 5m \
+            --timeout 10m \
             --debug
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+      - name: Debug pod failures # ← ADD THIS ENTIRE BLOCK HERE
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n kaban
+          echo "=== Backend Pod Details ==="
+          kubectl describe pod -n kaban -l app=kaban-backend
+          echo "=== Backend Logs ==="
+          kubectl logs -n kaban -l app=kaban-backend --tail=100 --all-containers=true
+          echo "=== Events ==="
+          kubectl get events -n kaban --sort-by='.lastTimestamp' | tail -20
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 

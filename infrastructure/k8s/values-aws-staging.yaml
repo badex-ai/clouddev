@@ -89,6 +89,9 @@ backend:
   component: api
   replicaCount: 1
 
+  strategy:                    
+    type: Recreate
+
   env:
     - name: LOG_SOURCE
       value: "backend"
@@ -213,6 +216,9 @@ backend:
 # ============================================
 frontend:
   replicaCount: 1
+
+  strategy:                    
+    type: Recreate
 
   image:
     repository: badex360/kaban-frontend
