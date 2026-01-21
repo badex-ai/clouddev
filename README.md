@@ -251,69 +251,6 @@ cd infrastructure/terraform
 terraform init
 terraform plan -var-file="staging.tfvars" -out=tfplan
 terraform apply tfplan
-```
-env file samples 
-```bash
-#### BACKEND AUTH0
-BACKEND_AUTH0_DOMAIN=your-tenant.auth0.com
-BACKEND_AUTH0_CLIENT_ID=your_backend_auth0_client_id
-BACKEND_AUTH0_CLIENT_SECRET=your_backend_auth0_client_secret
-BACKEND_AUTH0_API_AUDIENCE=https://your-api-audience.com
-BACKEND_AUTH0_M2M_CLIENT_ID=your_machine_to_machine_client_id
-BACKEND_AUTH0_M2M_CLIENT_SECRET=your_machine_to_machine_secret
-
-#### FRONTEND AUTH0
-FRONTEND_AUTH0_SECRET=generate_32_byte_random_string_using_openssl_rand_hex_32
-FRONTEND_AUTH0_BASE_URL=http://localhost:3000
-FRONTEND_AUTH0_ISSUER_BASE_URL=https://your-tenant.auth0.com
-FRONTEND_AUTH0_SCOPE=profile email openid
-FRONTEND_AUTH0_AUDIENCE=https://your-api-audience.com
-FRONTgenerate_32_byte_random_string_using_openssl_rand_hex_32END_APP_BASE_URL=http://localhost:3000
-
-#### API
-NEXT_PUBLIC_API_URL=http://localhost:8000
-BACKEND_URL=http://backend:8000
-
-#### DATABASE - POSTGRES
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=your_database_name
-DB_USER=your_database_user
-DB_PASSWORD=your_database_password
-
-#### EMAIL SERVICE - BREVO
-BREVO_API_KEY=your_brevo_api_key_here
-BREVO_SENDER_EMAIL=noreply@yourdomain.com
-
-#### REDIS
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-REDIS_PASSWORD=
-REDIS_USE_SSL=false
-
-#### CELERY - TASK QUEUE
-CELERY_BROKER_HOST=redis
-CELERY_BROKER_PORT=6379
-CELERY_BROKER_DB=1
-CELERY_BROKER_PASSWORD=
-CELERY_BROKER_USE_SSL=false
-
-CELERY_RESULT_HOST=redis
-CELERY_RESULT_PORT=6379
-CELERY_RESULT_DB=2
-CELERY_RESULT_PASSWORD=
-
-#### TERRAFORM / K8S DEPLOYMENT SECRETS3
-
-BACKEND_AUTH0_CLIENT_SECRET
-BACKEND_AUTH0_M2M_CLIENT_SECRET
-FRONTEND_AUTH0_SECRET
-BREVO_API_KEY
-DB_PASSWORD
-REDIS_PASSWORD (if using password-protected Redis)
-
-```
 
 ## Monitoring & Observability
 
