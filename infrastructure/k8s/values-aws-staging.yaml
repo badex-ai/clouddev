@@ -188,13 +188,13 @@ backend:
       redis:
         useIPBlock: true
         cidr: "10.1.0.0/16"
-      allowADOT: true
-      adot:
-        podSelector:
-          app: adot-collector
-        ports:
-          - 4317
-          - 4318
+      # allowADOT: true
+      # adot:
+      #   podSelector:
+      #     app: adot-collector
+      #   ports:
+      #     - 4317
+      #     - 4318
       allowExternal: true
       externalPorts:
         - 443
