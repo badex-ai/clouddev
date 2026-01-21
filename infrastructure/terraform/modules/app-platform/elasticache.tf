@@ -140,4 +140,10 @@ resource "aws_secretsmanager_secret_version" "redis_auth_token" {
 
   secret_id     = aws_secretsmanager_secret.redis_auth_token[0].id
   secret_string = random_password.redis_auth_token[0].result
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
+
+

@@ -21,6 +21,10 @@ resource "aws_secretsmanager_secret_version" "db_password" {
     username = "postgres"
     password = random_password.db_password.result
   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # RDS PostgreSQL instance
