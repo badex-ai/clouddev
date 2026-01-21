@@ -163,9 +163,9 @@ jobs:
         run: |
           cd infrastructure/k8s
 
-          kubectl label namespace aws-otel-eks app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
-          kubectl annotate namespace aws-otel-eks meta.helm.sh/release-name=kaban --overwrite 2>/dev/null || true
-          kubectl annotate namespace aws-otel-eks meta.helm.sh/release-namespace=kaban --overwrite 2>/dev/null || true
+          # kubectl label namespace aws-otel-eks app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+          # kubectl annotate namespace aws-otel-eks meta.helm.sh/release-name=kaban --overwrite 2>/dev/null || true
+          # kubectl annotate namespace aws-otel-eks meta.helm.sh/release-namespace=kaban --overwrite 2>/dev/null || true
 
           kubectl label namespace amazon-cloudwatch app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
           kubectl annotate namespace amazon-cloudwatch meta.helm.sh/release-name=kaban --overwrite 2>/dev/null || true
@@ -196,7 +196,7 @@ jobs:
       - name: Check pod status
         run: |
           kubectl get pods -n kaban
-          kubectl get pods -n aws-otel-eks
+          # kubectl get pods -n aws-otel-eks
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
         if: always()
