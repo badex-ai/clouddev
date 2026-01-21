@@ -176,6 +176,7 @@ jobs:
             --set frontend.image.tag=staging-${{ github.sha }} \
             --wait \
             --timeout 5m
+            --debug
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
