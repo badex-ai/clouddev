@@ -89,6 +89,12 @@ backend:
   component: api
   replicaCount: 1
 
+  env:
+    - name: LOG_SOURCE
+      value: "backend"
+    - name: CLOUDWATCH_LOG_GROUP
+      value: "/kaban/staging/backend"
+
   image:
     repository: badex360/kaban-backend
     tag: latest
@@ -143,9 +149,7 @@ backend:
       CELERY_RESULT_USE_SSL: "true"
       # Email - Passed via GitHub Environment Variable in CI/CD
       BREVO_SENDER_EMAIL: "badamasi.link@gmail.com"
-      # Logging - Distinguish this component's logs
-      LOG_SOURCE: "backend"
-      CLOUDWATCH_LOG_GROUP: "/kaban/staging/backend"
+      
 
   celeryWorker:
     replicaCount: 1
