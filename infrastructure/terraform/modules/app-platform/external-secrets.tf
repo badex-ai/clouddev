@@ -100,6 +100,10 @@ resource "aws_secretsmanager_secret_version" "backend_secrets" {
     CELERY_RESULT_PASSWORD = var.enable_elasticache ? random_password.redis_auth_token[0].result : var.redis_password
     BREVO_API_KEY          = var.brevo_api_key
   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # Frontend Application Secrets
@@ -120,4 +124,8 @@ resource "aws_secretsmanager_secret_version" "frontend_secrets" {
     AUTH0_SECRET        = var.auth0_secret
     AUTH0_CLIENT_SECRET = var.auth0_client_secret
   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
