@@ -15,10 +15,6 @@ regexes = [
 id = "generic-api-key"
 description = "Generic API Key"
 regex = '''(?i)(?:key|api|token|secret|password)[\s]*(?:=|:)[\s]*['\"]?([a-zA-Z0-9_\-]{32,})['\"]?'''
-id = "env-file-committed"
-description = ".env files should never be committed"
-regex = '''\.env'''
-path = '''.*\.env$'''
 
 [rules.allowlist]
 description = "Allow Auth0 public values in Kubernetes configs"
@@ -28,3 +24,9 @@ paths = [
 regexes = [
   '''AUTH0.*CLIENT.*ID''',
 ]
+
+[[rules]]
+id = "env-file-committed"
+description = ".env files should never be committed"
+regex = '''\.env'''
+path = '''.*\.env$''
