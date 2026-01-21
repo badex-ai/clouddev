@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kaban-staging
+  namespace: argocd
+spec:
+  project: default
+  
+  source:
+    repoURL: https://github.com/badex-ai/clouddev
+    targetRevision: main
+    path: infrastructure/k8s
+    
+    helm:
+      valueFiles:
+        - values.yaml              # 1. Base values (loaded first)
+        - values-aws-staging           # Base values
+        
+      parameters:
+        - name: backend.image.tag
+          value: "latest"
+        - name: frontend.image.tag
+          value: "latest"
+        - name: global.namespace
+          value: "kaban-staging"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kaban-staging
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
