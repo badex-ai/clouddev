@@ -20,6 +20,8 @@ regex = '''(?i)(?:key|api|token|secret|password)[\s]*(?:=|:)[\s]*['\"]?([a-zA-Z0
 description = "Allow Auth0 public values in Kubernetes configs"
 paths = [
   'infrastructure/k8s/values-.*\.yaml',    
+'''\.env\.example$''',     
+  '''\.tfvars\.example$''',  
 ]
 regexes = [
   'AUTH0.*CLIENT.*ID',         
@@ -29,4 +31,10 @@ regexes = [
 id = "env-file-committed"
 description = ".env files should never be committed"
 regex = '\.env'               
-path = '.*\.env$'             
+path = '''\.env$'''
+
+[rules.allowlist]  # ADD THIS SECTION
+description = "Allow .env.example files"
+paths = [
+  '''\.env\.example$''',
+]

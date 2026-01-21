@@ -33,3 +33,4 @@ backend/verify_celery_config.py
 # Temporary files
 diff.txt
 charts/adot-collector/
+!.env.example
