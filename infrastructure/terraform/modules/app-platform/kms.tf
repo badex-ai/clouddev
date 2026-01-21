@@ -47,7 +47,10 @@ resource "aws_kms_key" "eks_cluster" {
           ArnLike = {
             "kms:EncryptionContext:aws:logs:arn" = [
               "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/eks/${module.eks.cluster_name}/*",
-              "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/containerinsights/${module.eks.cluster_name}/*"
+              "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/containerinsights/${module.eks.cluster_name}/*",
+              "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/kaban/${var.environment}/backend*",
+              "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/kaban/${var.environment}/celery*",
+              "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/kaban/${var.environment}/frontend*"
             ]
           }
         }
