@@ -33,7 +33,7 @@ def build_url(host: str, port: int, db: int, password: str = "", use_ssl: bool =
     AWS ElastiCache with TLS requires this parameter.
     """
     protocol = "rediss" if use_ssl else "redis"
-    ssl_params = "?ssl_cert_reqs=CERT_REQUIRED" if use_ssl else ""
+    ssl_params = "?ssl_cert_reqs=required" if use_ssl else ""
     if password:
         return f"{protocol}://:{password}@{host}:{port}/{db}{ssl_params}"
     return f"{protocol}://{host}:{port}/{db}{ssl_params}"
