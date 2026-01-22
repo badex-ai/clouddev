@@ -37,6 +37,7 @@ import { getTaskForDay } from '@/lib/actions/taskActions';
 import { deleteTask } from '@/lib/actions/taskActions';
 import CircleIcon from '../../../components/icons/circleIcon';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getErrorMessage } from '@/lib/errors';
 
 function Dashboard() {
   const router = useRouter();
@@ -85,6 +86,9 @@ function Dashboard() {
 
     fetchTasks();
   }, [dasboardDate, userData?.family?.id]);
+
+
+  const RELEASE = process.env.NEXT_PUBLIC_RELEASE;
 
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
@@ -232,10 +236,8 @@ function Dashboard() {
 
       setTasks((tasks) => [...tasks, createdTask]);
     } catch (error) {
-      // toast('Something went wrong while creating the task');
-      const message = error instanceof Error ? error.message : String(error);
       toast('Task creation error', {
-        description: message,
+        description: getErrorMessage(error),
         action: {
           label: 'Close',
           onClick: () => {
@@ -400,11 +402,14 @@ function Dashboard() {
               </form>
             </DialogContent>
           </Dialog>
-          <div className="ml-auto w-10 h-10">
+          {RELEASE === "CANARY" &&
+             <div className="ml-auto w-10 h-10">
             {tasks.length > 0 && (
               <CircleIcon percentage={percentage} size={50} strokeWidth={6} color="#DD2E44" />
             )}
           </div>
+          }
+         
         </div>
         {taskTable}
       </div>

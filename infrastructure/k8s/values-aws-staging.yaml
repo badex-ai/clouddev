@@ -29,18 +29,6 @@ externalSecrets:
   enabled: true
 
 # ============================================
-# ADOT COLLECTOR CONFIGURATION
-# ============================================
-adot-collector:
-  enabled: true
-  replicaCount: 1
-  image:
-    repository: public.ecr.aws/aws-observability/aws-otel-collector
-    tag: v0.41.0
-  serviceAccount:
-    roleArn: "arn:aws:iam::122991883319:role/kaban-staging-xray-daemon"
-
-# ============================================
 # LOGGING CONFIGURATION
 # ============================================
 logging:
@@ -62,6 +50,24 @@ ingress:
     # HTTP only (no custom domain/certificate)
     # To enable HTTPS later: add certificate-arn and change listen-ports to include 443
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/actions.weighted-routing: |
+      {
+        "type": "forward",
+        "forwardConfig": {
+          "targetGroups": [
+            {
+              "serviceName": "{{ include "frontend.fullname" . }}-service",
+              "servicePort": "80",
+              "weight": 60
+            },
+            {
+              "serviceName": "{{ include "frontend.fullname" . }}-canary-service",
+              "servicePort": "80",
+              "weight": 40
+            }
+          ]
+        }
+      }
   # Service names follow Helm naming: <release-name>-service
   # Backend release: kaban-backend → service: kaban-backend-service
   # Frontend release: kaban-frontend → service: kaban-frontend-service
@@ -132,9 +138,6 @@ backend:
       DB_NAME: "kaban_staging"
       DB_USER: "postgres"
       ENVIRONMENT: "staging"
-      # OpenTelemetry/ADOT Configuration
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://adot-collector.aws-otel-eks.svc.cluster.local:4317"
-      OTEL_SERVICE_NAME: "kaban-backend"
       # ElastiCache - populated from Terraform output
       REDIS_HOST: "master.kaban-staging.te9wwx.usw2.cache.amazonaws.com"
       REDIS_PORT: "6379"
@@ -191,13 +194,6 @@ backend:
       redis:
         useIPBlock: true
         cidr: "10.1.0.0/16"
-      # allowADOT: true
-      # adot:
-      #   podSelector:
-      #     app: adot-collector
-      #   ports:
-      #     - 4317
-      #     - 4318
       allowExternal: true
       externalPorts:
         - 443
@@ -232,6 +228,13 @@ frontend:
     type: ClusterIP
     port: 80
     targetPort: 3000
+  
+  canary:
+    enabled: true
+    replicas: 1
+    image:
+      repository: badex360/kaban-frontend-canary
+      tag: latest
 
   # ExternalSecrets configuration for frontend
   externalSecrets:

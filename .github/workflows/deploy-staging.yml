@@ -11,6 +11,7 @@ env:
   DOCKERHUB_REPO_BACKEND: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-backend
   DOCKERHUB_REPO_CELERY: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-celery
   DOCKERHUB_REPO_FRONTEND: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-frontend
+  DOCKERHUB_REPO_FRONTEND_CANARY: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-frontend-canary
   AWS_REGION: ${{ vars.AWS_REGION }}
   EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
 
@@ -22,6 +23,7 @@ jobs:
       backend_tag: ${{ steps.backend.outputs.tag }}
       celery_tag: ${{ steps.celery.outputs.tag }}
       frontend_tag: ${{ steps.frontend.outputs.tag }}
+      frontend_canary_tag: ${{ steps.frontend-canary.outputs.tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -63,7 +65,7 @@ jobs:
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_CELERY }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_CELERY }}:buildcache,mode=max
 
-      - name: Build and push frontend image
+      - name: Build and push frontend stable image
         id: frontend
         uses: docker/build-push-action@v5
         with:
@@ -73,17 +75,36 @@ jobs:
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_RELEASE=STABLE
           tags: |
             ${{ env.DOCKERHUB_REPO_FRONTEND }}:latest
             ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}
           cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND }}:buildcache
           cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND }}:buildcache,mode=max
 
+      - name: Build and push frontend canary image
+        id: frontend-canary
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          target: staging-canary
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_RELEASE=CANARY
+          tags: |
+            ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:latest
+            ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:buildcache,mode=max
+
       - name: Output image tags
         run: |
           echo "Backend: ${{ env.DOCKERHUB_REPO_BACKEND }}:staging-${{ github.sha }}"
           echo "Celery: ${{ env.DOCKERHUB_REPO_CELERY }}:staging-${{ github.sha }}"
-          echo "Frontend: ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}"
+          echo "Frontend Stable: ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}"
+          echo "Frontend Canary: ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:staging-${{ github.sha }}"
 
   terraform:
     name: Terraform Plan & Apply
@@ -176,6 +197,9 @@ jobs:
             --set backend.image.tag=staging-${{ github.sha }} \
             --set celeryWorker.image.tag=staging-${{ github.sha }} \
             --set frontend.image.tag=staging-${{ github.sha }} \
+            --set frontend.canary.enabled=true \
+            --set frontend.canary.image.repository=${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }} \
+            --set frontend.canary.image.tag=staging-${{ github.sha }} \
             --wait \
             --timeout 10m \
             --debug
@@ -200,6 +224,7 @@ jobs:
           kubectl rollout status deployment/kaban-backend -n kaban --timeout=3m
           kubectl rollout status deployment/kaban-backend-celery-worker -n kaban --timeout=3m
           kubectl rollout status deployment/kaban-frontend -n kaban --timeout=3m
+          kubectl rollout status deployment/kaban-frontend-canary -n kaban --timeout=3m
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
@@ -215,11 +240,14 @@ jobs:
           echo "✅ Staging deployment complete!"
           echo "Backend image: ${{ env.DOCKERHUB_REPO_BACKEND }}:staging-${{ github.sha }}"
           echo "Celery image: ${{ env.DOCKERHUB_REPO_CELERY }}:staging-${{ github.sha }}"
-          echo "Frontend image: ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}"
+          echo "Frontend Stable image: ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}"
+          echo "Frontend Canary image: ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:staging-${{ github.sha }}"
           echo ""
           echo "Check logs:"
           echo "  kubectl logs -n kaban -l app=kaban-backend --tail=50"
           echo "  kubectl logs -n kaban -l app=kaban-celery-worker --tail=50"
+          echo "  kubectl logs -n kaban -l app=frontend,version=stable --tail=50"
+          echo "  kubectl logs -n kaban -l app=frontend,version=canary --tail=50"
 
   notify-failure:
     name: Notify on Failure

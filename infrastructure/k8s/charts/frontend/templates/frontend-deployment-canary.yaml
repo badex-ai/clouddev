@@ -1,25 +1,22 @@
+{{- if .Values.canary.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "frontend.fullname" . }}
+  name: {{ include "frontend.fullname" . }}-canary
   namespace: {{ .Values.global.namespace }}
   labels:
       {{- include "frontend.labels" . | nindent 4 }}
-      version: stable
-
-  
+      version: canary
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.canary.replicas | default 1 }}
+  {{- with .Values.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.strategy }}        
-  strategy:                           
-    {{- toYaml . | nindent 4 }}       
-  {{- end }}  
   selector:
     matchLabels:
       {{- include "frontend.selectorLabels" . | nindent 6 }}
-      version: stable
+      version: canary
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -31,7 +28,7 @@ spec:
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        version: stable
+        version: canary
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -42,12 +39,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}-canary
           {{- with .Values.containerSecurityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.canary.image.repository | default .Values.image.repository }}:{{ .Values.canary.image.tag | default "canary" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
@@ -87,7 +84,7 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-        
+
       {{- with .Values.volumes }}
       volumes:
         {{- range . }}
@@ -114,3 +111,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}
