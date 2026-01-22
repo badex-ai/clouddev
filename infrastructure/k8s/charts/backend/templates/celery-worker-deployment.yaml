@@ -51,6 +51,18 @@ spec:
                 name: {{ include "backend.fullname" $ }}-config
                 key: {{ $key }}
           {{- end }}
+          
+          # Secret values (sensitive) - ADDED THIS BLOCK
+          {{- if .Values.secrets.enabled }}
+          {{- range $key, $value := .Values.secrets.data }}
+          - name: {{ $key }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "backend.fullname" $ }}-secrets
+                key: {{ $key }}
+          {{- end }}
+          {{- end }}
+          
           # Additional env vars for celery worker (from values.celeryWorker.env)
           {{- if .Values.celeryWorker.env }}
           {{- range .Values.celeryWorker.env }}
