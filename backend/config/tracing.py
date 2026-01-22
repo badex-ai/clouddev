@@ -4,11 +4,10 @@ from functools import lru_cache
 
 def is_tracing_enabled() -> bool:
     """Check if tracing should be enabled based on environment."""
-    environment = os.environ.get("ENVIRONMENT", "dev")
+    # Only enable tracing if explicitly set to true
+    # This prevents errors when ADOT collector is not deployed
     tracing_enabled = os.environ.get("OTEL_TRACING_ENABLED", "false").lower() == "true"
-
-    # Enable in staging and production (or explicitly enabled)
-    return environment in ("staging", "production", "prod") or tracing_enabled
+    return tracing_enabled
 
 
 def setup_tracing(app=None, service_name: str = "kaban-backend"):
