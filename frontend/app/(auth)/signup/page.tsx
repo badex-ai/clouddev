@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { signupSchema, type SignupFormData } from '@/lib/validations/auth';
 import { toast } from 'sonner';
-import { getConfig } from '../../../lib/config';
+import { getErrorMessage } from '@/lib/errors';
 import { createNewUser } from '../../../lib/actions/userActions';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,17 +54,15 @@ export default function SignupPage() {
         duration: 4000, // in ms (default is 4000)
       });
     } catch (error) {
-      // console.error('Signup error:', error);
-      const message = error instanceof Error ? error.message : String(error);
       toast('Signup failed', {
-        description: message,
+        description: getErrorMessage(error),
         action: {
           label: 'Close',
           onClick: () => {
             toast.dismiss();
           },
         },
-        duration: 4000, // in ms (default is 4000)
+        duration: 4000,
       });
     } finally {
       setIsLoading(false);

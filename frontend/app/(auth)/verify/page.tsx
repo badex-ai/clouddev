@@ -7,6 +7,7 @@ import { useUser } from '@auth0/nextjs-auth0';
 import { Mail, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { getConfig } from '../../../lib/config';
+import { getErrorMessage } from '@/lib/errors';
 
 const { apiUrl } = getConfig();
 
@@ -36,9 +37,8 @@ function VerifyEmailPage() {
         duration: 4000,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      toast('Error sendin email verfication', {
-        description: message,
+      toast('Error sending email verification', {
+        description: getErrorMessage(error),
         action: {
           label: 'Close',
           onClick: () => {

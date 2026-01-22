@@ -18,6 +18,7 @@ export default function DashboardLayout({
     useAuthUser();
 
   const { user } = useUser();
+  const RELEASE = process.env.NEXT_PUBLIC_RELEASE;
 
   useEffect(() => {
     if (!authIsLoading && !user?.sub) {
@@ -28,7 +29,8 @@ export default function DashboardLayout({
   if (userDataError) {
     return (
       <div className="min-h-screen flex flex-col">
-        <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
+        <header style={{ backgroundColor: RELEASE === "CANARY" ? "#00FFFF" : "#FFFFFF" }}
+          className="flex items-center justify-between px-6 py-4 border-b shadow-sm">
           <div className="text-2xl font-bold text-indigo-600">Kaban</div>
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             <Button className="cursor-pointer" asChild>
