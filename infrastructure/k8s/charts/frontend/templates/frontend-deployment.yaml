@@ -17,7 +17,6 @@ spec:
   selector:
     matchLabels:
       {{- include "frontend.selectorLabels" . | nindent 6 }}
-      version: stable
   template:
     metadata:
       {{- with .Values.podAnnotations }}
