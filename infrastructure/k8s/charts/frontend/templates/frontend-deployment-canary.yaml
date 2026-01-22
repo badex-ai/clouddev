@@ -1,12 +1,12 @@
-{{- if .Values.canary.enabled }}
+{{- if and .Values.canary .Values.canary.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "frontend.fullname" . }}-canary
   namespace: {{ .Values.global.namespace }}
   labels:
-      {{- include "frontend.labels" . | nindent 4 }}
-      version: canary
+    {{- include "frontend.labels" . | nindent 4 }}
+    version: canary
 spec:
   replicas: {{ .Values.canary.replicas | default 1 }}
   {{- with .Values.strategy }}
