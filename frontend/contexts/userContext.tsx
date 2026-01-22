@@ -5,6 +5,7 @@ import { useUser } from '@auth0/nextjs-auth0';
 import { ExtendedUserProfile } from '@/lib/types';
 import { getUserData } from '@/lib/actions/userActions';
 import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/errors';
 
 interface UserDataContextType {
   userData: ExtendedUserProfile | null;
@@ -47,8 +48,7 @@ export const AuthUserProvider = ({ children }: { children: React.ReactNode }) =>
     } catch (error) {
       setUserDataError(true);
       setUserData(authUser as ExtendedUserProfile);
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      toast.error('User Profile Error', { description: errorMessage });
+      toast.error('User Profile Error', { description: getErrorMessage(error) });
     } finally {
       setIsUserDataLoading(false);
     }

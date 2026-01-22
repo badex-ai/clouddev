@@ -148,11 +148,6 @@ networkPolicy:
       podSelector: {}
       port: 6379
     
-    allowADOT: false
-    adot:
-      podSelector: {}
-      ports: []
-    
     allowExternal: true
     externalPorts:
       - 443

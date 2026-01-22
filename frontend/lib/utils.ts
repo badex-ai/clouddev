@@ -20,15 +20,8 @@ function utcToLocal(utcDateTime: string | number | Date) {
 
 export { utcToLocal, localToUtc };
 
-export class ApiException extends Error {
-  constructor(
-    public title: string,
-    public message: string
-  ) {
-    super(message);
-    this.name = 'ApiException';
-  }
-}
+// Re-export from errors.ts for backwards compatibility
+export { AppError as ApiException, ErrorMessages, getErrorMessage, getErrorTitle } from './errors';
 
 export const NetworkError =
-  'We’re having trouble connecting to the server. Please check your internet connection or try again later.';
+  'Unable to connect to the server. Please check your internet connection and try again.';

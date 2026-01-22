@@ -54,11 +54,6 @@ networkPolicy:
       appLabel: backend
       ports: []  # Empty by default
     
-    allowADOT: true  # Default to false
-    adot:
-      appLabel: adot-collector
-      ports: []
-    
     allowExternal: true  # Default to false
     externalPorts: []
 

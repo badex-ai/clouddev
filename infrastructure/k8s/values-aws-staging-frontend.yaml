@@ -1,0 +1,73 @@
+# Staging environment values for Frontend on AWS EKS
+# This file is used specifically for the frontend chart deployment
+#
+# NOTE: Update ALB_DNS_PLACEHOLDER after first deployment with actual ALB DNS
+
+global:
+  namespace: kaban
+
+# AWS Configuration
+aws:
+  region: "us-west-2"  # Must match your EKS cluster region
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "1h"
+  # Secret name in AWS Secrets Manager (matches Terraform: ${project_name}/${environment}/frontend)
+  secretName: "kaban/staging/frontend"
+
+replicaCount: 1
+
+image:
+  repository: badex360/kaban-frontend
+  tag: latest
+  pullPolicy: Always
+
+container:
+  port: 3000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+configMap:
+  enabled: true
+  data:
+    # Auth0 Configuration
+    AUTH0_BASE_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com"
+    AUTH0_ISSUER_BASE_URL: "https://dev-b58ldaey.us.auth0.com"
+    AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
+    AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
+    AUTH0_SCOPE: "openid profile email"
+    AUTH0_AUDIENCE: "https://dev-b58ldaey.us.auth0.com/userinfo"
+    # Application URLs
+    APP_BASE_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com"
+    NEXT_PUBLIC_API_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com/api"
+    BACKEND_URL: "http://kaban-backend-service:8000"
+    ENVIRONMENT: "staging"
+
+networkPolicy:
+  enabled: true
+  ingress:
+    allowFromIngressController: true
+    ingressControllerNamespace:
+      kubernetes.io/metadata.name: kube-system
+  egress:
+    allowDNS: true
+    allowBackend: true
+    backend:
+      appLabel: backend
+      ports:
+        - 8000
+    allowExternal: true
+    externalPorts:
+      - 443
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"

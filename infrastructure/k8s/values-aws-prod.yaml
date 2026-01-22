@@ -94,9 +94,6 @@ configMap:
     DB_NAME: "kaban_prod"
     DB_USER: "postgres"
     ENVIRONMENT: "production"
-    # OpenTelemetry/ADOT Configuration
-    OTEL_EXPORTER_OTLP_ENDPOINT: "http://adot-collector.aws-otel-eks.svc.cluster.local:4317"
-    OTEL_SERVICE_NAME: "kaban-backend"
     # ElastiCache - UPDATE: populate from Terraform output after 'terraform apply'
     REDIS_HOST: "REDIS_HOST_PLACEHOLDER"  # Run: terraform output elasticache_endpoint
     REDIS_PORT: "6379"
@@ -147,13 +144,6 @@ networkPolicy:
     redis:
       useIPBlock: true
       cidr: "10.2.0.0/16"  # Production VPC CIDR (from main.tf vpc_cidr)
-    allowADOT: true
-    adot:
-      podSelector:
-        app: adot-collector
-      ports:
-        - 4317
-        - 4318
     allowExternal: true
     externalPorts:
       - 443
