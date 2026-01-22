@@ -10,20 +10,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from config.db import Base, engine
 from utils.error_handler import global_exception_handler
-import structlog
 from utils.error_handler import AppError
 from config.tracing import setup_tracing, get_tracer
+from config.logging import setup_logging, get_logger
+from middleware import RequestLoggingMiddleware
 
-# Configure structlog
-structlog.configure(
-    processors=[
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_log_level,
-        structlog.processors.JSONRenderer(),
-    ],
-)
-
-logger = structlog.get_logger()
+# Setup logging (must be first)
+setup_logging(service_name="kaban-backend")
+logger = get_logger("main")
 
 load_dotenv()
 
@@ -70,6 +64,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
 )
+
+# Request logging middleware (after CORS)
+app.add_middleware(RequestLoggingMiddleware)
 
 
 @app.get("/health")
