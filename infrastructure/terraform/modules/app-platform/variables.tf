@@ -120,17 +120,6 @@ variable "log_retention_days" {
   default     = 30
 }
 
-variable "enable_xray" {
-  description = "Enable X-Ray tracing"
-  type        = bool
-  default     = true
-}
-
-variable "enable_argocd" {
-  description = "Enable ArgoCD"
-  type        = bool
-  default     = true
-}
 
 variable "enable_cloudwatch_insights" {
   description = "Enable CloudWatch Container Insights"
