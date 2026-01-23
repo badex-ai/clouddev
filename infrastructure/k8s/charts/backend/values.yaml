@@ -1,5 +1,5 @@
 #***POD***
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: badex360/kaban-backend
