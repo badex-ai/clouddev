@@ -65,8 +65,10 @@ def update_task_fields(task: Task, req: TaskUpdate) -> Task:
         task.title = req.title
     if req.description is not None:
         task.description = req.description
+    if req.status is not None:
+        task.status = req.status.value
     if req.checklist is not None:
-        task.Checklist = req.checklist
+        task.checklist = req.checklist
     return task
 
 
@@ -89,16 +91,16 @@ async def create_task(req: TaskCreate, db) -> TaskResponse:
         raise
 
 
-async def update_task(req: TaskUpdate, db) -> TaskResponse:
-    logger.info("update_task_started", task_id=req.id)
+async def update_task(task_id: str, req: TaskUpdate, db) -> TaskResponse:
+    logger.info("update_task_started", task_id=task_id)
 
     try:
-        task = get_task_by_id(db, req.id)
+        task = get_task_by_id(db, task_id)
         task = update_task_fields(task, req)
         db.flush()
         db.commit()
 
-        logger.info("update_task_completed", task_id=req.id)
+        logger.info("update_task_completed", task_id=task_id)
         return TaskResponse.model_validate(task)
 
     except Exception:
