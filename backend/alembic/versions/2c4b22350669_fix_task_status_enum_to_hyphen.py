@@ -19,10 +19,31 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
-    # Simply rename the enum value - this automatically updates all data
-    op.execute("ALTER TYPE task_status RENAME VALUE 'in_progress' TO 'in-progress'")
-
+    # Check if 'in_progress' exists before renaming
+    op.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM pg_enum e 
+                JOIN pg_type t ON e.enumtypid = t.oid 
+                WHERE t.typname = 'task_status' AND e.enumlabel = 'in_progress'
+            ) THEN
+                ALTER TYPE task_status RENAME VALUE 'in_progress' TO 'in-progress';
+            END IF;
+        END $$;
+    """)
 
 def downgrade():
-    # Rename back to underscore version
-    op.execute("ALTER TYPE task_status RENAME VALUE 'in-progress' TO 'in_progress'")
+    # Check if 'in-progress' exists before renaming back
+    op.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM pg_enum e 
+                JOIN pg_type t ON e.enumtypid = t.oid 
+                WHERE t.typname = 'task_status' AND e.enumlabel = 'in-progress'
+            ) THEN
+                ALTER TYPE task_status RENAME VALUE 'in-progress' TO 'in_progress';
+            END IF;
+        END $$;
+    """)
