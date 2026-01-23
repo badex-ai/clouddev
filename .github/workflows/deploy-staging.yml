@@ -195,6 +195,7 @@ jobs:
             --create-namespace \
             --values values-aws-staging.yaml \
             --set backend.image.tag=staging-${{ github.sha }} \
+            --set backend.replicaCount=1 \
             --set celeryWorker.image.tag=staging-${{ github.sha }} \
             --set frontend.image.tag=staging-${{ github.sha }} \
             --set frontend.canary.enabled=true \
