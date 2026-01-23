@@ -6,22 +6,23 @@ import { logger } from '../logger';
 
 const { apiUrl } = getConfig();
 
-function validateTaskId(taskId: string): void {
-  // Task IDs should be alphanumeric with hyphens/underscores only
-  if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) {
-    throw new AppError({
-      title: 'Invalid Task ID',
-      userMessage: 'Invalid task identifier',
-      technicalMessage: 'Task ID contains invalid characters',
-    });
-  }
-}
+function sanitizeTaskId(taskId: string): string {
+   if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) {
+     throw new AppError({
+       title: 'Invalid Task ID',
+       userMessage: 'Invalid task identifier',
+       technicalMessage: 'Task ID contains invalid characters',
+     });
+   }
+   return encodeURIComponent(taskId);
+ }
 
 export async function updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task> {
-  validateTaskId(taskId); 
+  const sanitizedTaskId = sanitizeTaskId(taskId); 
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}`, {
+     const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}`;
+     const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
@@ -117,9 +118,10 @@ export async function createTask(taskData: CreateTask) {
 export async function getTaskForDay(family_id: string, selectedDate: string) {
   const startTime = Date.now();
   try {
-    const response = await fetch(
-      `${apiUrl}/api/v1/families/${family_id}/tasks?date=${selectedDate}`,
-      {
+         const encodedFamilyId = encodeURIComponent(family_id);
+     const encodedDate = encodeURIComponent(selectedDate);
+     const url = `${apiUrl}/api/v1/families/${encodedFamilyId}/tasks?date=${encodedDate}`;
+     const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -162,10 +164,11 @@ export async function getTaskForDay(family_id: string, selectedDate: string) {
 }
 
 export async function deleteTask(taskId: string) {
-  validateTaskId(taskId)
+  const sanitizedTaskId = sanitizeTaskId(taskId);
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}`, {
+         const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}`;
+     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -217,10 +220,11 @@ export async function deleteTask(taskId: string) {
 }
 
 export async function addCheckListItem(taskId: string, checkListItem: Omit<ChecklistItem, 'id'>) {
-  validateTaskId(taskId)
+  const sanitizedTaskId = sanitizeTaskId(taskId);
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist`, {
+      const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}/checklist`;
+     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -264,10 +268,11 @@ export async function addCheckListItem(taskId: string, checkListItem: Omit<Check
 }
 
 export async function deleteCheckListItem(taskId: string, checkListItemId: number) {
-  validateTaskId(taskId)
+  const sanitizedTaskId = sanitizeTaskId(taskId);
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist/${checkListItemId}`, {
+     const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}/checklist/${checkListItemId}`;
+     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
