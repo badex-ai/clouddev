@@ -17,6 +17,19 @@ function sanitizeTaskId(taskId: string): string {
    return encodeURIComponent(taskId);
  }
 
+ function sanitizeNumericId(id: number): string {
+   // Ensure it's a valid positive integer
+   if (!Number.isInteger(id) || id < 0) {
+     throw new AppError({
+       title: 'Invalid ID',
+       userMessage: 'Invalid identifier',
+       technicalMessage: 'ID must be a positive integer',
+     });
+   }
+   // Convert to string and encode
+   return encodeURIComponent(id.toString());
+ }
+
 export async function updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task> {
   const sanitizedTaskId = sanitizeTaskId(taskId); 
   const startTime = Date.now();
@@ -269,9 +282,10 @@ export async function addCheckListItem(taskId: string, checkListItem: Omit<Check
 
 export async function deleteCheckListItem(taskId: string, checkListItemId: number) {
   const sanitizedTaskId = sanitizeTaskId(taskId);
+  const sanitizedChecklistId = sanitizeNumericId(checkListItemId);
   const startTime = Date.now();
   try {
-     const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}/checklist/${checkListItemId}`;
+     const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}/checklist/${sanitizedChecklistId}`;
      const response = await fetch(url, {
       method: 'DELETE',
       headers: {
