@@ -53,11 +53,11 @@ async def add_checklist_item_route(
 async def update_task_route(
     task_id: str, req: TaskUpdate = Body(...), db: Session = Depends(get_db)
 ) -> TaskResponse:
-    logger.info(f"Updating task: {task_id}")
+    logger.info("update_task_route_called", task_id=task_id)
     return await update_task(task_id, req, db)
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task_route(task_id: str, db: Session = Depends(get_db)) -> None:
-    logger.info(f"Deleting task: {task_id}")
+    logger.info("delete_task_route_called", task_id=task_id)
     return await delete_task(task_id, db)
