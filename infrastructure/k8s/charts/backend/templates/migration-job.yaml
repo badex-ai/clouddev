@@ -30,8 +30,4 @@ spec:
             name: {{ include "backend.fullname" . }}-config
         - secretRef:
             name: {{ include "backend.fullname" . }}-secrets  
-        {{- if .Values.externalSecrets.enabled }}
-        - secretRef:
-            name: {{ include "backend.fullname" . }}-external-secret
-        {{- end }}
 {{- end }}
