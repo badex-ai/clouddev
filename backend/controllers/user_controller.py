@@ -124,20 +124,35 @@ async def create_auth0_user(
             try:
                 error_data = e.response.json()
                 error_message = (
-                    error_data.get("message") 
+                    error_data.get("message")
                     or error_data.get("error_description")
                     or str(e)
                 )
             except:
                 error_message = str(e)
-            
-            logger.error("auth0_user_creation_failed", email=email, error=error_message)
-            
+
+            logger.error("auth0_user_creation_failed", email=email, error=error_message, status=e.response.status_code)
+
+            # Provide user-friendly messages based on Auth0 error
+            if e.response.status_code == 409 or "already exists" in error_message.lower():
+                user_message = "A user with this email address already exists."
+            elif e.response.status_code == 400:
+                if "password" in error_message.lower():
+                    user_message = "Invalid password format. Please try again."
+                elif "email" in error_message.lower():
+                    user_message = "Invalid email address format."
+                else:
+                    user_message = "Invalid user information provided. Please check and try again."
+            elif e.response.status_code >= 500:
+                user_message = "Authentication service is temporarily unavailable. Please try again later."
+            else:
+                user_message = "Unable to create user account. Please try again."
+
             raise AppError(
-                code=ErrorCode.BAD_REQUEST if e.response.status_code < 500 else ErrorCode.INTERNAL_SERVER_ERROR,
+                code=ErrorCode.CONFLICT if e.response.status_code == 409 else (ErrorCode.BAD_REQUEST if e.response.status_code < 500 else ErrorCode.INTERNAL_SERVER_ERROR),
                 status_code=e.response.status_code,
                 technical_message=f"Auth0 user creation failed: {error_message}",
-                user_message="Unable to create user account. Please try again.",
+                user_message=user_message,
                 is_operational=True,
                 details={"email": email, "auth0_status": e.response.status_code}
             )
