@@ -28,7 +28,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["alembic", "upgrade", "head"]
         env:                           
-        - name: DATABASE_PASSWORD      
+        - name: PGPASSWORD      
           valueFrom:                   
             secretKeyRef:              
               name: {{ include "backend.fullname" . }}-secrets 
