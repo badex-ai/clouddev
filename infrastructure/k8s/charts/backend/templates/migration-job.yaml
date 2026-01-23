@@ -27,6 +27,12 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command: ["alembic", "upgrade", "head"]
+        env:                           
+        - name: DATABASE_PASSWORD      
+          valueFrom:                   
+            secretKeyRef:              
+              name: {{ include "backend.fullname" . }}-secrets 
+              key: DB_PASSWORD  
         envFrom:
         - configMapRef:
             name: {{ include "backend.fullname" . }}-config
