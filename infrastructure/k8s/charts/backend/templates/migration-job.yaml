@@ -20,9 +20,6 @@ spec:
         app.kubernetes.io/component: migration
     spec:
       restartPolicy: Never
-      {{- if .Values.serviceAccount.create }}
-      serviceAccountName: {{ include "backend.serviceAccountName" . }}
-      {{- end }}
       containers:
       - name: migration
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
