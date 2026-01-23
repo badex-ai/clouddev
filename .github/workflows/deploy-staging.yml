@@ -180,6 +180,18 @@ jobs:
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
+      - name: Clean up old migration jobs
+        run: |
+          kubectl delete job -n kaban -l app.kubernetes.io/component=migration || true
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+      - name: Scale down to make room for migration
+        run: |
+          kubectl scale deployment kaban-backend -n kaban --replicas=1 || true
+          sleep 10
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
       - name: Helm upgrade (deploy to staging)
         run: |
           cd infrastructure/k8s
@@ -211,6 +223,12 @@ jobs:
         run: |
           echo "=== Pod Status ==="
           kubectl get pods -n kaban
+          echo "=== Migration Job Status ==="
+          kubectl get jobs -n kaban -l app.kubernetes.io/component=migration
+          echo "=== Migration Pod Details ==="
+          kubectl describe pod -n kaban -l app.kubernetes.io/component=migration
+          echo "=== Migration Logs ==="
+          kubectl logs -n kaban -l app.kubernetes.io/component=migration --tail=100 || true
           echo "=== Backend Pod Details ==="
           kubectl describe pod -n kaban -l app=kaban-backend
           echo "=== Backend Logs ==="
@@ -229,6 +247,11 @@ jobs:
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
+      - name: Clean up successful migration jobs
+        run: |
+          kubectl delete job -n kaban -l app.kubernetes.io/component=migration || true
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
       - name: Check pod status
         run: |
           kubectl get pods -n kaban
