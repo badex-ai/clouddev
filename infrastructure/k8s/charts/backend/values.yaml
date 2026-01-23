@@ -12,7 +12,8 @@ imagePullSecrets: []
 
 namespace: "local-dev"
 
-
+migration:
+  enabled: true
 
 
 # This is for setting Kubernetes Annotations to a Pod.
