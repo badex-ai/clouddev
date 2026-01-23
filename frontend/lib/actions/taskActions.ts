@@ -6,7 +6,19 @@ import { logger } from '../logger';
 
 const { apiUrl } = getConfig();
 
+function validateTaskId(taskId: string): void {
+  // Task IDs should be alphanumeric with hyphens/underscores only
+  if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) {
+    throw new AppError({
+      title: 'Invalid Task ID',
+      userMessage: 'Invalid task identifier',
+      technicalMessage: 'Task ID contains invalid characters',
+    });
+  }
+}
+
 export async function updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task> {
+  validateTaskId(taskId); 
   const startTime = Date.now();
   try {
     const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}`, {
@@ -150,6 +162,7 @@ export async function getTaskForDay(family_id: string, selectedDate: string) {
 }
 
 export async function deleteTask(taskId: string) {
+  validateTaskId(taskId)
   const startTime = Date.now();
   try {
     const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}`, {
@@ -204,6 +217,7 @@ export async function deleteTask(taskId: string) {
 }
 
 export async function addCheckListItem(taskId: string, checkListItem: Omit<ChecklistItem, 'id'>) {
+  validateTaskId(taskId)
   const startTime = Date.now();
   try {
     const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist`, {
@@ -250,6 +264,7 @@ export async function addCheckListItem(taskId: string, checkListItem: Omit<Check
 }
 
 export async function deleteCheckListItem(taskId: string, checkListItemId: number) {
+  validateTaskId(taskId)
   const startTime = Date.now();
   try {
     const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist/${checkListItemId}`, {
