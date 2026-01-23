@@ -29,7 +29,7 @@ spec:
         - configMapRef:
             name: {{ include "backend.fullname" . }}-config
         - secretRef:
-            name: {{ include "backend.fullname" . }}-secret
+            name: {{ include "backend.fullname" . }}-secrets  
         {{- if .Values.externalSecrets.enabled }}
         - secretRef:
             name: {{ include "backend.fullname" . }}-external-secret
