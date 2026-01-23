@@ -186,13 +186,9 @@ jobs:
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
-      - name: 🔥 Disable HPA and scale down backend
+      - name: Scale down celery temporarily for migration
         run: |
-          # Disable HPA temporarily
-          kubectl patch hpa kaban-backend-hpa -n kaban -p '{"spec":{"minReplicas":1,"maxReplicas":1}}' || true
-          # Scale down backend
-          kubectl scale deployment kaban-backend -n kaban --replicas=1 || true
-          # Wait for pod to terminate
+          kubectl scale deployment kaban-backend-celery-worker -n kaban --replicas=0 || true
           sleep 15
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
