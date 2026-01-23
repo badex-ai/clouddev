@@ -1,10 +1,84 @@
 'use server';
-import { CreateTask, Task, ChecklistItem } from '@/lib/types';
+import { CreateTask, Task, ChecklistItem, TaskStatus } from '@/lib/types';
 import { getConfig } from '../config';
 import { AppError, ErrorMessages } from '../errors';
 import { logger } from '../logger';
 
 const { apiUrl } = getConfig();
+
+function sanitizeTaskId(taskId: string): string {
+   if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) {
+     throw new AppError({
+       title: 'Invalid Task ID',
+       userMessage: 'Invalid task identifier',
+       technicalMessage: 'Task ID contains invalid characters',
+     });
+   }
+   return encodeURIComponent(taskId);
+ }
+
+ function sanitizeNumericId(id: number): string {
+   // Ensure it's a valid positive integer
+   if (!Number.isInteger(id) || id < 0) {
+     throw new AppError({
+       title: 'Invalid ID',
+       userMessage: 'Invalid identifier',
+       technicalMessage: 'ID must be a positive integer',
+     });
+   }
+   // Convert to string and encode
+   return encodeURIComponent(id.toString());
+ }
+
+export async function updateTaskStatus(taskId: string, status: TaskStatus): Promise<Task> {
+  const sanitizedTaskId = sanitizeTaskId(taskId); 
+  const startTime = Date.now();
+  try {
+     const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}`;
+     const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      const technicalMessage = responseData.message || responseData.detail || 'Failed to update task status';
+      logger.error('api_call_failed', {
+        action: 'updateTaskStatus',
+        status: response.status,
+        error: technicalMessage,
+        duration_ms: Date.now() - startTime,
+      });
+      throw new AppError({
+        title: 'Task Error',
+        userMessage: responseData.message || ErrorMessages.TASK_UPDATE_FAILED,
+        technicalMessage,
+      });
+    }
+
+    logger.info('api_call_success', {
+      action: 'updateTaskStatus',
+      duration_ms: Date.now() - startTime,
+    });
+    return responseData;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    logger.error('api_call_failed', {
+      action: 'updateTaskStatus',
+      error: 'network_error',
+      duration_ms: Date.now() - startTime,
+    });
+    throw new AppError({
+      title: 'Connection Error',
+      userMessage: ErrorMessages.NETWORK_ERROR,
+      technicalMessage: error instanceof Error ? error.message : 'Network error',
+    });
+  }
+}
 
 export async function createTask(taskData: CreateTask) {
   const startTime = Date.now();
@@ -57,9 +131,10 @@ export async function createTask(taskData: CreateTask) {
 export async function getTaskForDay(family_id: string, selectedDate: string) {
   const startTime = Date.now();
   try {
-    const response = await fetch(
-      `${apiUrl}/api/v1/families/${family_id}/tasks?date=${selectedDate}`,
-      {
+         const encodedFamilyId = encodeURIComponent(family_id);
+     const encodedDate = encodeURIComponent(selectedDate);
+     const url = `${apiUrl}/api/v1/families/${encodedFamilyId}/tasks?date=${encodedDate}`;
+     const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -102,9 +177,11 @@ export async function getTaskForDay(family_id: string, selectedDate: string) {
 }
 
 export async function deleteTask(taskId: string) {
+  const sanitizedTaskId = sanitizeTaskId(taskId);
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}`, {
+         const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}`;
+     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -156,9 +233,11 @@ export async function deleteTask(taskId: string) {
 }
 
 export async function addCheckListItem(taskId: string, checkListItem: Omit<ChecklistItem, 'id'>) {
+  const sanitizedTaskId = sanitizeTaskId(taskId);
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist`, {
+      const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}/checklist`;
+     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -202,9 +281,12 @@ export async function addCheckListItem(taskId: string, checkListItem: Omit<Check
 }
 
 export async function deleteCheckListItem(taskId: string, checkListItemId: number) {
+  const sanitizedTaskId = sanitizeTaskId(taskId);
+  const sanitizedChecklistId = sanitizeNumericId(checkListItemId);
   const startTime = Date.now();
   try {
-    const response = await fetch(`${apiUrl}/api/v1/tasks/${taskId}/checklist/${checkListItemId}`, {
+     const url = `${apiUrl}/api/v1/tasks/${sanitizedTaskId}/checklist/${sanitizedChecklistId}`;
+     const response = await fetch(url, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

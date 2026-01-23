@@ -99,7 +99,8 @@ export const ErrorMessages = {
   TASK_DELETE_FAILED: 'Unable to delete task. Please try again.',
 
   // Family member errors
-  MEMBER_CREATE_FAILED: 'Unable to add family member. Please try again.',
+  MEMBER_CREATE_FAILED: 'Unable to add family member. Please check the details and try again.',
+  MEMBER_EMAIL_EXISTS: 'A user with this email address already exists.',
   MEMBER_UPDATE_FAILED: 'Unable to update family member. Please try again.',
   MEMBER_DEACTIVATE_FAILED: 'Unable to deactivate family member. Please try again.',
   MEMBER_REACTIVATE_FAILED: 'Unable to reactivate family member. Please try again.',
