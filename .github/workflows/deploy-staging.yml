@@ -186,10 +186,14 @@ jobs:
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
 
-      - name: Scale down to make room for migration
+      - name: 🔥 Disable HPA and scale down backend
         run: |
+          # Disable HPA temporarily
+          kubectl patch hpa kaban-backend-hpa -n kaban -p '{"spec":{"minReplicas":1,"maxReplicas":1}}' || true
+          # Scale down backend
           kubectl scale deployment kaban-backend -n kaban --replicas=1 || true
-          sleep 10
+          # Wait for pod to terminate
+          sleep 15
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
       - name: Helm upgrade (deploy to staging)
