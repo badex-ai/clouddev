@@ -218,6 +218,30 @@ jobs:
             --debug
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
+      - name: Wait and capture migration logs
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "Waiting 30 seconds for migration to start..."
+          sleep 30
+
+          echo "=== Migration Job Status ==="
+          kubectl get jobs -n kaban -l app.kubernetes.io/component=migration
+
+          echo ""
+          echo "=== Migration Pods ==="
+          kubectl get pods -n kaban -l app.kubernetes.io/component=migration
+
+          echo ""
+          echo "=== Migration Logs ==="
+          for pod in $(kubectl get pods -n kaban -l app.kubernetes.io/component=migration -o name 2>/dev/null); do
+            echo "========================================"
+            echo "Logs from $pod:"
+            kubectl logs -n kaban $pod --all-containers=true --tail=500 || true
+            echo ""
+          done
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
       - name: Debug pod failures # ← ADD THIS ENTIRE BLOCK HERE
         if: failure()
         run: |
