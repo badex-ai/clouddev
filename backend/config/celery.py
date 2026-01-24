@@ -5,21 +5,15 @@ from celery import Celery
 from celery.signals import task_prerun, task_postrun, task_failure, task_retry
 from dotenv import load_dotenv
 
-# Only load .env file when running locally (not in Docker)
 if not os.getenv("DOCKER_CONTAINER"):
     load_dotenv()
 
-# Setup logging for Celery
 from config.logging import setup_logging, get_logger
 setup_logging(service_name="kaban-celery")
 logger = get_logger("celery")
 
 
 def create_celery_app():
-    """
-    Factory function that creates and configures Celery app.
-    Called when the module is imported, but config is loaded fresh.
-    """
     from .env import get_config
     
     print("[CELERY] Initializing Celery configuration...")
@@ -35,8 +29,7 @@ def create_celery_app():
     
     broker_url = config.get("celery_broker_url")
     result_backend = config.get("celery_result_backend")
-    
-    # Validate before creating app
+
     if not broker_url:
         print("[CELERY] ERROR: broker_url is empty!")
         sys.exit(1)
@@ -50,8 +43,7 @@ def create_celery_app():
         broker=broker_url.split('@')[-1] if '@' in broker_url else broker_url,
         backend=result_backend.split('@')[-1] if '@' in result_backend else result_backend,
     )
-    
-    # Create app with validated URLs
+
     app = Celery(
         "kabancelery",
         broker=broker_url,
@@ -69,39 +61,18 @@ def create_celery_app():
     return app
 
 
-# Create the app
 celery_app = create_celery_app()
 
-# Import tasks AFTER app is created
 from controllers import tasks
 
 
-# ============================================================================
-# CELERY WORKER TRACING INITIALIZATION
-# ============================================================================
-# IMPORTANT: For prefork workers (Celery default), OpenTelemetry MUST be
-# initialized in each worker process using the worker_process_init signal.
-# This is required because:
-# 1. BatchSpanProcessor uses threading
-# 2. Child processes inherit parent memory but not thread state
-# 3. Each process needs its own tracer provider instance
-# ============================================================================
-
 def _init_celery_tracing(*args, **kwargs):
-    """
-    Initialize OpenTelemetry tracing in each Celery worker process.
-    Called by worker_process_init signal for each worker process.
-
-    This ensures proper tracing in prefork worker pool model.
-    """
     from config.tracing import setup_celery_tracing
 
     print(f"[CELERY] Initializing tracing in worker process PID={os.getpid()}")
     setup_celery_tracing()
 
 
-# Connect the initialization function to worker_process_init signal
-# weak=False ensures the function isn't garbage collected
 try:
     from celery.signals import worker_process_init
 
@@ -111,19 +82,11 @@ except ImportError as e:
     logger.error("celery_tracing_failed", error=str(e))
 
 
-# ============================================================================
-# CELERY TASK LIFECYCLE LOGGING
-# ============================================================================
-# Log task events for CloudWatch monitoring
-# ============================================================================
-
-# Store task start times for duration calculation
 _task_start_times = {}
 
 
 @task_prerun.connect
 def task_started(task_id, task, args, kwargs, **kw):
-    """Log when a task starts"""
     _task_start_times[task_id] = time.time()
     logger.info(
         "task_started",
@@ -134,7 +97,6 @@ def task_started(task_id, task, args, kwargs, **kw):
 
 @task_postrun.connect
 def task_completed(task_id, task, args, kwargs, retval, state, **kw):
-    """Log when a task completes successfully"""
     start_time = _task_start_times.pop(task_id, None)
     duration_ms = round((time.time() - start_time) * 1000, 2) if start_time else None
 
@@ -149,7 +111,6 @@ def task_completed(task_id, task, args, kwargs, retval, state, **kw):
 
 @task_failure.connect
 def task_failed(task_id, exception, args, kwargs, traceback, einfo, **kw):
-    """Log when a task fails"""
     start_time = _task_start_times.pop(task_id, None)
     duration_ms = round((time.time() - start_time) * 1000, 2) if start_time else None
 
@@ -164,7 +125,6 @@ def task_failed(task_id, exception, args, kwargs, traceback, einfo, **kw):
 
 @task_retry.connect
 def task_retrying(request, reason, einfo, **kw):
-    """Log when a task is being retried"""
     logger.warning(
         "task_retry",
         task_id=request.id,

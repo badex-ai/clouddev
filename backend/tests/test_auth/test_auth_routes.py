@@ -1,19 +1,9 @@
-"""
-Complete Fixed Auth Tests - Big Tech Pattern
-All tests use persistent mock pattern with proper Redis/Celery mocking
-"""
-
 import pytest
 from fastapi import status
 from unittest.mock import Mock, patch 
 import json
 from datetime import datetime, timezone
 from utils.error_handler import AppError, ErrorCode
-
-
-# ============================================================================
-# POSITIVE TEST CASES - SIGNUP
-# ============================================================================
 
 
 def test_signup_success(client, mock_db_session, mock_redis, sample_user_data):
@@ -59,11 +49,6 @@ def test_signup_missing_required_fields(client):
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-# ============================================================================
-# NEGATIVE TEST CASES - SIGNUP
-# ============================================================================
-
-
 def test_signup_existing_email(client, mock_db_session, sample_user_data):
     """Test signup with an existing email."""
     existing_user = Mock(email=sample_user_data["email"])
@@ -103,7 +88,6 @@ def test_signup_weak_password(client, mock_db_session, sample_user_data):
     query_mock = mock_db_session.query.return_value
     query_mock.filter.return_value.first.return_value = None
     
-    # FIX: Mock Auth0 to reject weak password
     with patch("controllers.auth_controller.create_auth0_user") as mock_auth0:
         mock_auth0.side_effect = AppError(
             code=ErrorCode.BAD_REQUEST,
@@ -123,11 +107,6 @@ def test_signup_weak_password(client, mock_db_session, sample_user_data):
         
         response = client.post("/api/v1/auth/signup", json=signup_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-# ============================================================================
-# EDGE CASES - SIGNUP
-# ============================================================================
 
 
 def test_signup_very_long_email(client, mock_db_session):
@@ -180,14 +159,7 @@ def test_signup_email_case_insensitive(client, mock_db_session, sample_user_data
     }
     
     response = client.post("/api/v1/auth/signup", json=signup_data)
-    # Should detect duplicate regardless of case
     assert response.status_code == status.HTTP_409_CONFLICT
-
-
-# ============================================================================
-# IDEMPOTENCY TESTS
-# ============================================================================
-
 
 
 def test_signup_with_idempotency_hit(client, mock_redis, sample_user_data):
@@ -201,10 +173,8 @@ def test_signup_with_idempotency_hit(client, mock_redis, sample_user_data):
         "requires_verification": True
     }
     
-    # Configure Redis mock to return cached response
     mock_redis._test_cache[f"idempotency:{idempotency_key}"] = json.dumps(cached_response)
 
-    
     signup_data = {
         "email": sample_user_data["email"],
         "password": "StrongP@ssw0rd123!",
@@ -233,14 +203,8 @@ def test_signup_without_idempotency_key(client, mock_db_session, sample_user_dat
         "family_name": sample_user_data["family_name"]
     }
     
-    # No idempotency header
     response = client.post("/api/v1/auth/signup", json=signup_data)
     assert response.status_code == status.HTTP_201_CREATED
-
-
-# ============================================================================
-# PERFORMANCE/STRESS TESTS
-# ============================================================================
 
 
 @pytest.mark.benchmark

@@ -1,14 +1,3 @@
-"""
-Production-Grade Testing Setup - Big Tech Pattern (FIXED)
-Based on Google, Netflix, Meta, Uber practices + Official Celery/FastAPI docs
-
-KEY FIXES:
-1. Mock db.add() to simulate auto-generated IDs
-2. Mock db.refresh() to populate object after INSERT
-3. Mock create_auth0_user() to prevent real HTTP calls
-4. Fix SQLAlchemy .options() chain for eager loading
-"""
-
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
@@ -31,14 +20,6 @@ fake = Faker()
 
 @pytest.fixture
 def mock_redis():
-    """
-    Mock Redis with AsyncMock for async operations.
-    
-    BIG TECH PATTERN:
-    - Use AsyncMock for all async Redis operations
-    - Mock only what's needed, not full Redis functionality
-    - Maintain in-memory dictionary to simulate cache behavior
-    """
     mock = AsyncMock()
     
     # In-memory cache to simulate Redis behavior
@@ -86,17 +67,6 @@ def mock_redis():
 
 @pytest.fixture
 def mock_db_session():
-    """
-    CRITICAL: Create ONE persistent query mock with state simulation.
-    
-    BIG TECH PATTERN (Google, Netflix, Meta):
-    - Single query_mock that persists across all operations
-    - session.query() ALWAYS returns the same mock instance
-    - Mock db.add() to simulate database auto-generating IDs
-    - Mock db.refresh() to simulate loading data after INSERT
-    
-    NEW FIX: Simulate Database ID Generation
-    """
     session = MagicMock()
     
     # CRITICAL: Create ONE query mock that will be reused
@@ -105,10 +75,9 @@ def mock_db_session():
     # Make query() ALWAYS return the same query_mock instance
     session.query = MagicMock(return_value=query_mock)
     
-    # FIX #1: Configure query chain methods to return query_mock for chaining
     query_mock.filter = MagicMock(return_value=query_mock)
     query_mock.filter_by = MagicMock(return_value=query_mock)
-    query_mock.options = MagicMock(return_value=query_mock)  # ← FIX: Add .options()
+    query_mock.options = MagicMock(return_value=query_mock)
     query_mock.offset = MagicMock(return_value=query_mock)
     query_mock.limit = MagicMock(return_value=query_mock)
     query_mock.order_by = MagicMock(return_value=query_mock)
@@ -129,25 +98,13 @@ def mock_db_session():
     query_mock.update = MagicMock(return_value=1)
     query_mock.delete = MagicMock(return_value=1)
     
-    # FIX #2: Mock db.add() to simulate database auto-generating IDs
     def mock_add(obj):
-        """
-        Simulates what a real database does after INSERT:
-        1. Generates auto-increment ID (primary key)
-        2. Generates UUID for public_id (if applicable)
-        3. Sets timestamps
-        
-        This is called BEFORE db.commit() in real code
-        """
-        # Generate database ID (auto-increment primary key)
         if not hasattr(obj, 'id') or obj.id is None:
             obj.id = fake.random_int(min=1, max=999999)
         
-        # Generate public_id (UUID) if not set
         if hasattr(obj, 'public_id') and obj.public_id is None:
             obj.public_id = str(uuid.uuid4())
         
-        # Set timestamps if not present
         if hasattr(obj, 'created_at') and obj.created_at is None:
             obj.created_at = datetime.now(timezone.utc)
         if hasattr(obj, 'updated_at') and obj.updated_at is None:
@@ -156,13 +113,7 @@ def mock_db_session():
     session.add = MagicMock(side_effect=mock_add)
     session.add_all = MagicMock(side_effect=lambda objs: [mock_add(obj) for obj in objs])
     
-    # FIX #3: Mock db.refresh() to ensure IDs are present
     def mock_refresh(obj):
-        """
-        Simulates database refresh after commit.
-        In real DB, this reloads the object from database with all generated fields.
-        In tests, we just ensure required fields exist.
-        """
         if hasattr(obj, 'id') and obj.id is None:
             obj.id = fake.random_int(min=1, max=999999)
         if hasattr(obj, 'public_id') and obj.public_id is None:
@@ -170,7 +121,6 @@ def mock_db_session():
     
     session.refresh = MagicMock(side_effect=mock_refresh)
     
-    # Other session operations
     session.commit = MagicMock()
     session.rollback = MagicMock()
     session.close = MagicMock()
@@ -188,16 +138,6 @@ def mock_db_session():
 
 @pytest.fixture
 def mock_user_factory():
-    """
-    Factory for creating mock User objects with required attributes.
-    
-    BIG TECH PATTERN:
-    - Factory pattern for complex objects (Google, Netflix, Meta)
-    - Consistent mock object structure
-    - All required attributes present
-    
-    FIX: Ensure all IDs are proper types (not None)
-    """
     def factory(**kwargs):
         defaults = {
             "id": kwargs.get("id", fake.random_int(min=1, max=999999)),  # Database ID
@@ -224,11 +164,6 @@ def mock_user_factory():
 
 @pytest.fixture
 def mock_family_factory():
-    """
-    Factory for creating mock Family objects with required attributes.
-    
-    FIX: Ensure all IDs are proper types (not None)
-    """
     def factory(**kwargs):
         defaults = {
             "id": kwargs.get("id", fake.random_int(min=1, max=999999)),  # Database ID
@@ -249,18 +184,7 @@ def mock_family_factory():
 
 @pytest.fixture
 def client(mock_redis, mock_db_session):
-    """
-    TestClient with proper dependency override.
-    
-    BIG TECH PATTERN:
-    - Set overrides BEFORE TestClient creation
-    - Mock external dependencies at HTTP layer (Auth0, not just tasks)
-    - Mock Celery tasks using patch (official Celery recommendation)
-    - Clear overrides after test for isolation
-    
-    FIX #4: Mock create_auth0_user() to prevent real HTTP calls
-    """
-    # Set overrides BEFORE creating TestClient
+    # Set overrides before creating TestClient
     app.dependency_overrides[get_db] = lambda: mock_db_session
     app.dependency_overrides[get_redis] = lambda: mock_redis
     
@@ -274,14 +198,12 @@ def client(mock_redis, mock_db_session):
          patch("controllers.user_controller.get_management_api_token") as mock_m2m_token, \
          patch("utils.utils.get_management_api_token") as mock_utils_token:
         
-        # Mock get_management_api_token (used in multiple places)
         async def mock_get_token():
             return f"mock_m2m_token_{uuid.uuid4().hex[:16]}"
         
         mock_m2m_token.side_effect = mock_get_token
         mock_utils_token.side_effect = mock_get_token
-        
-        # For auth_controller.create_auth0_user(email, password, name, family_name)
+
         async def mock_create_auth0_user_auth(email, password, name, family_name):
             return {
                 "user_id": f"auth0|{uuid.uuid4().hex[:24]}",
@@ -293,22 +215,19 @@ def client(mock_redis, mock_db_session):
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         
-        # Mock create_auth0_user for user_controller - FIXED signature
         async def mock_create_auth0_user_member(email, name, family_name, family_id, m2m_token):
             return (
                 f"auth0|{uuid.uuid4().hex[:24]}",
                 m2m_token
             )
         
-        # Mock create_password_reset_ticket - THIS WAS MISSING PROPER CONFIG
         async def mock_create_reset_ticket(user_id, m2m_token):
             return f"https://example.com/reset?ticket={uuid.uuid4().hex}"
         
         mock_auth0_auth.side_effect = mock_create_auth0_user_auth
         mock_auth0_user.side_effect = mock_create_auth0_user_member
         mock_reset_ticket.side_effect = mock_create_reset_ticket
-        
-        # Configure Celery task mocks
+
         mock_verify.delay = MagicMock(return_value=MagicMock(id="task-verify-123", status="PENDING"))
         mock_welcome.delay = MagicMock(return_value=MagicMock(id="task-welcome-123", status="PENDING"))
         mock_reset.delay = MagicMock(return_value=MagicMock(id="task-reset-123", status="PENDING"))

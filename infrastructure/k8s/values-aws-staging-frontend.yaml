@@ -1,19 +1,16 @@
-# Staging environment values for Frontend on AWS EKS
-# This file is used specifically for the frontend chart deployment
-#
-# NOTE: Update ALB_DNS_PLACEHOLDER after first deployment with actual ALB DNS
+
 
 global:
   namespace: kaban
 
 # AWS Configuration
 aws:
-  region: "us-west-2"  # Must match your EKS cluster region
+  region: "us-west-2" 
 
 externalSecrets:
   enabled: true
   refreshInterval: "1h"
-  # Secret name in AWS Secrets Manager (matches Terraform: ${project_name}/${environment}/frontend)
+ 
   secretName: "kaban/staging/frontend"
 
 replicaCount: 1

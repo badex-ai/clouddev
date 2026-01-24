@@ -9,20 +9,14 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 import httpx
 
-# Use centralized logging configuration
 from config.logging import get_logger
 
 logger = get_logger("error_handler")
 
 
 class ErrorCode(str, Enum):
-    """Error codes matching frontend ErrorCode enum"""
-
-    # Network Errors
     NETWORK_ERROR = "NETWORK_ERROR"
     REQUEST_TIMEOUT = "REQUEST_TIMEOUT"
-
-    # API Errors
     BAD_REQUEST = "BAD_REQUEST"
     UNAUTHORIZED = "UNAUTHORIZED"
     FORBIDDEN = "FORBIDDEN"
@@ -30,21 +24,12 @@ class ErrorCode(str, Enum):
     CONFLICT = "CONFLICT"
     VALIDATION_ERROR = "VALIDATION_ERROR"
     RATE_LIMIT = "RATE_LIMIT"
-
-    # Server Errors
     INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
     SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
-
-    # Client Errors
     UNKNOWN_ERROR = "UNKNOWN_ERROR"
 
 
 class ErrorMetadata:
-    """
-    Metadata for error tracking and debugging
-    Matches frontend ErrorMetadata interface
-    """
-
     def __init__(
         self,
         request_id: Optional[str] = None,
@@ -66,15 +51,6 @@ class ErrorMetadata:
 
 
 class AppError(Exception):
-    """
-    Application error with three levels of detail:
-    1. user_message: Shown to end users (customer-facing) - NEVER technical
-    2. technical_message: For customer support/logs - What actually happened
-    3. stack_trace + details: For developers debugging - Full context
-
-    Matches frontend AppError class structure
-    """
-
     def __init__(
         self,
         code: ErrorCode,
@@ -87,8 +63,8 @@ class AppError(Exception):
     ):
         self.code = code
         self.status_code = status_code
-        self.user_message = user_message  # Customer sees this ONLY
-        self.technical_message = technical_message  # Support/logs see this
+        self.user_message = user_message
+        self.technical_message = technical_message
         self.is_operational = is_operational
         self.details = details or {}
         self.metadata = metadata or ErrorMetadata()
@@ -97,27 +73,19 @@ class AppError(Exception):
         super().__init__(self.technical_message)
 
     def to_json_for_client(self) -> Dict[str, Any]:
-        """
-        Minimal response for client - ONLY user-friendly message
-        Matches frontend expected response format
-        """
         return {
             "code": self.code.value,
-            "message": self.user_message,  # User-friendly ONLY
+            "message": self.user_message,
             "timestamp": self.metadata.timestamp,
             **({"details": self.details} if self.details else {}),
         }
 
     def to_json_for_logging(self) -> Dict[str, Any]:
-        """
-        Full error details for logging/monitoring (CloudWatch/X-Ray)
-        This is what developers see for debugging
-        """
         return {
             "code": self.code.value,
             "status_code": self.status_code,
-            "user_message": self.user_message,  # What customer saw
-            "technical_message": self.technical_message,  # What really happened
+            "user_message": self.user_message,
+            "technical_message": self.technical_message,
             "is_operational": self.is_operational,
             "details": self.details,
             "metadata": self.metadata.to_dict(),
@@ -127,18 +95,12 @@ class AppError(Exception):
 
 
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """
-    Global FastAPI exception handler that catches all unhandled exceptions
-    and converts them to proper AppError responses
-    """
-    # If it's already an AppError, use it directly
     if isinstance(exc, AppError):
         logger.error("application_error", **exc.to_json_for_logging())
         return JSONResponse(
             status_code=exc.status_code, content=exc.to_json_for_client()
         )
 
-    # Handle FastAPI HTTPException
     if isinstance(exc, HTTPException):
         app_error = AppError(
             code=ErrorCode.BAD_REQUEST
@@ -160,7 +122,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
 
-    # Handle SQLAlchemy IntegrityError
     if isinstance(exc, IntegrityError):
         error_message = str(exc.orig) if hasattr(exc, "orig") else str(exc)
 
@@ -190,7 +151,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
 
-    # Handle SQLAlchemy errors
     if isinstance(exc, SQLAlchemyError):
         app_error = AppError(
             code=ErrorCode.INTERNAL_SERVER_ERROR,
@@ -208,7 +168,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
 
-    # Handle Auth0/HTTP errors
     if isinstance(exc, httpx.HTTPStatusError):
         try:
             error_data = exc.response.json()
@@ -239,7 +198,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
 
-    # Handle network errors
     if isinstance(exc, httpx.RequestError):
         app_error = AppError(
             code=ErrorCode.SERVICE_UNAVAILABLE,
@@ -257,7 +215,6 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             status_code=app_error.status_code, content=app_error.to_json_for_client()
         )
 
-    # Handle all other unexpected errors
     app_error = AppError(
         code=ErrorCode.INTERNAL_SERVER_ERROR,
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

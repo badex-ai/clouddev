@@ -1,18 +1,3 @@
-# Production environment values for AWS EKS deployment
-# These values will be populated with Terraform outputs after infrastructure is created
-#
-# DEPLOYMENT STEPS:
-# 1. Run: terraform apply → get DB/Redis endpoints
-# 2. Update DB_HOST, REDIS_HOST, CELERY_*_HOST below
-# 3. Deploy: helm upgrade --install ...
-# 4. Get ALB DNS: kubectl get ingress -n kaban
-# 5. Update domain DNS to point to ALB
-# 6. Update Auth0 callback URLs with the production domain
-#
-# NOTE: This file is used by BOTH backend and frontend charts.
-# When deploying backend: values under root level are used
-# When deploying frontend: values under root level are used
-# The 'global' section is shared by both.
 
 global:
   namespace: kaban
@@ -89,23 +74,23 @@ configMap:
     AUTH0_API_AUDIENCE: "https://api.yourdomain.com"
     AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
     # Database - UPDATE: populate from Terraform output after 'terraform apply'
-    DB_HOST: "DB_HOST_PLACEHOLDER"  # Run: terraform output db_instance_endpoint
+    DB_HOST: "DB_HOST_PLACEHOLDER"  
     DB_PORT: "5432"
     DB_NAME: "kaban_prod"
     DB_USER: "postgres"
     ENVIRONMENT: "production"
     # ElastiCache - UPDATE: populate from Terraform output after 'terraform apply'
-    REDIS_HOST: "REDIS_HOST_PLACEHOLDER"  # Run: terraform output elasticache_endpoint
+    REDIS_HOST: "REDIS_HOST_PLACEHOLDER"  
     REDIS_PORT: "6379"
     REDIS_DB: "0"
     REDIS_USE_SSL: "true"
     # Celery broker (same ElastiCache, different DB)
-    CELERY_BROKER_HOST: "REDIS_HOST_PLACEHOLDER"  # Same as REDIS_HOST
+    CELERY_BROKER_HOST: "REDIS_HOST_PLACEHOLDER"  #
     CELERY_BROKER_PORT: "6379"
     CELERY_BROKER_DB: "1"
     CELERY_BROKER_USE_SSL: "true"
     # Celery result backend (same ElastiCache, different DB)
-    CELERY_RESULT_HOST: "REDIS_HOST_PLACEHOLDER"  # Same as REDIS_HOST
+    CELERY_RESULT_HOST: "REDIS_HOST_PLACEHOLDER" 
     CELERY_RESULT_PORT: "6379"
     CELERY_RESULT_DB: "2"
     CELERY_RESULT_USE_SSL: "true"
