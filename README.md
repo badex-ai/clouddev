@@ -1,8 +1,6 @@
 # Project Name
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](link)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-orange)](link)
+KABAN
 
 > A brief, compelling description of what your application does and why it matters. Keep it to 1-2 sentences.
 
