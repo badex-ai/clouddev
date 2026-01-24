@@ -68,9 +68,7 @@ ingress:
           ]
         }
       }
-  # Service names follow Helm naming: <release-name>-service
-  # Backend release: kaban-backend → service: kaban-backend-service
-  # Frontend release: kaban-frontend → service: kaban-frontend-service
+ 
   hosts:
     - paths:
         - path: /api
@@ -84,9 +82,9 @@ ingress:
           pathType: Prefix
           backend:
             service:
-              name: kaban-frontend-service
+              name: weighted-routing  
               port:
-                number: 80
+                name: use-annotation 
 
 # ============================================
 # BACKEND CHART VALUES (nested under backend: for subchart)
