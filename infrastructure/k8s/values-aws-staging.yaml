@@ -84,7 +84,7 @@ ingress:
             service:
               name: weighted-routing  
               port:
-                name: use-annotation 
+                number: 80
 
 # ============================================
 # BACKEND CHART VALUES (nested under backend: for subchart)
