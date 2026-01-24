@@ -45,10 +45,6 @@ auth0_m2m_client_id = config["auth0_m2m_client_id"]
 auth0_m2m_client_secret = config["auth0_m2m_client_secret"]
 
 
-# ==============================================================================
-# UTILITY FUNCTIONS
-# ==============================================================================
-
 def generate_random_password(length: int = 16) -> str:
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
     return "".join(secrets.choice(alphabet) for _ in range(length))
@@ -70,21 +66,9 @@ def check_user_exists(db: Session, email: str) -> bool:
     return db.query(User).filter(User.email == email).first() is not None
 
 
-# ==============================================================================
-# AUTH0 INTEGRATION FUNCTIONS - With proper error handling
-# ==============================================================================
-
 async def create_auth0_user(
     email: str, name: str, family_name: str, family_id: str, m2m_token: str
 ) -> tuple[str, str]:
-    """
-    Create user in Auth0 Management API.
-    
-    BIG TECH PATTERN:
-    - Convert Auth0 HTTP errors to AppError
-    - Add context for debugging
-    - User-friendly messages
-    """
     temporary_password = generate_random_password()
     management_api_url = f"https://{auth0_domain}/api/v2/users"
 
@@ -172,13 +156,6 @@ async def create_auth0_user(
 
 
 async def create_password_reset_ticket(user_id: str, m2m_token: str) -> str:
-    """
-    Create password reset ticket in Auth0.
-    
-    BIG TECH PATTERN:
-    - Same error handling as create_auth0_user
-    - Consistent error messages
-    """
     ticket_url = f"https://{auth0_domain}/api/v2/tickets/password-change"
 
     payload = {"user_id": user_id, "ttl_sec": 604800, "mark_email_as_verified": True}
@@ -229,13 +206,6 @@ async def create_password_reset_ticket(user_id: str, m2m_token: str) -> str:
 
 
 async def delete_auth0_user(user_id: str, m2m_token: str):
-    """
-    Delete user from Auth0 (cleanup operation).
-    
-    BIG TECH PATTERN:
-    - Cleanup operations should not fail the main operation
-    - Log warnings but don't raise errors
-    """
     delete_url = f"https://{auth0_domain}/api/v2/users/{user_id}"
     headers = {"Authorization": f"Bearer {m2m_token}"}
 
@@ -249,18 +219,7 @@ async def delete_auth0_user(user_id: str, m2m_token: str):
             logger.warning("auth0_user_deletion_failed", user_id=user_id, error=str(e))
 
 
-# ==============================================================================
-# DATABASE OPERATIONS
-# ==============================================================================
-
 def create_db_user(db: Session, name: str, email: str, family_id: str) -> User:
-    """
-    Create user in database.
-    
-    BIG TECH PATTERN:
-    - Simple database operation
-    - Let SQLAlchemy errors propagate to caller
-    """
     new_user = User(
         username=name,
         email=email,
@@ -276,24 +235,9 @@ def create_db_user(db: Session, name: str, email: str, family_id: str) -> User:
     return new_user
 
 
-# ==============================================================================
-# PUBLIC API FUNCTIONS
-# ==============================================================================
-
 async def create_family_member(
     req: UserCreate, db: Session, idempotency_key: str = None
 ) -> UserResponse:
-    """
-    Create a new family member (admin adding user).
-    
-    BIG TECH PATTERN (Netflix/Google):
-    1. Check idempotency first
-    2. Validate business rules
-    3. Create external resources (Auth0)
-    4. Create database records
-    5. Handle rollback if needed
-    6. Let specific errors propagate
-    """
     logger.info("create_family_member_started", email=req.email)
 
     redis_client = await get_redis()
@@ -411,14 +355,6 @@ async def create_family_member(
 
 
 async def get_user(req: UserRequest, db: Session):
-    """
-    Get user with family information.
-    
-    BIG TECH PATTERN:
-    - Simple query with validation
-    - Return structured data
-    - Let database errors propagate
-    """
     logger.info("get_user_started", email=req.user_email)
 
     try:
@@ -497,14 +433,6 @@ async def get_user(req: UserRequest, db: Session):
 
 
 def deactivate_user(user_id: str, db: Session) -> int:
-    """
-    Deactivate a user.
-    
-    BIG TECH PATTERN:
-    - Simple update operation
-    - Validate result
-    - Let database errors propagate
-    """
     logger.info("deactivate_user_started", user_id=user_id)
 
     try:
@@ -547,12 +475,6 @@ def deactivate_user(user_id: str, db: Session) -> int:
 
 
 def reactivate_user(user_id: str, db: Session) -> int:
-    """
-    Reactivate a user.
-    
-    BIG TECH PATTERN:
-    - Same pattern as deactivate_user
-    """
     logger.info("reactivate_user_started", user_id=user_id)
 
     try:

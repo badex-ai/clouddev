@@ -25,10 +25,6 @@ auth0_m2m_client_id = config["auth0_m2m_client_id"]
 auth0_m2m_client_secret = config["auth0_m2m_client_secret"]
 
 
-# ==============================================================================
-# UTILITY FUNCTIONS
-# ==============================================================================
-
 async def check_idempotency(key: str, redis_client) -> dict | None:
     cached = await redis_client.get(f"idempotency:{key}")
     if cached:
@@ -50,21 +46,9 @@ def check_user_exists(db: Session, email: str, username: str) -> bool:
     )
 
 
-# ==============================================================================
-# AUTH0 INTEGRATION
-# ==============================================================================
-
 async def create_auth0_user(
     email: str, password: str, name: str, family_name: str
 ) -> dict:
-    """
-    Create user in Auth0.
-    
-    BIG TECH PATTERN:
-    - Convert HTTP errors to AppError
-    - Parse Auth0 error messages
-    - User-friendly messages for common errors
-    """
     signup_url = f"https://{auth0_domain}/dbconnections/signup"
 
     payload = {
@@ -127,18 +111,7 @@ async def create_auth0_user(
             )
 
 
-# ==============================================================================
-# DATABASE OPERATIONS
-# ==============================================================================
-
 def create_family_record(db: Session, name: str) -> Family:
-    """
-    Create family record in database.
-    
-    BIG TECH PATTERN:
-    - Simple database operation
-    - Let SQLAlchemy errors propagate
-    """
     new_family = Family(name=name)
     db.add(new_family)
     db.flush()
@@ -150,13 +123,6 @@ def create_family_record(db: Session, name: str) -> Family:
 def create_user_record(
     db: Session, username: str, email: str, name: str, family_id: str
 ) -> User:
-    """
-    Create user record in database.
-    
-    BIG TECH PATTERN:
-    - Simple database operation
-    - Let SQLAlchemy errors propagate
-    """
     new_user = User(
         username=username,
         email=email,
@@ -172,27 +138,11 @@ def create_user_record(
     return new_user
 
 
-# ==============================================================================
-# PUBLIC API FUNCTIONS
-# ==============================================================================
-
 async def logout():
     return {"message": "Logout successful"}
 
 
 async def signup(req, db: Session, idempotency_key):
-    """
-    User signup with family creation.
-    
-    BIG TECH PATTERN (Netflix/Google):
-    1. Check idempotency
-    2. Validate business rules
-    3. Create database records first (easy to rollback)
-    4. Create Auth0 user (harder to rollback)
-    5. Send verification email (async, non-critical)
-    6. Commit transaction
-    7. Handle all specific errors with context
-    """
     logger.info("signup_started", email=req.email)
     redis_client = await get_redis()
 
