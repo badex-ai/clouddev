@@ -2,7 +2,9 @@
 
 KABAN
 
-> A brief, compelling description of what your application does and why it matters. Keep it to 1-2 sentences.
+
+
+> A Kanban board application with microservices architecture on Kubernetes
 
 ## Table of Contents
 
@@ -80,7 +82,7 @@ This project showcases a production-grade microservices architecture deployed on
                             │  Celery Worker  │
                             │                 │
                             └─────────────────┘
-```
+
 
 
 
@@ -145,22 +147,10 @@ uvicorn main:app --reload
 ```
 Access at: http://localhost:8000
 
-**Celery Worker:**
+ **Celery Worker:**
 ```bash
 cd backend
 celery -A celery_worker worker --loglevel=info
-```
-#### Local k8s development
-YOu can download Microk8s and run the helm files on it using the Taskfile
-
-#### Using Taskfile
-
-```bash
-# List available tasks
-task --list
-
-# Run specific task
-task setup-k8s-local
 ```
 
 ## Project Structure
@@ -196,16 +186,18 @@ task setup-k8s-local
 └── Taskfile.yaml          # Task automation
 ```
 
-## Deployment
 
-The application supports multiple deployment environments:
+#### Local k8s development
+You can download Microk8s and run the helm files on it using the Taskfile
 
-- **Development:** `docker-compose.dev.yaml`
-- **Development k8s:** `docker-compose.devk8s.yaml`
-- **Staging:** `docker-compose.staging.yaml`
-- **Production:** `docker-compose.production.yaml`
+#### Using Taskfile
+```bash
+# List available tasks
+task --list
 
-### Local development
+# Run specific task
+task setup-k8s-local
+```
 
 ```bash
 docker compose \
@@ -231,6 +223,16 @@ docker compose \
 # Build images
 docker-compose build
 ```
+
+## Deployment
+
+The application supports multiple deployment environments:
+
+- **Development:** `docker-compose.dev.yaml`
+- **Development k8s:** `docker-compose.devk8s.yaml`
+- **Staging:** `docker-compose.staging.yaml`
+- **Production:** `docker-compose.production.yaml`
+
 
 ### Kubernetes Deployment
 
@@ -397,18 +399,23 @@ kubectl exec -it -n kaban deployment/kaban-backend -- alembic upgrade head
 ```
 
 
-![Backend Log](assets/backndLog.png)
+![Log Group](assets/loggrp.png)
 ![Backend Logs](assets/backndLogs.png)
 ![Backend Log Group](assets/bckLogrp.png)
-![Celery Log](assets/celeryLog.png)
+
 ![CI/CD Pipeline](assets/cicd.png)
+
 ![Container](assets/container.png)
 ![Container 2](assets/container2.png)
+
 ![Docker Image](assets/dockerImg.png)
+
+![Pods](assets/pods.png)
 ![Frontend Canary Logs](assets/frntendCanaryLogs.png)
 ![Frontend Stable Logs](assets/frntndStablelogs.png)
-![Log Group](assets/loggrp.png)
-![Pods](assets/pods.png)
+![Celery Log](assets/celeryLog.png)
+![Backend Log](assets/backndLog.png)
+
 ![Canary Frontend](assets/canaryFrntend.png)
-![Stable Frontend](assets/stableFrntend.png)```
+![Stable Frontend](assets/stableFrntend.png)
 
