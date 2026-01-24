@@ -16,9 +16,7 @@
   - [Development](#development)
 - [Project Structure](#project-structure)
 - [Deployment](#deployment)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [License](#license)
+- 
 
 ## Overview
 
@@ -415,5 +413,20 @@ docker pull <username>/kaban-backend:staging-<sha>
 
 # Check secrets
 kubectl get secrets -n kaban
-```
+
+
+![Backend Log](assets/backndLog.png)
+![Backend Logs](assets/backndLogs.png)
+![Backend Log Group](assets/bckLogrp.png)
+![Canary Frontend](assets/canaryFrntend.png)
+![Celery Log](assets/celeryLog.png)
+![CI/CD Pipeline](assets/cicd.png)
+![Container](assets/container.png)
+![Container 2](assets/container2.png)
+![Docker Image](assets/dockerImg.png)
+![Frontend Canary Logs](assets/frntendCanaryLogs.png)
+![Frontend Stable Logs](assets/frntndStablelogs.png)
+![Log Group](assets/loggrp.png)
+![Pods](assets/pods.png)
+![Stable Frontend](assets/stableFrntend.png)```
 
