@@ -9,7 +9,7 @@ on:
 env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   DOCKERHUB_REPO_BACKEND: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-backend
-  DOCKERHUB_REPO_CELERY: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-celery
+  DOCKERHUB_REPO_CELERY: ${{ secrets.DOCKER_HUB_USERNAME }}/ }}/kaban-celery-worker
   DOCKERHUB_REPO_FRONTEND: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-frontend
   DOCKERHUB_REPO_FRONTEND_CANARY: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-frontend-canary
   AWS_REGION: ${{ vars.AWS_REGION }}
