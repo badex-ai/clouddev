@@ -1,20 +1,4 @@
-# Staging environment values for AWS EKS deployment
-# These values will be populated with Terraform outputs after infrastructure is created
-# Run: terraform output -json to get the actual values
-#
-# DEPLOYMENT STEPS:
-# 1. Run: terraform apply → get DB/Redis endpoints
-# 2. Update DB_HOST, REDIS_HOST, CELERY_*_HOST below
-# 3. Deploy: helm upgrade --install ...
-# 4. Get ALB DNS: kubectl get ingress -n kaban
-# 5. Update ALB_DNS_PLACEHOLDER below with actual ALB DNS
-# 6. Redeploy: helm upgrade --install ...
-# 7. Update Auth0 callback URLs with the ALB DNS
-#
-# NOTE: This file is used by BOTH backend and frontend charts.
-# When deploying backend: values under root level are used
-# When deploying frontend: values under root level are used
-# The 'global' section is shared by both.
+
 
 global:
   namespace: kaban
@@ -22,7 +6,7 @@ global:
 
 # AWS Configuration
 aws:
-  region: "us-west-2"  # Must match your EKS cluster region
+  region: "us-west-2"  
 
 # External Secrets - ClusterSecretStore configuration
 externalSecrets:
@@ -217,7 +201,7 @@ backend:
 # ============================================
 frontend:
   replicaCount: 1
-  
+
   strategy:
     type: Recreate
 
@@ -247,7 +231,7 @@ frontend:
     refreshInterval: "1h"
     secretName: "kaban/staging/frontend"
 
-  # Frontend needs to know which secret keys to load as env vars
+ 
   secrets:
     enabled: true
     data:
