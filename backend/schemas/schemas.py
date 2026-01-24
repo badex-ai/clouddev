@@ -20,7 +20,7 @@ class UserRole(str, Enum):
 
 class TaskStatus(str, Enum):
     initialised = "initialised"
-    in_progress = "in-progress"
+    in_progress = "in_progress"
     completed = "completed"
 
 class ChecklistItem(BaseModel):

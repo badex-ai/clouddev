@@ -22,7 +22,7 @@ import uuid
 
 class TaskStatus(Enum):
     initialised = "initialised"
-    in_progress = "in-progress"
+    in_progress = "in_progress"
     completed = "completed"
 
 

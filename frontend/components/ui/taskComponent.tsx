@@ -144,7 +144,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({
             variant={
               task.status === 'completed'
                 ? 'default'
-                : task.status === 'in-progress'
+                : task.status === 'in_progress'
                   ? 'secondary'
                   : 'outline'
             }

@@ -14,13 +14,13 @@ interface KanbanTableProps {
 }
 
 const ValidTransition = {
-  initialised: ['in-progress'],
-  'in-progress': ['completed'], // Allow rollback
-  completed: ['in-progress'],
+  initialised: ['in_progress'],
+  'in_progress': ['completed'], // Allow rollback
+  completed: ['in_progress'],
 };
 type States = TaskStatus;
 
-type Validstate = 'initialised' | 'in-progress' | 'completed';
+type Validstate = 'initialised' | 'in_progress' | 'completed';
 
 type ValidTransitionType = {
   [K in Validstate]: (typeof ValidTransition)[K][number][];
@@ -51,7 +51,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({
 
   const columns: { title: string; status: TaskStatus }[] = [
     { title: 'initialised', status: 'initialised' },
-    { title: 'In Progress', status: 'in-progress' },
+    { title: 'In Progress', status: 'in_progress' },
     { title: 'Completed', status: 'completed' },
   ];
 
@@ -99,7 +99,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({
     switch (status) {
       case 'initialised':
         return 'bg-gray-50';
-      case 'in-progress':
+      case 'in_progress':
         return 'bg-blue-50';
       case 'completed':
         return 'bg-green-50';
@@ -113,7 +113,7 @@ const KanbanTable: React.FC<KanbanTableProps> = ({
     switch (status) {
       case 'initialised':
         return 'border-gray-200';
-      case 'in-progress':
+      case 'in_progress':
         return 'border-blue-200';
       case 'completed':
         return 'border-green-200';
