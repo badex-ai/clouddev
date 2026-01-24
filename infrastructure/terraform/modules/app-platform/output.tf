@@ -61,36 +61,6 @@ output "aws_load_balancer_controller_role_arn" {
 }
 
 
-
-# output "argocd_application_controller_role_arn" {
-#   description = "ArgoCD Application Controller IAM role ARN"
-#   value       = aws_iam_role.argocd_application_controller.arn
-# }
-
-# output "xray_daemon_role_arn" {
-#   description = "X-Ray Daemon IAM role ARN"
-#   value       = aws_iam_role.xray_daemon.arn
-# }
-
-# ✏️ ADDED: KMS and CloudWatch outputs
-
-
-# output "kms_key_id" {
-#   description = "KMS key ID"
-#   value       = module.kms.key_id
-# }
-
-# output "cloudwatch_observability_role_arn" {
-#   description = "CloudWatch Observability addon IAM role ARN"
-#   value       = aws_iam_role.cloudwatch_observability.arn
-# }
-
-# output "cloudwatch_log_group_name" {
-#   description = "CloudWatch log group name for EKS"
-#   value       = "/aws/eks/${var.project_name}-${var.environment}/cluster"
-# }
-
-# ✏️ ADDED: Monitoring and observability endpoints
 output "container_insights_enabled" {
   description = "Whether Container Insights is enabled"
   value       = var.enable_cloudwatch_insights
@@ -101,10 +71,6 @@ output "application_signals_enabled" {
   value       = var.enable_application_signals
 }
 
-output "argocd_server_url" {
-  description = "ArgoCD server URL (available after deployment)"
-  value       = "Check kubectl get svc argocd-server -n argocd for LoadBalancer URL"
-}
 
 output "argocd_initial_password_command" {
   description = "Command to get ArgoCD initial admin password"
@@ -143,28 +109,12 @@ output "db_security_group_id" {
   value       = aws_security_group.rds.id
 }
 
-output "argocd_server_role_arn" {
-  description = "ArgoCD server IAM role ARN"
-  value       = var.enable_argocd ? module.argocd_server_irsa.iam_role_arn : null
-}
-
-output "argocd_application_controller_role_arn" {
-  description = "ArgoCD application controller IAM role ARN"
-  value       = var.enable_argocd ? module.argocd_application_controller_irsa.iam_role_arn : null
-}
-
-# X-Ray Outputs
-output "xray_daemon_role_arn" {
-  description = "X-Ray daemon IAM role ARN"
-  value       = var.enable_xray ? module.xray_daemon_irsa.iam_role_arn : null
-}
 
 
-# output "kms_key_arn" {
-#   description = "KMS key ARN for EKS encryption"
-#   value       = module.kms.key_arn
-# }
-# KMS Outputs
+
+
+
+
 output "kms_key_arn" {
   description = "EKS cluster KMS key ARN"
   value       = aws_kms_key.eks_cluster.arn
@@ -267,4 +217,27 @@ output "elasticache_security_group_id" {
 output "redis_auth_token_secret_arn" {
   description = "Redis AUTH token secret ARN"
   value       = var.enable_elasticache ? aws_secretsmanager_secret.redis_auth_token[0].arn : null
+}
+# ============================================================================
+# CLOUDWATCH LOG GROUPS (Application-specific logs)
+# ============================================================================
+
+output "backend_log_group_name" {
+  description = "CloudWatch log group for backend API"
+  value       = aws_cloudwatch_log_group.kaban_backend.name
+}
+
+output "celery_log_group_name" {
+  description = "CloudWatch log group for Celery workers"
+  value       = aws_cloudwatch_log_group.kaban_celery.name
+}
+
+output "frontend_log_group_name" {
+  description = "CloudWatch log group for frontend"
+  value       = aws_cloudwatch_log_group.kaban_frontend.name
+}
+
+output "kaban_logs_policy_arn" {
+  description = "IAM policy for Kaban application logs"
+  value       = aws_iam_policy.kaban_log_groups.arn
 }

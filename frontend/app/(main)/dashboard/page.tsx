@@ -33,10 +33,10 @@ import {
 } from '@/components/ui/select';
 import { localToUtc } from '@/lib/utils';
 import { toast } from 'sonner';
-import { getTaskForDay } from '@/lib/actions/taskActions';
-import { deleteTask } from '@/lib/actions/taskActions';
+import { getTaskForDay, deleteTask, updateTaskStatus } from '@/lib/actions/taskActions';
 import CircleIcon from '../../../components/icons/circleIcon';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getErrorMessage } from '@/lib/errors';
 
 function Dashboard() {
   const router = useRouter();
@@ -86,6 +86,9 @@ function Dashboard() {
     fetchTasks();
   }, [dasboardDate, userData?.family?.id]);
 
+
+  const RELEASE = process.env.NEXT_PUBLIC_RELEASE;
+
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
 
@@ -121,15 +124,29 @@ function Dashboard() {
     return `Tasks for ${formatShownDay(dasboardDate)}`;
   };
 
-  const handleTaskMove = (taskId: string, newStatus: string) => {
-    if (tasks)
-      setTasks((tasks) =>
-        tasks.map((task) =>
-          task.public_id === taskId
-            ? { ...task, status: newStatus as 'initialised' | 'in-progress' | 'completed' }
-            : task
-        )
-      );
+  const handleTaskMove = async (taskId: string, newStatus: string) => {
+    if (!tasks) return;
+
+    const previousTasks = [...tasks];
+    const typedStatus = newStatus as 'initialised' | 'in_progress' | 'completed';
+
+    // Optimistic update
+    setTasks((tasks) =>
+      tasks.map((task) =>
+        task.public_id === taskId ? { ...task, status: typedStatus } : task
+      )
+    );
+
+    try {
+      await updateTaskStatus(taskId, typedStatus);
+    } catch (error) {
+      // Revert on failure
+      setTasks(previousTasks);
+      toast('Failed to update task', {
+        description: getErrorMessage(error),
+        duration: 4000,
+      });
+    }
   };
 
   const handleTaskDelete = async (taskId: string) => {
@@ -232,10 +249,8 @@ function Dashboard() {
 
       setTasks((tasks) => [...tasks, createdTask]);
     } catch (error) {
-      // toast('Something went wrong while creating the task');
-      const message = error instanceof Error ? error.message : String(error);
       toast('Task creation error', {
-        description: message,
+        description: getErrorMessage(error),
         action: {
           label: 'Close',
           onClick: () => {
@@ -400,11 +415,14 @@ function Dashboard() {
               </form>
             </DialogContent>
           </Dialog>
-          <div className="ml-auto w-10 h-10">
+          {RELEASE === "CANARY" &&
+             <div className="ml-auto w-10 h-10">
             {tasks.length > 0 && (
               <CircleIcon percentage={percentage} size={50} strokeWidth={6} color="#DD2E44" />
             )}
           </div>
+          }
+         
         </div>
         {taskTable}
       </div>

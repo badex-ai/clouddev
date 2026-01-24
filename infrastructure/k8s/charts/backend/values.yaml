@@ -1,5 +1,5 @@
 #***POD***
-replicaCount: 2
+replicaCount: 1
 
 image:
   repository: badex360/kaban-backend
@@ -12,7 +12,8 @@ imagePullSecrets: []
 
 namespace: "local-dev"
 
-
+migration:
+  enabled: true
 
 
 # This is for setting Kubernetes Annotations to a Pod.
@@ -70,7 +71,7 @@ readinessProbe:
 autoscaling:
   enabled: true
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 1
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 70
 
@@ -147,11 +148,6 @@ networkPolicy:
       cidr: ""
       podSelector: {}
       port: 6379
-    
-    allowADOT: false
-    adot:
-      podSelector: {}
-      ports: []
     
     allowExternal: true
     externalPorts:

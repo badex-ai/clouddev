@@ -1,12 +1,31 @@
 # Production environment values for AWS EKS deployment
 # These values will be populated with Terraform outputs after infrastructure is created
+#
+# DEPLOYMENT STEPS:
+# 1. Run: terraform apply → get DB/Redis endpoints
+# 2. Update DB_HOST, REDIS_HOST, CELERY_*_HOST below
+# 3. Deploy: helm upgrade --install ...
+# 4. Get ALB DNS: kubectl get ingress -n kaban
+# 5. Update domain DNS to point to ALB
+# 6. Update Auth0 callback URLs with the production domain
+#
+# NOTE: This file is used by BOTH backend and frontend charts.
+# When deploying backend: values under root level are used
+# When deploying frontend: values under root level are used
+# The 'global' section is shared by both.
 
 global:
   namespace: kaban
 
 externalSecrets:
   enabled: true
+  refreshInterval: "1h"
+  # Secret name in AWS Secrets Manager (matches Terraform: ${project_name}/${environment}/backend)
+  secretName: "kaban/prod/backend"
 
+# ============================================
+# INGRESS CONFIGURATION (shared)
+# ============================================
 ingress:
   enabled: true
   className: alb
@@ -15,178 +34,90 @@ ingress:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/healthcheck-path: /health
     alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-2-2017-01
+    # HTTPS Configuration - UPDATE: Replace with your ACM certificate ARN
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: "ACM_CERTIFICATE_ARN_PLACEHOLDER"
+  # Host-based routing for production (update with your actual domains)
   hosts:
-    - host: app.yourdomain.com  # Update with your production domain
+    - host: api.yourdomain.com  # UPDATE: Your production API domain
       paths:
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: frontend-service
+              name: kaban-backend-service
               port:
-                number: 80
-                targetPort: 3000
-    - host: api.yourdomain.com  # Update with your production API domain
+                number: 8000
+    - host: app.yourdomain.com  # UPDATE: Your production frontend domain
       paths:
         - path: /
           pathType: Prefix
           backend:
             service:
-              name: backend-service
+              name: kaban-frontend-service
               port:
                 number: 80
-                targetPort: 8000
 
+# ============================================
+# BACKEND CHART VALUES (used when deploying backend chart)
+# ============================================
+component: api
 
-frontend:
+replicaCount: 2
+
+image:
+  repository: badex360/kaban-backend
+  tag: latest
+  pullPolicy: Always
+
+container:
+  port: 8000
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+configMap:
+  enabled: true
+  data:
+    # CORS - UPDATE: Replace with actual production domain
+    CORS_ALLOWED_ORIGINS: "https://app.yourdomain.com"
+    AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
+    AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
+    AUTH0_API_AUDIENCE: "https://api.yourdomain.com"
+    AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
+    # Database - UPDATE: populate from Terraform output after 'terraform apply'
+    DB_HOST: "DB_HOST_PLACEHOLDER"  # Run: terraform output db_instance_endpoint
+    DB_PORT: "5432"
+    DB_NAME: "kaban_prod"
+    DB_USER: "postgres"
+    ENVIRONMENT: "production"
+    # ElastiCache - UPDATE: populate from Terraform output after 'terraform apply'
+    REDIS_HOST: "REDIS_HOST_PLACEHOLDER"  # Run: terraform output elasticache_endpoint
+    REDIS_PORT: "6379"
+    REDIS_DB: "0"
+    REDIS_USE_SSL: "true"
+    # Celery broker (same ElastiCache, different DB)
+    CELERY_BROKER_HOST: "REDIS_HOST_PLACEHOLDER"  # Same as REDIS_HOST
+    CELERY_BROKER_PORT: "6379"
+    CELERY_BROKER_DB: "1"
+    CELERY_BROKER_USE_SSL: "true"
+    # Celery result backend (same ElastiCache, different DB)
+    CELERY_RESULT_HOST: "REDIS_HOST_PLACEHOLDER"  # Same as REDIS_HOST
+    CELERY_RESULT_PORT: "6379"
+    CELERY_RESULT_DB: "2"
+    CELERY_RESULT_USE_SSL: "true"
+    # Email - Passed via GitHub Environment Variable in CI/CD
+    BREVO_SENDER_EMAIL: ""
+
+celeryWorker:
   replicaCount: 2
-
-  service:
-    type: ClusterIP
-    port: 80
-    targetPort: 3000
-
-  configMap:
-    data:
-      AUTH0_BASE_URL: "https://app.yourdomain.com"  # Update with production domain
-      AUTH0_ISSUER_BASE_URL: "dev-b58ldaey.us.auth0.com"
-      AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
-      AUTH0_SCOPE: "openid profile email"
-      AUTH0_AUDIENCE: "https://dev-b58ldaey.us.auth0.com/userinfo"
-      APP_BASE_URL: "https://app.yourdomain.com"
-      AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
-      NEXT_PUBLIC_API_URL: "https://api.yourdomain.com"
-      ENVIRONMENT: "production"
-      BACKEND_URL: "http://kaban-backend-service:8000"
-
-  externalSecrets:
-    enabled: true
-    refreshInterval: "1h"
-    secretName: "kaban/prod/frontend"  # Matches Terraform secret name
-
   image:
-    repository: your-dockerhub-username/kaban-frontend
+    repository: badex360/kaban-celery
     tag: latest
     pullPolicy: Always
-
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "250m"
-    limits:
-      memory: "512Mi"
-      cpu: "500m"
-
-  networkPolicy:
-    enabled: true
-    ingress:
-      allowFromIngressController: true
-      ingressControllerNamespace:
-        kubernetes.io/metadata.name: kube-system
-    egress:
-      allowDNS: true
-      allowBackend: true
-      backend:
-        appLabel: backend
-        ports: [80, 8000]
-      allowADOT: true
-      adot:
-        appLabel: adot-collector
-        ports:
-          - 4317
-          - 4318
-      allowExternal: true
-      externalPorts:
-        - 443
-        - 80
-
-
-backend:
-  replicaCount: 2
-
-  container:
-    port: 8000
-
-  configMap:
-    data:
-      AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
-      AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
-      AUTH0_API_AUDIENCE: "https://api.yourdomain.com"
-      AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
-      # Database - will be populated from Terraform output
-      DB_HOST: ""  # From: terraform output db_instance_endpoint
-      DB_PORT: "5432"
-      DB_NAME: "kaban_prod"
-      DB_USER: "postgres"
-      ENVIRONMENT: "production"
-      # OpenTelemetry/ADOT Configuration
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://adot-collector.aws-otel-eks.svc.cluster.local:4317"
-      OTEL_SERVICE_NAME: "kaban-backend"
-      # ElastiCache - will be populated from Terraform output
-      REDIS_HOST: ""  # From: terraform output elasticache_endpoint
-      REDIS_PORT: "6379"
-      REDIS_DB: "0"
-      REDIS_USE_SSL: "true"
-      # Celery broker (same ElastiCache)
-      CELERY_BROKER_HOST: ""  # From: terraform output elasticache_endpoint
-      CELERY_BROKER_PORT: "6379"
-      CELERY_BROKER_DB: "1"
-      CELERY_BROKER_USE_SSL: "true"
-      # Celery result backend
-      CELERY_RESULT_HOST: ""  # From: terraform output elasticache_endpoint
-      CELERY_RESULT_PORT: "6379"
-      CELERY_RESULT_DB: "2"
-      CELERY_RESULT_USE_SSL: "true"
-
-  celeryWorker:
-    replicaCount: 2
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "500m"
-      limits:
-        memory: "1Gi"
-        cpu: "1000m"
-
-  networkPolicy:
-    enabled: true
-    ingress:
-      allowFromFrontend: true
-      frontendAppLabel: frontend
-      allowFromIngressController: true
-      ingressControllerNamespace:
-        kubernetes.io/metadata.name: kube-system
-    egress:
-      allowDatabase: true
-      database:
-        useIPBlock: true
-        cidr: "10.2.0.0/16"  # Production VPC CIDR
-        port: 5432
-      allowRedis: true
-      redis:
-        useIPBlock: true
-        cidr: "10.2.0.0/16"  # Production VPC CIDR
-      allowADOT: true
-      adot:
-        podSelector:
-          app: adot-collector
-        ports:
-          - 4317
-          - 4318
-      allowExternal: true
-      externalPorts:
-        - 443
-
-  externalSecrets:
-    enabled: true
-    refreshInterval: "1h"
-    secretName: "kaban/prod/backend"  # Matches Terraform secret name
-
-  image:
-    repository: your-dockerhub-username/kaban-backend
-    tag: latest
-    pullPolicy: Always
-
   resources:
     requests:
       memory: "512Mi"
@@ -194,6 +125,36 @@ backend:
     limits:
       memory: "1Gi"
       cpu: "1000m"
+
+networkPolicy:
+  enabled: true
+  ingress:
+    allowFromFrontend: true
+    frontendAppLabel: frontend
+    allowFromIngressController: true
+    ingressControllerNamespace:
+      kubernetes.io/metadata.name: kube-system
+  egress:
+    allowDatabase: true
+    database:
+      useIPBlock: true
+      cidr: "10.2.0.0/16"  # Production VPC CIDR (from main.tf vpc_cidr)
+      port: 5432
+    allowRedis: true
+    redis:
+      useIPBlock: true
+      cidr: "10.2.0.0/16"  # Production VPC CIDR (from main.tf vpc_cidr)
+    allowExternal: true
+    externalPorts:
+      - 443
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "500m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
 
 redis:
   enabled: false  # Using ElastiCache in production

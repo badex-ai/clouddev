@@ -3,6 +3,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "k8s.name" . }}-ingress
+  namespace: {{ .Values.global.namespace | default "default" }}
   labels:
     {{- include "k8s.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
@@ -25,20 +26,41 @@ spec:
   {{- end }}
   rules:
     {{- range .Values.ingress.hosts }}
+    {{- if .host }}
     - host: {{ .host | quote }}
       http:
         paths:
           {{- range .paths }}
           - path: {{ .path }}
-            {{- with .pathType }}
-            pathType: {{ . }}
-            {{- end }}
+            pathType: {{ .pathType | default "Prefix" }}
             backend:
               service:
                 name: {{ .backend.service.name }}
                 port:
-                  number: {{ .backend.service.port.number }} 
+                  {{- if .backend.service.port.name }}
+                  name: {{ .backend.service.port.name }}
+                  {{- else }}
+                  number: {{ .backend.service.port.number }}
+                  {{- end }}
           {{- end }}
+    {{- else }}
+    {{- /* ALB path-based routing without host */}}
+    - http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ .backend.service.name }}
+                port:
+                  {{- if .backend.service.port.name }}
+                  name: {{ .backend.service.port.name }}
+                  {{- else }}
+                  number: {{ .backend.service.port.number }}
+                  {{- end }}
+          {{- end }}
+    {{- end }}
     {{- end }}
 {{- end }}
 

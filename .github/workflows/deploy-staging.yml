@@ -1,0 +1,309 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+env:
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKERHUB_REPO_BACKEND: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-backend
+  DOCKERHUB_REPO_CELERY: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-celery
+  DOCKERHUB_REPO_FRONTEND: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-frontend
+  DOCKERHUB_REPO_FRONTEND_CANARY: ${{ secrets.DOCKER_HUB_USERNAME }}/kaban-frontend-canary
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    outputs:
+      backend_tag: ${{ steps.backend.outputs.tag }}
+      celery_tag: ${{ steps.celery.outputs.tag }}
+      frontend_tag: ${{ steps.frontend.outputs.tag }}
+      frontend_canary_tag: ${{ steps.frontend-canary.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: Build and push backend image
+        id: backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: staging
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_REPO_BACKEND }}:latest
+            ${{ env.DOCKERHUB_REPO_BACKEND }}:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_BACKEND }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_BACKEND }}:buildcache,mode=max
+
+      - name: Build and push celery image
+        id: celery
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: celery-worker
+          push: true
+          tags: |
+            ${{ env.DOCKERHUB_REPO_CELERY }}:latest
+            ${{ env.DOCKERHUB_REPO_CELERY }}:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_CELERY }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_CELERY }}:buildcache,mode=max
+
+      - name: Build and push frontend stable image
+        id: frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          target: staging
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_RELEASE=STABLE
+          tags: |
+            ${{ env.DOCKERHUB_REPO_FRONTEND }}:latest
+            ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND }}:buildcache,mode=max
+
+      - name: Build and push frontend canary image
+        id: frontend-canary
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          target: staging-canary
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL }}
+            NEXT_PUBLIC_RELEASE=CANARY
+          tags: |
+            ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:latest
+            ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:staging-${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:buildcache,mode=max
+
+      - name: Output image tags
+        run: |
+          echo "Backend: ${{ env.DOCKERHUB_REPO_BACKEND }}:staging-${{ github.sha }}"
+          echo "Celery: ${{ env.DOCKERHUB_REPO_CELERY }}:staging-${{ github.sha }}"
+          echo "Frontend Stable: ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}"
+          echo "Frontend Canary: ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:staging-${{ github.sha }}"
+
+  terraform:
+    name: Terraform Plan & Apply
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    env:
+      TF_VAR_auth0_client_secret: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      TF_VAR_auth0_m2m_client_secret: ${{ secrets.AUTH0_M2M_CLIENT_SECRET }}
+      TF_VAR_auth0_secret: ${{ secrets.AUTH0_SECRET }}
+      TF_VAR_brevo_api_key: ${{ secrets.BREVO_API_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: |
+          cd infrastructure/terraform/environment/staging
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          cd infrastructure/terraform/environment/staging
+          terraform plan -var-file="staging.tfvars" -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          cd infrastructure/terraform/environment/staging
+          terraform apply tfplan
+
+  helm-deploy:
+    name: Helm Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: [build-and-push, terraform]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.EKS_CLUSTER_NAME }} \
+            --kubeconfig ${{ runner.temp }}/kubeconfig
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "3.13.0"
+
+      - name: Helm dependency update
+        run: |
+          cd infrastructure/k8s
+          helm dependency update
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+      - name: Clean up old migration jobs
+        run: |
+          kubectl delete job -n kaban -l app.kubernetes.io/component=migration || true
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+      - name: Scale down celery temporarily for migration
+        run: |
+          kubectl scale deployment kaban-backend-celery-worker -n kaban --replicas=0 || true
+          sleep 15
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+      - name: Helm upgrade (deploy to staging)
+        run: |
+          cd infrastructure/k8s
+
+
+          kubectl label namespace amazon-cloudwatch app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+          kubectl annotate namespace amazon-cloudwatch meta.helm.sh/release-name=kaban --overwrite 2>/dev/null || true
+          kubectl annotate namespace amazon-cloudwatch meta.helm.sh/release-namespace=kaban --overwrite 2>/dev/null || true
+
+
+          helm upgrade --install kaban . \
+            --namespace kaban \
+            --create-namespace \
+            --values values-aws-staging.yaml \
+            --set backend.image.tag=staging-${{ github.sha }} \
+            --set backend.replicaCount=1 \
+            --set celeryWorker.image.tag=staging-${{ github.sha }} \
+            --set frontend.image.tag=staging-${{ github.sha }} \
+            --set frontend.canary.enabled=true \
+            --set frontend.canary.image.repository=${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }} \
+            --set frontend.canary.image.tag=staging-${{ github.sha }} \
+            --wait \
+            --timeout 10m \
+            --debug
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+      - name: Wait and capture migration logs
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "Waiting 30 seconds for migration to start..."
+          sleep 30
+
+          echo "=== Migration Job Status ==="
+          kubectl get jobs -n kaban -l app.kubernetes.io/component=migration
+
+          echo ""
+          echo "=== Migration Pods ==="
+          kubectl get pods -n kaban -l app.kubernetes.io/component=migration
+
+          echo ""
+          echo "=== Migration Logs ==="
+          for pod in $(kubectl get pods -n kaban -l app.kubernetes.io/component=migration -o name 2>/dev/null); do
+            echo "========================================"
+            echo "Logs from $pod:"
+            kubectl logs -n kaban $pod --all-containers=true --tail=500 || true
+            echo ""
+          done
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+      - name: Debug pod failures # ← ADD THIS ENTIRE BLOCK HERE
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n kaban
+          echo "=== Migration Job Status ==="
+          kubectl get jobs -n kaban -l app.kubernetes.io/component=migration
+          echo "=== Migration Pod Details ==="
+          kubectl describe pod -n kaban -l app.kubernetes.io/component=migration
+          echo "=== Migration Logs ==="
+          kubectl logs -n kaban -l app.kubernetes.io/component=migration --tail=100 || true
+          echo "=== Backend Pod Details ==="
+          kubectl describe pod -n kaban -l app=kaban-backend
+          echo "=== Backend Logs ==="
+          kubectl logs -n kaban -l app=kaban-backend --tail=100 --all-containers=true
+          echo "=== Events ==="
+          kubectl get events -n kaban --sort-by='.lastTimestamp' | tail -20
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/kaban-backend -n kaban --timeout=3m
+          kubectl rollout status deployment/kaban-backend-celery-worker -n kaban --timeout=3m
+          kubectl rollout status deployment/kaban-frontend -n kaban --timeout=3m
+          kubectl rollout status deployment/kaban-frontend-canary -n kaban --timeout=3m
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+
+      - name: Clean up successful migration jobs
+        run: |
+          kubectl delete job -n kaban -l app.kubernetes.io/component=migration || true
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+      - name: Check pod status
+        run: |
+          kubectl get pods -n kaban
+        env:
+          KUBECONFIG: ${{ runner.temp }}/kubeconfig
+        if: always()
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Staging deployment complete!"
+          echo "Backend image: ${{ env.DOCKERHUB_REPO_BACKEND }}:staging-${{ github.sha }}"
+          echo "Celery image: ${{ env.DOCKERHUB_REPO_CELERY }}:staging-${{ github.sha }}"
+          echo "Frontend Stable image: ${{ env.DOCKERHUB_REPO_FRONTEND }}:staging-${{ github.sha }}"
+          echo "Frontend Canary image: ${{ env.DOCKERHUB_REPO_FRONTEND_CANARY }}:staging-${{ github.sha }}"
+          echo ""
+          echo "Check logs:"
+          echo "  kubectl logs -n kaban -l app=kaban-backend --tail=50"
+          echo "  kubectl logs -n kaban -l app=kaban-celery-worker --tail=50"
+          echo "  kubectl logs -n kaban -l app=frontend,version=stable --tail=50"
+          echo "  kubectl logs -n kaban -l app=frontend,version=canary --tail=50"
+
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: [build-and-push, terraform, helm-deploy]
+    steps:
+      - name: Post failure message
+        run: |
+          echo "❌ Staging deployment failed!"
+          echo "Check GitHub Actions logs for details"

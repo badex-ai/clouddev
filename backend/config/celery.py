@@ -1,11 +1,18 @@
 import os
 import sys
+import time
 from celery import Celery
+from celery.signals import task_prerun, task_postrun, task_failure, task_retry
 from dotenv import load_dotenv
 
 # Only load .env file when running locally (not in Docker)
 if not os.getenv("DOCKER_CONTAINER"):
     load_dotenv()
+
+# Setup logging for Celery
+from config.logging import setup_logging, get_logger
+setup_logging(service_name="kaban-celery")
+logger = get_logger("celery")
 
 
 def create_celery_app():
@@ -38,8 +45,11 @@ def create_celery_app():
         print("[CELERY] ERROR: result_backend is empty!")
         sys.exit(1)
     
-    print(f"[CELERY] Broker: {broker_url.split('@')[-1] if '@' in broker_url else broker_url}")
-    print(f"[CELERY] Backend: {result_backend.split('@')[-1] if '@' in result_backend else result_backend}")
+    logger.info(
+        "celery_config",
+        broker=broker_url.split('@')[-1] if '@' in broker_url else broker_url,
+        backend=result_backend.split('@')[-1] if '@' in result_backend else result_backend,
+    )
     
     # Create app with validated URLs
     app = Celery(
@@ -96,6 +106,69 @@ try:
     from celery.signals import worker_process_init
 
     worker_process_init.connect(_init_celery_tracing, weak=False)
-    print("[CELERY] Tracing initialization signal connected successfully")
+    logger.info("celery_tracing_connected")
 except ImportError as e:
-    print(f"[CELERY] Failed to connect tracing signal: {e}")
+    logger.error("celery_tracing_failed", error=str(e))
+
+
+# ============================================================================
+# CELERY TASK LIFECYCLE LOGGING
+# ============================================================================
+# Log task events for CloudWatch monitoring
+# ============================================================================
+
+# Store task start times for duration calculation
+_task_start_times = {}
+
+
+@task_prerun.connect
+def task_started(task_id, task, args, kwargs, **kw):
+    """Log when a task starts"""
+    _task_start_times[task_id] = time.time()
+    logger.info(
+        "task_started",
+        task_id=task_id,
+        task_name=task.name,
+    )
+
+
+@task_postrun.connect
+def task_completed(task_id, task, args, kwargs, retval, state, **kw):
+    """Log when a task completes successfully"""
+    start_time = _task_start_times.pop(task_id, None)
+    duration_ms = round((time.time() - start_time) * 1000, 2) if start_time else None
+
+    logger.info(
+        "task_completed",
+        task_id=task_id,
+        task_name=task.name,
+        state=state,
+        duration_ms=duration_ms,
+    )
+
+
+@task_failure.connect
+def task_failed(task_id, exception, args, kwargs, traceback, einfo, **kw):
+    """Log when a task fails"""
+    start_time = _task_start_times.pop(task_id, None)
+    duration_ms = round((time.time() - start_time) * 1000, 2) if start_time else None
+
+    logger.error(
+        "task_failed",
+        task_id=task_id,
+        error=str(exception),
+        error_type=type(exception).__name__,
+        duration_ms=duration_ms,
+    )
+
+
+@task_retry.connect
+def task_retrying(request, reason, einfo, **kw):
+    """Log when a task is being retried"""
+    logger.warning(
+        "task_retry",
+        task_id=request.id,
+        task_name=request.task,
+        retry_count=request.retries,
+        reason=str(reason),
+    )

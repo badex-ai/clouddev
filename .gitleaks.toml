@@ -1,0 +1,40 @@
+title = "Gitleaks Config for CloudDev"
+
+# Global allowlist for Auth0 public identifiers
+[allowlist]
+description = "Auth0 Client IDs are public values per Auth0 documentation"
+regexes = [
+  'AUTH0_CLIENT_ID',            
+  'AUTH0_M2M_CLIENT_ID',        
+  'AUTH0_DOMAIN',               
+  'AUTH0_AUDIENCE',             
+]
+
+# Alternatively, use path-based allowlist
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(?:key|api|token|secret|password)[\s]*(?:=|:)[\s]*['\"]?([a-zA-Z0-9_\-]{32,})['\"]?'''  # KEEP AS IS (complex regex needs ''')
+
+[rules.allowlist]
+description = "Allow Auth0 public values in Kubernetes configs"
+paths = [
+  'infrastructure/k8s/values-.*\.yaml',    
+'''\.env\.example$''',     
+  '''\.tfvars\.example$''',  
+]
+regexes = [
+  'AUTH0.*CLIENT.*ID',         
+]
+
+[[rules]]
+id = "env-file-committed"
+description = ".env files should never be committed"
+regex = '\.env'               
+path = '''\.env$'''
+
+[rules.allowlist]  # ADD THIS SECTION
+description = "Allow .env.example files"
+paths = [
+  '''\.env\.example$''',
+]

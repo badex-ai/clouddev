@@ -7,9 +7,9 @@ values-secrets-staging.yaml
 # Terraform
 **/.terraform/*
 *.tfstate
-*.tfstate.*
-*.tfvars         
+*.tfstate.*        
 *.tfvars.json
+tfplan
 **/.terraform.lock.hcl
 crash.log
 crash.*.log
@@ -17,6 +17,10 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+secrets.tfvars
+production-secrets.tfvars
+values-secrets*.yaml
 
 # Terraform plans
 *.tfplan
@@ -28,3 +32,5 @@ backend/verify_celery_config.py
 
 # Temporary files
 diff.txt
+charts/adot-collector/
+!.env.example

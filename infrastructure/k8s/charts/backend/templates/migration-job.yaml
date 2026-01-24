@@ -1,0 +1,41 @@
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "backend.fullname" . }}-migration-{{ .Release.Revision }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  annotations:
+    "helm.sh/hook": pre-upgrade,pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 100
+  backoffLimit: 10 
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        {{- include "backend.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migration
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["alembic", "upgrade", "head"]
+        env:                           
+        - name: PGPASSWORD      
+          valueFrom:                   
+            secretKeyRef:              
+              name: {{ include "backend.fullname" . }}-secrets 
+              key: DB_PASSWORD  
+        envFrom:
+        - configMapRef:
+            name: {{ include "backend.fullname" . }}-config
+        - secretRef:
+            name: {{ include "backend.fullname" . }}-secrets  
+{{- end }}

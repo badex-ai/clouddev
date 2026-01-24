@@ -20,7 +20,7 @@ class UserRole(str, Enum):
 
 class TaskStatus(str, Enum):
     initialised = "initialised"
-    in_progress = "in-progress"
+    in_progress = "in_progress"
     completed = "completed"
 
 class ChecklistItem(BaseModel):
@@ -216,8 +216,9 @@ class GetTasks(BaseModel):
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
-    content: Optional[str] = None
-    published: Optional[bool] = None
+    description: Optional[str] = None
+    status: Optional[TaskStatus] = None
+    checklist: Optional[List[ChecklistItem]] = None
 
 
 class TaskResponse(TaskBase):

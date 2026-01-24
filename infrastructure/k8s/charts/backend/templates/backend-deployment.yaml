@@ -10,6 +10,10 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
+  {{- with .Values.strategy }}       
+  strategy:                            
+    {{- toYaml . | nindent 4 }}       
+  {{- end }}  
   selector:
     matchLabels:
       {{- include "backend.selectorLabels" . | nindent 6 }}
@@ -68,6 +72,17 @@ spec:
                 configMapKeyRef:
                   name: {{ include "backend.fullname" $ }}-config
                   key: {{ $key }}
+            {{- end }}
+            
+            # Secret values (sensitive) - ADDED THIS BLOCK
+            {{- if .Values.secrets.enabled }}
+            {{- range $key, $value := .Values.secrets.data }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" $ }}-secrets
+                  key: {{ $key }}
+            {{- end }}
             {{- end }}
 
           {{- if .Values.volumeMounts }}

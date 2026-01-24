@@ -36,7 +36,7 @@ module "app_platform" {
   vpc_cidr = "10.2.0.0/16"
 
   # Larger instance types for production
-  node_group_instance_types = ["t3.meduim"]
+  node_group_instance_types = ["t3.medium"]
   node_group_desired_size   = 3
   node_group_min_size       = 2
   node_group_max_size       = 10
@@ -44,6 +44,13 @@ module "app_platform" {
   # Production DB configuration
   db_instance_class    = "db.t3.medium"
   db_allocated_storage = 100
+
+  # Application Secrets (passed via prod.tfvars)
+  auth0_client_secret     = var.auth0_client_secret
+  auth0_m2m_client_secret = var.auth0_m2m_client_secret
+  auth0_secret            = var.auth0_secret
+  brevo_api_key           = var.brevo_api_key
+  redis_password          = var.redis_password
 
   tags = {
     CostCenter = "production"

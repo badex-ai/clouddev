@@ -12,6 +12,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json ./
 COPY . .
 
+ARG NEXT_PUBLIC_RELEASE=STABLE
+ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
+
 EXPOSE 3000
 HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:3000/ || exit 1
@@ -25,15 +28,30 @@ ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
-# Separate builder for staging with Sentry
+# Separate builder for staging (stable) with Sentry
 FROM base AS builder-staging
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_RELEASE=STABLE
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_APP_ENV=staging
+ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
+RUN npm run build
+
+# Separate builder for staging canary with Sentry
+FROM base AS builder-staging-canary
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_RELEASE=CANARY
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_APP_ENV=staging
+ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 RUN npm run build
 
 # Separate builder for production with Sentry
@@ -76,12 +94,32 @@ RUN apk add --no-cache curl
 RUN addgroup --system --gid 1001 appgroup && \
   adduser --system --uid 1001 appuser --ingroup appgroup
 
-COPY --from=builder-staging /app/public ./public
 
 RUN mkdir .next && chown appuser:appgroup .next
 
 COPY --from=builder-staging --chown=appuser:appgroup /app/.next/standalone ./
 COPY --from=builder-staging --chown=appuser:appgroup /app/.next/static ./.next/static
+
+USER appuser
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
+
+CMD ["node", "server.js"]
+
+# Staging canary stage
+FROM base AS staging-canary
+
+RUN apk add --no-cache curl
+
+RUN addgroup --system --gid 1001 appgroup && \
+  adduser --system --uid 1001 appuser --ingroup appgroup
+
+RUN mkdir .next && chown appuser:appgroup .next
+
+COPY --from=builder-staging-canary --chown=appuser:appgroup /app/.next/standalone ./
+COPY --from=builder-staging-canary --chown=appuser:appgroup /app/.next/static ./.next/static
 
 USER appuser
 EXPOSE 3000

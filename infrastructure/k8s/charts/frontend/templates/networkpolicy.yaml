@@ -58,21 +58,8 @@ spec:
     {{- end }}
   {{- end }}
 
-  {{- if .Values.networkPolicy.egress.allowADOT }}
-  # 3. ADOT Collector
-  - to:
-    - podSelector:
-        matchLabels:
-          app: {{ .Values.networkPolicy.egress.adot.appLabel }}
-    ports:
-    {{- range .Values.networkPolicy.egress.adot.ports }}
-    - protocol: TCP
-      port: {{ . }}
-    {{- end }}
-  {{- end }}
-
   {{- if .Values.networkPolicy.egress.allowExternal }}
-  # 4. External access (HTTP/HTTPS)
+  # 3. External access (HTTP/HTTPS)
   - to:
     - ipBlock:
         cidr: 0.0.0.0/0

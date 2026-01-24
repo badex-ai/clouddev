@@ -60,6 +60,11 @@ variable "node_group_max_size" {
   default     = 2
 }
 
+variable "node_group_capacity_type" {
+  description = "Capacity type for node group (ON_DEMAND or SPOT)"
+  type        = string
+  default     = "ON_DEMAND"
+}
 
 variable "db_instance_class" {
   description = "RDS instance class"
@@ -115,17 +120,6 @@ variable "log_retention_days" {
   default     = 30
 }
 
-variable "enable_xray" {
-  description = "Enable X-Ray tracing"
-  type        = bool
-  default     = true
-}
-
-variable "enable_argocd" {
-  description = "Enable ArgoCD"
-  type        = bool
-  default     = true
-}
 
 variable "enable_cloudwatch_insights" {
   description = "Enable CloudWatch Container Insights"

@@ -28,8 +28,13 @@ spec:
         securityContext:
           {{- toYaml .Values.securityContext | nindent 12 }}
         {{- end }}
+        {{- if .Values.celeryWorker.image }}
+        image: "{{ .Values.celeryWorker.image.repository }}:{{ .Values.celeryWorker.image.tag | default .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.celeryWorker.image.pullPolicy | default .Values.image.pullPolicy }}
+        {{- else }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- end }}
         command: 
           - celery
           - -A
@@ -45,6 +50,25 @@ spec:
               configMapKeyRef:
                 name: {{ include "backend.fullname" $ }}-config
                 key: {{ $key }}
+          {{- end }}
+          
+          # Secret values (sensitive) - ADDED THIS BLOCK
+          {{- if .Values.secrets.enabled }}
+          {{- range $key, $value := .Values.secrets.data }}
+          - name: {{ $key }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "backend.fullname" $ }}-secrets
+                key: {{ $key }}
+          {{- end }}
+          {{- end }}
+          
+          # Additional env vars for celery worker (from values.celeryWorker.env)
+          {{- if .Values.celeryWorker.env }}
+          {{- range .Values.celeryWorker.env }}
+          - name: {{ .name }}
+            value: {{ .value | quote }}
+          {{- end }}
           {{- end }}
         
         # ✅ ADDED: Mount secrets as files (like Deployment A)

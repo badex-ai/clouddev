@@ -8,29 +8,11 @@ from fastapi import HTTPException, status, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 import httpx
-import structlog
-import logging
 
-# Configure structlog for production-ready logging
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.TimeStamper(fmt="iso", utc=True),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
-        if os.getenv("ENVIRONMENT") == "production"
-        else structlog.dev.ConsoleRenderer(colors=True),
-    ],
-    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-    context_class=dict,
-    logger_factory=structlog.PrintLoggerFactory(),
-    cache_logger_on_first_use=True,
-)
+# Use centralized logging configuration
+from config.logging import get_logger
 
-logger = structlog.get_logger()
+logger = get_logger("error_handler")
 
 
 class ErrorCode(str, Enum):

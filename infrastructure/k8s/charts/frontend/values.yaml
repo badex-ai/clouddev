@@ -1,16 +1,21 @@
-
 replicaCount: 1
 
+global:
+  namespace: "default"
 
 image:
   repository: badex360/kaban-frontend
   tag: latest
-  pullPolicy:  Always
+  pullPolicy: Always
 
-
+externalSecrets:
+  enabled: false
+  refreshInterval: "1h"
+  secretName: ""
 
 configMap:
   enabled: true
+  data: {}
   
 
 # Secrets (sensitive data)
@@ -49,11 +54,6 @@ networkPolicy:
       appLabel: backend
       ports: []  # Empty by default
     
-    allowADOT: true  # Default to false
-    adot:
-      appLabel: adot-collector
-      ports: []
-    
     allowExternal: true  # Default to false
     externalPorts: []
 
@@ -65,6 +65,13 @@ readinessProbe:
   httpGet:
     path: /
     port: http
+
+canary:
+  enabled: false
+  replicas: 1
+  image:
+    repository: "badex360/kaban-frontend-canary"
+    tag: "latest"
 
 autoscaling:
   enabled: false

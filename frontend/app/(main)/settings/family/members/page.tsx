@@ -35,6 +35,7 @@ import {
   reactivateFamilymember,
 } from '@/lib/actions/userActions';
 import { cn } from '@/lib/utils';
+import { getErrorMessage } from '@/lib/errors';
 import * as changeCase from 'change-case';
 
 export default function MemberSettingsPage() {
@@ -119,11 +120,8 @@ export default function MemberSettingsPage() {
         setIsDialogOpen(false);
       }
     } catch (error) {
-      // console.log(error, 'tis is te error ');
-
-      const message = error instanceof Error ? error.message : String(error);
       toast('Family member creation Error', {
-        description: message,
+        description: getErrorMessage(error),
         action: {
           label: 'Close',
           onClick: () => {
@@ -162,11 +160,8 @@ export default function MemberSettingsPage() {
       )
     );
   } catch (error) {
-    console.error('Error deactivating family member:', error);
-
-    const message = error instanceof Error ? error.message : String(error);
     toast('Deactivation failed', {
-      description: message,
+      description: getErrorMessage(error),
       action: {
         label: 'Close',
         onClick: () => {
@@ -201,11 +196,8 @@ export default function MemberSettingsPage() {
         )
       );
     } catch (error) {
-      console.error('Error reactivating family member:', error);
-
-      const message = error instanceof Error ? error.message : String(error);
       toast('Reactivation failed', {
-        description: message,
+        description: getErrorMessage(error),
         action: {
           label: 'Close',
           onClick: () => {
