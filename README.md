@@ -252,18 +252,168 @@ terraform init
 terraform plan -var-file="staging.tfvars" -out=tfplan
 terraform apply tfplan
 
-## Monitoring & Observability
+## CI/CD Deployment
 
-- **Error Tracking:** Sentry (configured in frontend)
-- **Logging:** Centralized logging in cloudwatch
+### Overview
 
+Automated deployment pipeline using GitHub Actions to deploy the application to AWS EKS.
 
+**Pipeline Flow:**
+```
+Build Docker Images → Terraform Apply → Helm Deploy → Database Migrations
+```
 
-## License
+### Prerequisites
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+#### GitHub Secrets
 
+**AWS Credentials:**
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
 
----
+**Docker Hub:**
+- `DOCKER_HUB_USERNAME`
+- `DOCKER_HUB_PASSWORD`
 
-**Made by Me **
+**Terraform Secrets:**
+- `TF_VAR_AUTH0_CLIENT_SECRET`
+- `TF_VAR_AUTH0_M2M_CLIENT_SECRET`
+- `TF_VAR_AUTH0_SECRET`
+- `TF_VAR_BREVO_API_KEY`
+
+#### GitHub Variables
+
+- `AWS_REGION`
+- `EKS_CLUSTER_NAME`
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_SENTRY_DSN`
+
+### Deployment Process
+
+#### Automatic Deployment
+```bash
+git push origin staging
+```
+
+#### Manual Deployment
+```bash
+# Via GitHub UI: Actions → Deploy to Staging → Run workflow
+# Via CLI:
+gh workflow run deploy-staging.yml
+```
+
+### Pipeline Stages
+
+#### 1. Build & Push Images
+Builds four Docker images and pushes to Docker Hub:
+- Backend API (`staging` target)
+- Celery Worker (`celery-worker` target)
+- Frontend Stable (`NEXT_PUBLIC_RELEASE=STABLE`)
+- Frontend Canary (`NEXT_PUBLIC_RELEASE=CANARY`)
+
+Tags: `latest` and `staging-{git-sha}`
+
+#### 2. Terraform
+- Runs `terraform plan -var-file="staging.tfvars" -out=tfplan`
+- Applies infrastructure changes with `terraform apply tfplan`
+
+#### 3. Helm Deploy
+- Connects to EKS cluster
+- Scales down Celery for migration
+- Deploys via Helm with new image tags
+- Runs database migrations
+- Verifies all deployments
+
+### Monitoring
+
+#### View Deployment Status
+```bash
+# Watch workflow
+gh run watch
+
+# Check pods
+kubectl get pods -n kaban
+
+# View logs
+kubectl logs -n kaban -l app=kaban-backend --tail=50
+kubectl logs -n kaban -l app=kaban-celery-worker --tail=50
+kubectl logs -n kaban -l app=frontend,version=stable --tail=50
+kubectl logs -n kaban -l app=frontend,version=canary --tail=50
+```
+
+#### CloudWatch Logs
+Logs are automatically sent to:
+- `/aws/eks/kaban-staging/backend`
+- `/aws/eks/kaban-staging/celery`
+- `/aws/eks/kaban-staging/frontend`
+
+### Rollback
+```bash
+# View release history
+helm history kaban -n kaban
+
+# Rollback to previous release
+helm rollback kaban -n kaban
+
+# Rollback to specific revision
+helm rollback kaban 3 -n kaban
+
+# Verify
+kubectl get pods -n kaban
+kubectl rollout status deployment/kaban-backend -n kaban
+```
+
+### Canary Deployments
+
+Two frontend versions run simultaneously:
+- **Stable:** Main production frontend
+- **Canary:** Test version for new features
+
+Traffic distribution configured in `values-aws-staging.yaml`:
+```yaml
+frontend:
+  canary:
+    enabled: true
+    trafficWeight: 10  # 10% to canary
+```
+
+### Troubleshooting
+
+#### Terraform Issues
+
+**State lock error:**
+```bash
+cd infrastructure/terraform/environment/staging
+terraform force-unlock <LOCK_ID>
+```
+
+#### Deployment Issues
+
+**Check pod status:**
+```bash
+kubectl get pods -n kaban
+kubectl describe pod <pod-name> -n kaban
+kubectl get events -n kaban --sort-by='.lastTimestamp' | tail -20
+```
+
+**Migration failures:**
+```bash
+# View migration status
+kubectl get jobs -n kaban -l app.kubernetes.io/component=migration
+
+# Check logs
+kubectl logs -n kaban -l app.kubernetes.io/component=migration --tail=100
+
+# Manual migration
+kubectl exec -it -n kaban deployment/kaban-backend -- alembic upgrade head
+```
+
+**Image pull errors:**
+```bash
+# Verify image exists
+docker pull <username>/kaban-backend:staging-<sha>
+
+# Check secrets
+kubectl get secrets -n kaban
+```
+
