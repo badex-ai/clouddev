@@ -1,14 +1,13 @@
 # Project Name
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](link)
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-orange)](link)
+KABAN
 
 > A brief, compelling description of what your application does and why it matters. Keep it to 1-2 sentences.
 
 ## Table of Contents
 
 - [Overview](#overview)
+  - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -16,15 +15,23 @@
   - [Development](#development)
 - [Project Structure](#project-structure)
 - [Deployment](#deployment)
-- 
+  - [Local Development](#local-development)
+  - [Docker Deployment](#docker-deployment)
+  - [Kubernetes Deployment](#kubernetes-deployment)
+  - [Terraform Infrastructure](#terraform-infrastructure)
+- [CI/CD Deployment](#cicd-deployment)
+  - [Overview](#overview-1)
+  - [Prerequisites](#prerequisites-1)
+  - [Deployment Process](#deployment-process)
+  - [Pipeline Stages](#pipeline-stages)
+  - [Monitoring](#monitoring)
+  - [Rollback](#rollback)
+  - [Canary Deployments](#canary-deployments)
+  - [Troubleshooting](#troubleshooting
 
 ## Overview
 
-This project showcases a production-grade microservices architecture deployed on Kubernetes, designed to demonstrate modern cloud-native development practices and infrastructure-as-code principles. The application leverages AWS Elastic Kubernetes Service (EKS) for orchestration while providing a fully-functional local development environment using MicroK8s.
-What Makes This Project Special
-Cloud-Native Architecture: Built from the ground up as a distributed system with independent, scalable microservices that communicate asynchronously through message queues and cache layers.
-Infrastructure as Code: Complete infrastructure automation using Terraform for AWS resource provisioning and Helm charts for Kubernetes deployment management, ensuring reproducible and version-controlled infrastructure.
-Development Flexibility: Seamless transition between local development (Docker Compose), local Kubernetes testing (MicroK8s), and cloud deployment (AWS EKS) without code changes.
+This project showcases a production-grade microservices architecture deployed on Kubernetes, designed to demonstrate modern cloud-native development practices and infrastructure-as-code principles. The application leverages AWS Elastic Kubernetes Service (EKS) for orchestration while providing a fully-functional local development environment using MicroK8s..
 
 
 
@@ -47,7 +54,6 @@ Development Flexibility: Seamless transition between local development (Docker C
 **Infrastructure**
 - Docker & Docker Compose
 - Kubernetes (K8s)
-- ArgoCD for GitOps
 - Terraform for IaC
 
 **Infrastructure components**
@@ -95,7 +101,7 @@ Before you begin, ensure you have the following installed:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-org/your-repo.git
+git clone https://github.com/badex-ai/clouddev.git
 cd your-repo
 ```
 
@@ -184,7 +190,6 @@ task setup-k8s-local
 ├── infrastructure/         # DevOps & Infrastructure
 │   ├── k8s/               # Kubernetes manifests
 │   ├── scripts/           # Automation scripts
-│   ├── security/          # Security configs
 │   └── terraform/         # Terraform IaC
 │
 ├── docker-compose.*.yaml  # Docker Compose configs
@@ -220,7 +225,7 @@ docker compose \
   up -d
 ```
 
-### Docker Deployment
+### Docker Image Build
 
 ```bash
 # Build images
@@ -230,24 +235,18 @@ docker-compose build
 ### Kubernetes Deployment
 
 ```bash
-# Set up local K8s
-./localk8sSetup
-
-
 
 # Apply K8s manifests
 kubectl apply -f infrastructure/k8s/
 
 ```
 
-Taskfile.yaml (contains tasks methods you can apply ) 
-
 ### Terraform Infrastructure
 
 ```bash
 cd infrastructure/terraform
 terraform init
-terraform plan -var-file="staging.tfvars" -out=tfplan
+terraform plan   -var-file="staging.tfvars"   -var-file="secrets.tfvars"   -out=tfplan
 terraform apply tfplan
 
 ## CI/CD Deployment
@@ -372,18 +371,9 @@ Traffic distribution configured in `values-aws-staging.yaml`:
 frontend:
   canary:
     enabled: true
-    trafficWeight: 10  # 10% to canary
+    trafficWeight: 40 
 ```
 
-### Troubleshooting
-
-#### Terraform Issues
-
-**State lock error:**
-```bash
-cd infrastructure/terraform/environment/staging
-terraform force-unlock <LOCK_ID>
-```
 
 #### Deployment Issues
 
@@ -406,19 +396,10 @@ kubectl logs -n kaban -l app.kubernetes.io/component=migration --tail=100
 kubectl exec -it -n kaban deployment/kaban-backend -- alembic upgrade head
 ```
 
-**Image pull errors:**
-```bash
-# Verify image exists
-docker pull <username>/kaban-backend:staging-<sha>
-
-# Check secrets
-kubectl get secrets -n kaban
-
 
 ![Backend Log](assets/backndLog.png)
 ![Backend Logs](assets/backndLogs.png)
 ![Backend Log Group](assets/bckLogrp.png)
-![Canary Frontend](assets/canaryFrntend.png)
 ![Celery Log](assets/celeryLog.png)
 ![CI/CD Pipeline](assets/cicd.png)
 ![Container](assets/container.png)
@@ -428,5 +409,6 @@ kubectl get secrets -n kaban
 ![Frontend Stable Logs](assets/frntndStablelogs.png)
 ![Log Group](assets/loggrp.png)
 ![Pods](assets/pods.png)
+![Canary Frontend](assets/canaryFrntend.png)
 ![Stable Frontend](assets/stableFrntend.png)```
 
