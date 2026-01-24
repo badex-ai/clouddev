@@ -128,7 +128,7 @@ function Dashboard() {
     if (!tasks) return;
 
     const previousTasks = [...tasks];
-    const typedStatus = newStatus as 'initialised' | 'in-progress' | 'completed';
+    const typedStatus = newStatus as 'initialised' | 'in_progress' | 'completed';
 
     // Optimistic update
     setTasks((tasks) =>

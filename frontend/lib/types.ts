@@ -43,7 +43,7 @@ interface AddTaskModalProps {
   initialStatus: string;
 }
 
-type TaskStatus = 'initialised' | 'completed' | 'in-progress';
+type TaskStatus = 'initialised' | 'completed' | 'in_progress';
 
 interface CreateTask {
   title: string;
