@@ -65,7 +65,11 @@ ingress:
               "servicePort": 80,
               "weight": 40
             }
-          ]
+          ],
+          "targetGroupStickinessConfig": {
+          "enabled": true,
+          "durationSeconds": 3600
+          }
         }
       }
  
