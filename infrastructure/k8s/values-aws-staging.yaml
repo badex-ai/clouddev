@@ -55,14 +55,14 @@ ingress:
         "type": "forward",
         "forwardConfig": {
           "targetGroups": [
-            {
-              "serviceName": "{{ include "frontend.fullname" . }}-service",
-              "servicePort": "80",
+             {
+              "serviceName": "kaban-frontend-service",
+              "servicePort": 80,
               "weight": 60
             },
             {
-              "serviceName": "{{ include "frontend.fullname" . }}-canary-service",
-              "servicePort": "80",
+              "serviceName": "kaban-frontend-canary-service",
+              "servicePort": 80,
               "weight": 40
             }
           ]
