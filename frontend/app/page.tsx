@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 export default async function LandingPage() {
   const session = await auth0.getSession();
   const today = format(new Date(), 'yyyy-MM-dd');
+  const RELEASE = process.env.NEXT_PUBLIC_RELEASE;
 
   if (session) {
     redirect(`/dashboard?d=${today}`);
@@ -18,6 +19,7 @@ export default async function LandingPage() {
     <div>
       {!session && (
         <div className="min-h-screen flex flex-col bg-background text-foreground">
+
           {/* Header */}
           <header className="flex items-center justify-between px-6 py-4 border-b bg-white shadow-sm">
             <div className="text-2xl font-bold text-indigo-600">Kaban</div>
@@ -42,6 +44,14 @@ export default async function LandingPage() {
               </a>
             </nav>
           </header>
+
+          {RELEASE === "CANARY" && (
+          <div style={{ paddingLeft: '12px' }}>
+            <div className="bg-gradient-to-r from-blue-500 to-blue-700 px-6 py-1.5 inline-block shadow-md rounded-br rounded-bl">
+              <span className="text-white text-sm font-bold tracking-widest">CANARY</span>
+            </div>
+          </div>
+          )}
 
           <main className="flex-grow flex items-center justify-center px-6 py-16">
             <div className="max-w-2xl text-center">
