@@ -18,7 +18,7 @@
 
 global:
   namespace: kaban
-  albDns: "k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com"
+  albDns: "k8s-kaban-kabaning-9bbac5ac2a-2136185510.us-west-2.elb.amazonaws.com"
 
 # AWS Configuration
 aws:
@@ -125,10 +125,10 @@ backend:
     enabled: true
     data:
       # CORS configuration
-      CORS_ALLOWED_ORIGINS: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com"
+      CORS_ALLOWED_ORIGINS: "http://k8s-kaban-kabaning-9bbac5ac2a-2136185510.us-west-2.elb.amazonaws.com"
       AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
       AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
-      AUTH0_API_AUDIENCE: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com/api"
+      AUTH0_API_AUDIENCE: "http://k8s-kaban-kabaning-9bbac5ac2a-2136185510.us-west-2.elb.amazonaws.com/api"
       AUTH0_M2M_CLIENT_ID: "7FBTiFT94EPx0MCoorcPAwgM771nTTiX"
       # Database - populated from Terraform output
       DB_HOST: "kaban-staging-postgres.cn08y2iymedv.us-west-2.rds.amazonaws.com"
@@ -251,15 +251,15 @@ frontend:
     enabled: true
     data:
       # Auth0 Configuration
-      AUTH0_BASE_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com"
+      AUTH0_BASE_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-2136185510.us-west-2.elb.amazonaws.com"
       AUTH0_ISSUER_BASE_URL: "https://dev-b58ldaey.us.auth0.com"
       AUTH0_DOMAIN: "dev-b58ldaey.us.auth0.com"
       AUTH0_CLIENT_ID: "WS4vRguNb8CxhvU8vDYUC0f8w2LT0hfs"
       AUTH0_SCOPE: "openid profile email"
       AUTH0_AUDIENCE: "https://dev-b58ldaey.us.auth0.com/userinfo"
       # Application URLs
-      APP_BASE_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com"
-      NEXT_PUBLIC_API_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-1301918061.us-west-2.elb.amazonaws.com/api"
+      APP_BASE_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-2136185510.us-west-2.elb.amazonaws.com"
+      NEXT_PUBLIC_API_URL: "http://k8s-kaban-kabaning-9bbac5ac2a-2136185510.us-west-2.elb.amazonaws.com/api"
       BACKEND_URL: "http://kaban-backend-service:8000"
       ENVIRONMENT: "staging"
       # Logging - Distinguish this component's logs
