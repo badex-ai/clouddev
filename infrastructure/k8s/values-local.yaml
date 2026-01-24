@@ -33,7 +33,7 @@ ingress:
 
 
 database:
-  host: "192.168.0.110"  # Your local PostgreSQL host
+  host: "192.168.0.110"  
   port: 5432
   name: "clouddev"
   user: "ali"
@@ -66,13 +66,13 @@ frontend:
       # Allow traffic from Ingress Controller (nginx)
       allowFromIngressController: true
       ingressControllerNamespace:
-        kubernetes.io/metadata.name: ingress  # or kube-system, check your ingress namespace
+        kubernetes.io/metadata.name: ingress  
     
     egress:
-      # Allow DNS resolution
+      
       allowDNS: true
       
-      # Allow backend communication
+      
       allowBackend: true
       backend:
         appLabel: backend
@@ -81,11 +81,11 @@ frontend:
       # Allow external HTTPS (for Auth0, etc)
       allowExternal: true
       externalPorts:
-        - 443   # HTTPS
+        - 443   
         - 80  
 
   externalSecrets:
-    enabled: false  # ← Uses secret.yaml with values-secrets.yaml
+    enabled: false  
   
 
 
@@ -126,7 +126,7 @@ backend:
   image:
     repository: kaban-backend
     tag: latest
-    pullPolicy: Never  # Use local image
+    pullPolicy: Never  
 
   config:
     DATABASE_URL: "postgresql://postgres:foobared@host.docker.internal:5432/kaban"
@@ -155,7 +155,7 @@ backend:
         port: 5432
       allowRedis: true
       redis:
-        useIPBlock: true              # TRUE for external
+        useIPBlock: true            
         cidr: "192.168.0.110/32"     
 
 

@@ -242,7 +242,7 @@ jobs:
           done
         env:
           KUBECONFIG: ${{ runner.temp }}/kubeconfig
-      - name: Debug pod failures # ← ADD THIS ENTIRE BLOCK HERE
+      - name: Debug pod failures
         if: failure()
         run: |
           echo "=== Pod Status ==="

@@ -48,7 +48,7 @@ tasks:
     cmds:
       - uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-  # Testing (if you have tests)
+  # Testing 
   test:
     desc: Run all tests
     cmds:
@@ -84,7 +84,7 @@ tasks:
     cmds:
       - pytest tests/test_family -v
 
-  # Database migrations (if using Alembic)
+  # Database migrations using Alembic
   db:migrate:
     desc: Run database migrations
     cmds:
