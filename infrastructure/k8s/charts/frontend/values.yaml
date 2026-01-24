@@ -70,8 +70,8 @@ canary:
   enabled: false
   replicas: 1
   image:
-    repository: ""
-    tag: "canary"
+    repository: "badex360/kaban-frontend-canary"
+    tag: "latest"
 
 autoscaling:
   enabled: false
