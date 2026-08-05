@@ -56,6 +56,12 @@ variable "log_retention_days" {
   default     = 30
 }
 
+variable "alarm_email" {
+  description = "Address subscribed to the CloudWatch alarm topic. Empty creates the topic with no subscriber, so alarms fire into nothing."
+  type        = string
+  default     = ""
+}
+
 variable "node_group_min_size" {
   description = "Minimum number of nodes in EKS node group"
   type        = number

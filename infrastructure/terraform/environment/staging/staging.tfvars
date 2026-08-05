@@ -22,3 +22,15 @@ log_retention_days = 7
 # ElastiCache (auto-generates password)
 enable_elasticache = true
 
+# Alarms
+#
+# alarm_email is deliberately not set here. Supply it at apply time so the
+# address is not tracked in the repo:
+#
+#   export TF_VAR_alarm_email="you@example.com"
+#
+# Left empty the topic is still created, but with no subscriber — the alarms
+# publish into it and nobody is told. The SNS subscription is also confirmed
+# by email once, on first apply; until that link is clicked it delivers
+# nothing either.
+

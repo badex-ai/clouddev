@@ -81,6 +81,9 @@ module "app_platform" {
   db_instance_class    = "db.t3.micro"
   db_allocated_storage = 20
 
+  # Alarms
+  alarm_email = var.alarm_email
+
   # Application Secrets (passed via staging.tfvars)
   auth0_client_secret     = var.auth0_client_secret
   auth0_m2m_client_secret = var.auth0_m2m_client_secret
