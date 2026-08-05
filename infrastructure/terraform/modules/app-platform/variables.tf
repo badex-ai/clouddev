@@ -188,6 +188,49 @@ variable "elasticache_engine_version" {
   default     = "7.1"
 }
 
+# Alarms
+variable "alarms_enabled" {
+  description = "Create CloudWatch alarms and the SNS topic they publish to"
+  type        = bool
+  default     = true
+}
+
+variable "alarm_email" {
+  description = "Address subscribed to the alarm topic. Empty creates the topic with no subscriber."
+  type        = string
+  default     = ""
+}
+
+variable "rds_free_storage_threshold_percent" {
+  description = "Alarm when RDS free storage drops below this percentage of allocated storage"
+  type        = number
+  default     = 20
+}
+
+variable "rds_cpu_threshold_percent" {
+  description = "Alarm when RDS CPU stays above this percentage"
+  type        = number
+  default     = 80
+}
+
+variable "rds_connection_threshold" {
+  description = "Alarm above this connection count. Sized against the instance class — db.t3.micro allows roughly 85."
+  type        = number
+  default     = 50
+}
+
+variable "redis_memory_threshold_percent" {
+  description = "Alarm when Redis memory usage exceeds this percentage"
+  type        = number
+  default     = 80
+}
+
+variable "node_memory_threshold_percent" {
+  description = "Alarm when node memory utilisation exceeds this percentage"
+  type        = number
+  default     = 85
+}
+
 variable "elasticache_transit_encryption" {
   description = "Enable transit encryption (TLS) for ElastiCache"
   type        = bool

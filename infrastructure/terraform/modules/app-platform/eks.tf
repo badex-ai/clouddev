@@ -30,6 +30,15 @@ module "eks" {
       most_recent              = true
       service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
     }
+    # Publishes the ContainerInsights metrics the node alarms read. Without
+    # it those alarms have no datapoints, and because they treat missing data
+    # as not breaching they would sit green forever while measuring nothing.
+    # The IRSA role in cloudwatch.tf was already bound to this addon's
+    # service account before the addon itself existed.
+    amazon-cloudwatch-observability = {
+      most_recent              = true
+      service_account_role_arn = module.cloudwatch_observability_irsa.iam_role_arn
+    }
   }
 
   # EKS Managed Node Groups

@@ -368,12 +368,20 @@ Two frontend versions run simultaneously:
 - **Stable:** Main production frontend
 - **Canary:** Test version for new features
 
-Traffic distribution configured in `values-aws-staging.yaml`:
+Traffic is split by the ALB itself, through a weighted-routing action on the
+Ingress in `values-aws-staging.yaml` — not by a Helm value:
+
 ```yaml
-frontend:
-  canary:
-    enabled: true
-    trafficWeight: 40 
+alb.ingress.kubernetes.io/actions.weighted-routing: |
+  {
+    "type": "forward",
+    "forwardConfig": {
+      "targetGroups": [
+        { "serviceName": "kaban-frontend-service",        "servicePort": 80, "weight": 90 },
+        { "serviceName": "kaban-frontend-canary-service", "servicePort": 80, "weight": 10 }
+      ]
+    }
+  }
 ```
 
 
