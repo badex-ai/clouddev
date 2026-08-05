@@ -5,13 +5,14 @@
 # fills, a database that stays pinned, a cache evicting keys the workers expect
 # to still be there.
 #
-# Pod CPU and memory are not alarmed here. The charts point their HPAs at both
-# signals at 70%, so alarming the same metric would duplicate the control that
-# is supposed to handle it. Worth being honest about the current state though:
-# the backend HPA is pinned at minReplicas 1 / maxReplicas 1 and the frontend
-# one is disabled, so today nothing is actually acting on those signals. That
-# is a gap in the charts rather than an argument for alarming here — an alarm
-# on pod memory would fire on a condition no one can respond to.
+# Pod CPU and memory are not alarmed here, for two reasons that point the same
+# way. The charts aim their HPAs at both signals at 70%, so alarming the same
+# metric would duplicate the control meant to handle it. And the ceiling is
+# deliberate: maxReplicas is pinned at 1 on the backend and the frontend HPA is
+# off, because staging is a single t3.small SPOT node and giving the autoscaler
+# room to move would spend money without changing what this environment
+# demonstrates. Either way an alarm on pod memory would fire on a condition
+# nothing here is able to act on.
 #
 # The ALB is not alarmed here. It is created by the AWS Load Balancer
 # Controller from the Ingress rather than by Terraform, so its ARN suffix —
