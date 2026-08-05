@@ -1,18 +1,24 @@
 # ============================================================================
 # ALARMS
 #
-# Deliberately narrow. Pod CPU and memory are not alarmed here: the HPAs
-# already act on those signals at 70% (charts/*/templates/hpa.yaml), so an
-# alarm on the same metric would page for a condition the cluster is in the
-# middle of handling by itself.
+# Deliberately narrow: the conditions nothing else recovers from — a disk that
+# fills, a database that stays pinned, a cache evicting keys the workers expect
+# to still be there.
 #
-# What is left is the set of conditions nothing else recovers from — a disk
-# that fills, a database that stays pinned, a cache evicting keys the workers
-# expect to still be there.
+# Pod CPU and memory are not alarmed here. The charts point their HPAs at both
+# signals at 70%, so alarming the same metric would duplicate the control that
+# is supposed to handle it. Worth being honest about the current state though:
+# the backend HPA is pinned at minReplicas 1 / maxReplicas 1 and the frontend
+# one is disabled, so today nothing is actually acting on those signals. That
+# is a gap in the charts rather than an argument for alarming here — an alarm
+# on pod memory would fire on a condition no one can respond to.
 #
 # The ALB is not alarmed here. It is created by the AWS Load Balancer
-# Controller from the Ingress rather than by Terraform, so there is no stable
-# ARN suffix to point a CloudWatch dimension at from this module.
+# Controller from the Ingress rather than by Terraform, so its ARN suffix —
+# which is what an AWS/ApplicationELB dimension needs — is not known to this
+# module at plan time. A tag-keyed `data "aws_lb"` lookup could resolve it;
+# that is a real option, declined for a staging environment rather than
+# impossible.
 # ============================================================================
 
 resource "aws_sns_topic" "alarms" {
